@@ -222,7 +222,9 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .story-grid .angle .t { font-size: 14.5px; }
 .more-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 18px; }
 .more-grid .story.card h3 { font-size: 18px; }
-.more-grid .angle, .story-grid .angle { grid-template-columns: 170px minmax(0, 1fr); }
+.story-grid .angle { grid-template-columns: 170px minmax(0, 1fr); }
+/* small cards: outlet name above its headline, at every screen width */
+.more-grid .angle { grid-template-columns: minmax(0, 1fr); gap: 4px; }
 
 /* ------------------------------------------------------------ 02 front pages */
 .pub-section .sub-head { margin: 44px 0 16px; }
