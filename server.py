@@ -28,10 +28,17 @@ from sources import DEFAULT_TOPICS, FINANCE_PUBS, MARKETS, NEGATIVE, POSITIVE, S
 ROOT = os.path.dirname(os.path.abspath(__file__))
 STATIC = os.path.join(ROOT, "static")
 DATA = os.path.join(ROOT, "data")
-HIST = os.path.join(DATA, "history")
+# GitHub's build keeps its history in the repo (data/); the local app keeps its own in .local/
+# so the two never edit the same files.
+CI = bool(os.environ.get("GITHUB_ACTIONS"))
+RUNTIME = DATA if CI else os.path.join(ROOT, ".local")
+HIST = os.path.join(RUNTIME, "history")
 LOGOS = os.path.join(DATA, "logos")
 TOPICS_FILE = os.path.join(DATA, "topics.json")
-OG_CACHE_FILE = os.path.join(DATA, "og_cache.json")
+OG_CACHE_FILE = os.path.join(RUNTIME, "og_cache.json")
+if not CI and not os.path.isdir(HIST) and os.path.isdir(os.path.join(DATA, "history")):
+    import shutil
+    shutil.copytree(os.path.join(DATA, "history"), HIST)  # start the local history from the repo's
 for d in (DATA, HIST, LOGOS):
     os.makedirs(d, exist_ok=True)
 
