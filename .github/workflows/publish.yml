@@ -1,0 +1,48 @@
+name: Publish Daily Brief
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # every 30 minutes (GitHub may run scheduled jobs a few minutes late)
+  workflow_dispatch:          # "Run workflow" button for a manual refresh
+  push:
+    branches: [main]
+
+permissions:
+  contents: write   # save headline history back to the repo
+  pages: write
+  id-token: write
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Fetch feeds and build the site
+        run: python3 build.py
+
+      - name: Save headline history
+        run: |
+          git config user.name "daily-brief-bot"
+          git config user.email "daily-brief-bot@users.noreply.github.com"
+          git add data/history data/og_cache.json data/logos data/topics.json data/markets_last.json
+          git diff --cached --quiet || git commit -m "Update headline history [skip ci]"
+          git pull --rebase --autostash && git push || echo "history push skipped"
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - id: deploy
+        uses: actions/deploy-pages@v4

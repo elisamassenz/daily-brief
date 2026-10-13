@@ -1,0 +1,8 @@
+# local-only
+Daily Brief.app/
+Start Daily Brief.command
+site/
+data/server.log
+__pycache__/
+*.pyc
+.DS_Store

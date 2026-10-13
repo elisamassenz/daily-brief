@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elisa’s Daily Brief</title>
+<link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="icon.png"><rect width='64' height='64' rx='16' fill='%23233127'/><circle cx='20' cy='38' r='7' fill='%23C7D5B6'/><circle cx='32' cy='26' r='7' fill='%23F3E09A'/><circle cx='44' cy='38' r='7' fill='%23F4C39F'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="topbar">
+    <div class="ticker" id="ticker" aria-label="Markets"></div>
+    <nav class="secnav" id="secnav">
+      <a href="#today"><span>01</span>Trending today</a>
+      <a href="#fronts"><span>02</span>Front pages</a>
+      <a href="#markets"><span>03</span>Markets &amp; money</a>
+      <a href="#weeks"><span>04</span>Over the weeks</a>
+    </nav>
+  </div>
+
+  <header class="masthead">
+    <div class="masthead-bar">
+      <div class="masthead-left">
+        <span id="today-date"></span>
+        <span class="dot">·</span>
+        <span id="updated">Loading…</span>
+        <button id="refresh" class="refresh" title="Fetch the latest headlines now">↻ Refresh</button>
+      </div>
+    </div>
+    <h1 class="masthead-title">Elisa’s Daily Brief</h1>
+  </header>
+
+  <main id="app">
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>Gathering today’s front pages from 24 publications…</p>
+      <p class="muted">The first load takes about 30 seconds.</p>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>Headlines come from each publication’s RSS feed. Reuters, AP and Barron’s come through Google News. Market data is from Yahoo Finance and may be delayed. Trends are detected automatically by matching headlines across publications. Logos via Wikimedia Commons.</p>
+  </footer>
+
+<script src="app.js"></script>
+</body>
+</html>
