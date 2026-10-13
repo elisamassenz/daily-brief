@@ -75,10 +75,12 @@ a.hl:hover, a.hl:hover .hl-text, .angle a:hover, .ex a:hover, .mnews:hover span 
 .topbar { position: sticky; top: 0; z-index: 20; }
 .ticker {
   background: var(--ticker-bg); color: var(--ticker-ink);
-  display: flex; justify-content: center; height: 36px; overflow-x: auto; scrollbar-width: none;
+  display: flex; height: 36px; overflow-x: auto; scrollbar-width: none;
   font-family: var(--mono); font-size: 12px;
 }
-.tick { display: inline-flex; align-items: center; gap: 9px; padding: 0 20px; white-space: nowrap; }
+.ticker > :first-child, .secnav > :first-child { margin-left: auto; }  /* centred when it fits, scrollable from the start when it doesn't */
+.ticker > :last-child, .secnav > :last-child { margin-right: auto; }
+.tick { flex: none; display: inline-flex; align-items: center; gap: 9px; padding: 0 20px; white-space: nowrap; }
 .tick + .tick { box-shadow: -1px 0 0 rgba(255, 255, 255, .08); }
 .tick:hover { background: rgba(255, 255, 255, .05); }
 .tick .nm { color: #a9b5a2; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
@@ -86,12 +88,12 @@ a.hl:hover, a.hl:hover .hl-text, .angle a:hover, .ex a:hover, .mnews:hover span 
 .tick .ch.up { color: #a7d9b3; }
 .tick .ch.down { color: #f2ab97; }
 .secnav {
-  display: flex; justify-content: center; gap: 6px; padding: 8px var(--gutter); overflow-x: auto; scrollbar-width: none;
+  display: flex; gap: 6px; padding: 8px var(--gutter); overflow-x: auto; scrollbar-width: none;
   background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid color-mix(in srgb, var(--rule) 70%, transparent);
 }
 .secnav a {
-  display: inline-flex; align-items: baseline; gap: 7px; padding: 6px 14px; border-radius: 999px; white-space: nowrap;
+  flex: none; display: inline-flex; align-items: baseline; gap: 7px; padding: 6px 14px; border-radius: 999px; white-space: nowrap;
   font-size: 13.5px; font-weight: 500; color: var(--ink-2); transition: background .2s, color .2s;
 }
 .secnav a span { font-family: var(--mono); font-size: 10.5px; color: var(--muted); }
@@ -117,11 +119,6 @@ a.hl:hover, a.hl:hover .hl-text, .angle a:hover, .ex a:hover, .mnews:hover span 
 }
 .refresh:hover { border-color: var(--accent-soft); }
 .refresh.busy { opacity: .5; pointer-events: none; }
-.masthead-mark { display: none; }
-.masthead-mark i { width: 11px; height: 11px; border-radius: 50%; display: block; }
-.masthead-mark i:nth-child(1) { background: #c7d5b6; }
-.masthead-mark i:nth-child(2) { background: #f3e09a; transform: translateY(-6px); }
-.masthead-mark i:nth-child(3) { background: #f4c39f; }
 .masthead-title {
   margin: 44px 0 40px; font-family: var(--serif); font-weight: 400; font-size: clamp(52px, 6vw, 84px); line-height: 1; letter-spacing: -.01em;
 }

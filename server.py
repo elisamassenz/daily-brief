@@ -204,7 +204,8 @@ though through to too toward two under until up upon us use used very via want w
 where whether which while who whom whose why will with within without won't would yet you your year years week weeks day days today
 time times first after amid back big top best report reports live latest update updates according people world help know look
 going goes come comes came here's isn't opinion analysis video photos watch podcast listen review newsletter could should might
-three four five six seven ten more most part story stories""".split())
+three four five six seven ten more most part story stories ahead exclusive record records warn warns warning
+here's could get set amid key behind""".split())
 
 WORD_RE = re.compile(r"[a-z0-9][a-z0-9'’.&-]*[a-z0-9]|[a-z0-9]")
 
@@ -449,10 +450,12 @@ def trending_stories(docs):
         for j in range(i + 1, n):
             if docs[j]["item"]["pub"] == pi:
                 continue
-            s = cosine(vi, docs[j]["vec"])
+            vj = docs[j]["vec"]
+            if len(vi.keys() & vj.keys()) < 2:
+                continue  # one shared word ("record", "ahead") isn't a shared story
+            s = cosine(vi, vj)
             if s >= 0.24:
                 sims[(i, j)] = s
-    # same-pub pairs can join a cluster too (lets a story's follow-ups attach)
     groups = merge_related(docs, [prune(docs, g) for g in cluster(docs, list(range(n)), sims, 0.26)])
     stories = []
     for g in groups:

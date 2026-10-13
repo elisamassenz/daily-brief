@@ -189,8 +189,10 @@
 
   function marketStateLabel() {
     const st = MKT?.movers?.market_state || "";
+    // Yahoo states: PRE / REGULAR / POST are live sessions; PREPRE, POSTPOST and CLOSED mean closed
     if (st === "REGULAR") return "Open";
-    if (st.startsWith("PRE")) return "Pre-market";
+    if (st === "PRE") return "Pre-market";
+    if (st === "POST") return "After hours";
     if (st) return "Closed";
     return "";
   }
@@ -433,7 +435,12 @@
   const navObserver = new IntersectionObserver((entries) => {
     entries.forEach((en) => {
       if (en.isIntersecting) {
-        document.querySelectorAll("#secnav a").forEach((a) => a.classList.toggle("on", a.getAttribute("href") === `#${en.target.id}`));
+        document.querySelectorAll("#secnav a").forEach((a) => {
+          const on = a.getAttribute("href") === `#${en.target.id}`;
+          a.classList.toggle("on", on);
+          // on narrow screens the bar scrolls sideways: keep the active tab visible
+          if (on) a.parentElement.scrollTo({ left: a.offsetLeft - 16, behavior: "smooth" });
+        });
       }
     });
   }, { rootMargin: "-30% 0px -65% 0px" });
