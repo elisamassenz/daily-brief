@@ -14,7 +14,7 @@ import sys
 import server
 
 SITE = os.path.join(server.ROOT, "site")
-LAST_MARKETS = os.path.join(server.DATA, "markets_last.json")
+LAST_MARKETS = os.path.join(server.RUNTIME, "markets_last.json")  # data/ on GitHub, .local/ on your Mac
 
 
 def main():

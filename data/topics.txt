@@ -1,0 +1,11 @@
+# Topics tracked in "Over the weeks" — one per line:
+#
+#   Topic name | search terms
+#
+# Search terms work like Google News: put phrases in "quotes", use OR between alternatives,
+# and brackets to group. Leave the search terms out to search for the name itself.
+# Example:
+#   Ozempic | ozempic OR wegovy OR "GLP-1"
+#
+Brain rot & the decline of reading | "brain rot" OR doomscrolling OR "reading for pleasure" OR "attention spans" OR "stopped reading" OR "can't read"
+AI and jobs | AI (layoffs OR "entry-level" OR "white-collar" OR "job losses")

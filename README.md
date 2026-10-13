@@ -6,10 +6,34 @@
 2. **Turn on the website.** In your new repository, go to **Settings → Pages**. Under "Source", choose **GitHub Actions**.
 3. **Make it yours.** Click a file, then the pencil icon to edit it, then **Commit changes**:
    - `sources.py`: change `SITE_TITLE` to your own name, e.g. `"Sam’s Daily Brief"`. You can also add or remove publications in the `SOURCES` list, or change the stock ticker in `MARKETS`.
-   - `data/topics.json`: the topics tracked "over the weeks". Each one has a `name` and a Google News-style `query`.
+   - `data/topics.txt`: the topics tracked in "Over the weeks". See **Track your own topics** below.
 4. **Publish.** Saving a file starts a build automatically. Watch it in the **Actions** tab (about 2 minutes). Your site will be at `https://YOUR-USERNAME.github.io/daily-brief/`. From then on, it refreshes itself every 30 minutes; nothing needs to stay running on your computer.
 
 Optional: to start your trend history from scratch, delete the files in `data/history/`.
+
+### Track your own topics
+"Over the weeks" follows topics you choose and charts how much your publications have covered each one over the last 4 weeks. Example headlines are listed underneath.
+
+To change them, open `data/topics.txt` on GitHub, click the pencil icon, and edit. It's one topic per line:
+
+```
+Topic name | search terms
+```
+
+For example:
+
+```
+Brain rot & the decline of reading | "brain rot" OR doomscrolling OR "attention spans"
+Ozempic | ozempic OR wegovy OR "GLP-1"
+Housing costs | rent OR mortgage OR "home prices"
+Loneliness
+```
+
+- Put phrases in "quotes", and use `OR` between alternatives.
+- Leave out the `|` and search terms to search for the topic name itself (like `Loneliness` above).
+- Delete a line to stop tracking that topic. Lines starting with `#` are notes and are ignored.
+
+Click **Commit changes**, and your site updates in about 2 minutes.
 
 ---
 
@@ -40,4 +64,4 @@ Data stays in `data/`. Delete `data/history` to reset trend history.
 ## Public site (GitHub Pages)
 `.github/workflows/publish.yml` runs `build.py` every 30 minutes on GitHub. That fetches everything, writes a read-only copy of the page to `site/`, and publishes it to GitHub Pages. It also commits the headline history back to the repo so trends keep building.
 
-On the public site, tracked topics are read-only. To change them, edit `data/topics.json` (or add them in the local app) and push. To refresh right away, open the repo's **Actions** tab, choose **Publish Daily Brief**, then **Run workflow**.
+On the public site, tracked topics are read-only. To change them, edit `data/topics.txt` (or add them in the local app) and push. To refresh right away, open the repo's **Actions** tab, choose **Publish Daily Brief**, then **Run workflow**.

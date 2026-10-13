@@ -34,7 +34,8 @@ CI = bool(os.environ.get("GITHUB_ACTIONS"))
 RUNTIME = DATA if CI else os.path.join(ROOT, ".local")
 HIST = os.path.join(RUNTIME, "history")
 LOGOS = os.path.join(DATA, "logos")
-TOPICS_FILE = os.path.join(DATA, "topics.json")
+TOPICS_FILE = os.path.join(DATA, "topics.txt")
+OLD_TOPICS_FILE = os.path.join(DATA, "topics.json")
 OG_CACHE_FILE = os.path.join(RUNTIME, "og_cache.json")
 if not CI and not os.path.isdir(HIST) and os.path.isdir(os.path.join(DATA, "history")):
     import shutil
@@ -738,12 +739,40 @@ topics_lock = threading.Lock()
 topic_cache = {}  # name -> (fetched_at, result)
 
 
+TOPICS_HEADER = """# Topics tracked in "Over the weeks" — one per line:
+#
+#   Topic name | search terms
+#
+# Search terms work like Google News: put phrases in "quotes", use OR between alternatives,
+# and brackets to group. Leave the search terms out to search for the name itself.
+# Example:
+#   Ozempic | ozempic OR wegovy OR "GLP-1"
+#
+"""
+
+
 def load_topics():
-    topics = load_json(TOPICS_FILE, None)
-    if topics is None:
-        topics = DEFAULT_TOPICS
-        save_json(TOPICS_FILE, topics)
+    """Tracked topics from data/topics.txt (plain text so anyone can edit it on GitHub)."""
+    if not os.path.exists(TOPICS_FILE):
+        save_topics(load_json(OLD_TOPICS_FILE, None) or DEFAULT_TOPICS)
+    topics = []
+    with open(TOPICS_FILE, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            name, _, query = line.partition("|")
+            name, query = name.strip(), query.strip()
+            if name:
+                topics.append({"name": name, "query": query or '"%s"' % name})
     return topics
+
+
+def save_topics(topics):
+    with open(TOPICS_FILE, "w", encoding="utf-8") as f:
+        f.write(TOPICS_HEADER)
+        for t in topics:
+            f.write("%s | %s\n" % (t["name"].replace("|", "/"), t["query"].replace("\n", " ")))
 
 
 def fetch_topic(topic):
@@ -1098,7 +1127,7 @@ class Handler(SimpleHTTPRequestHandler):
                 name = body["name"].strip()[:80]
                 query = (body.get("query") or "").strip()[:300] or '"%s"' % name
                 topics = [t for t in topics if t["name"] != name] + [{"name": name, "query": query}]
-            save_json(TOPICS_FILE, topics)
+            save_topics(topics)
         result = tracked_topics()
         with state_lock:
             if state["payload"]:
