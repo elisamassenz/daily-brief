@@ -5,6 +5,7 @@ Run by the GitHub workflow every 30 minutes (and runnable locally: `python3 buil
 It reuses server.py's fetching and analysis, then writes the page plus two data files
 (data/news.json, data/markets.json) that the page reads instead of the live server.
 """
+import hashlib
 import json
 import os
 import shutil
@@ -40,6 +41,11 @@ def main():
     with open(index) as f:
         html = f.read()
     html = html.replace("<head>", '<head>\n<meta name="static-build" content="1">', 1)
+    # version the stylesheet and script so browsers fetch the new copy after every change
+    for name in ("style.css", "app.js"):
+        with open(os.path.join(SITE, name), "rb") as f:
+            digest = hashlib.sha1(f.read()).hexdigest()[:10]
+        html = html.replace('"%s"' % name, '"%s?v=%s"' % (name, digest))
     with open(index, "w") as f:
         f.write(html)
     open(os.path.join(SITE, ".nojekyll"), "w").close()
