@@ -368,6 +368,7 @@
   // ------------------------------------------------------------ page
   function render(data) {
     DATA = data;
+    if (data.title) { document.title = data.title; $(".masthead-title").textContent = data.title; }
     SRC = Object.fromEntries(data.sources.map((s) => [s.id, s]));
     app.innerHTML = `
       <section id="today" class="sec">

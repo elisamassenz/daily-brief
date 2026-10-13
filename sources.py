@@ -6,6 +6,9 @@ mark:  wordmark style used next to the logo — serif | italic | black | sans | 
 color: brand accent for the block's top rule.
 """
 
+# The name shown at the top of the page and in the browser tab.
+SITE_TITLE = "Elisa’s Daily Brief"
+
 SECTIONS = ["News", "Ideas & Analysis", "Business & Markets", "Technology"]
 
 SOURCES = [

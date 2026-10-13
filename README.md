@@ -1,5 +1,18 @@
 # The Daily Brief
 
+**Make your own** (free, about 10 minutes, no coding needed)
+
+1. **Copy this project.** Sign in to GitHub, click the green **Use this template** button at the top of this page, then **Create a new repository**. Name it `daily-brief` and set it to **Public**.
+2. **Turn on the website.** In your new repository, go to **Settings → Pages**. Under "Source", choose **GitHub Actions**.
+3. **Make it yours.** Click a file, then the pencil icon to edit it, then **Commit changes**:
+   - `sources.py`: change `SITE_TITLE` to your own name, e.g. `"Sam’s Daily Brief"`. You can also add or remove publications in the `SOURCES` list, or change the stock ticker in `MARKETS`.
+   - `data/topics.json`: the topics tracked "over the weeks". Each one has a `name` and a Google News-style `query`.
+4. **Publish.** Saving a file starts a build automatically. Watch it in the **Actions** tab (about 2 minutes). Your site will be at `https://YOUR-USERNAME.github.io/daily-brief/`. From then on, it refreshes itself every 30 minutes; nothing needs to stay running on your computer.
+
+Optional: to start your trend history from scratch, delete the files in `data/history/`.
+
+---
+
 A local news dashboard in five sections:
 1. **Trending today**: stories that 3+ publications are covering, with each outlet's headline.
 2. **Markets & money**: a plain-English market verdict, index charts, hot stocks (large-cap gainers, decliners and most traded, with a related headline) and market headlines.

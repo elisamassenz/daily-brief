@@ -40,6 +40,7 @@ def main():
     index = os.path.join(SITE, "index.html")
     with open(index) as f:
         html = f.read()
+    html = html.replace("Elisa’s Daily Brief", server.SITE_TITLE)  # bake the name in so it shows before data loads
     html = html.replace("<head>", '<head>\n<meta name="static-build" content="1">', 1)
     # version the stylesheet and script so browsers fetch the new copy after every change
     for name in ("style.css", "app.js"):
