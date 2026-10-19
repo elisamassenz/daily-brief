@@ -274,6 +274,7 @@
   }
 
   function trendStat(recent, prior) {
+    if (recent < 3 && prior < 3) return "";  // too few articles for a ratio to mean anything
     if (!prior) return recent ? `<span class="up">New this week</span>` : "";
     const r = recent / prior;
     if (r >= 1.15) return `<span class="up">▲ ${r.toFixed(1)}× usual</span>`;
@@ -281,20 +282,77 @@
     return `steady`;
   }
 
-  function renderTopics(topics) {
+  function renderTopics(topics, mine = false) {
     const weekLabel = ["3 weeks ago", "2 weeks ago", "Last week", "This week"];
     return topics.map((t) => `
       <div class="topic">
         <div>
-          <h4>${esc(t.name)}<button class="remove" data-remove="${esc(t.name)}" title="Stop tracking">✕</button></h4>
-          <div class="stat">${stack(t.pubs, 8)} ${plural(t.last7, "article")} this week · ${trendStat(t.last7, t.prior7_avg)}</div>
+          <h4>${esc(t.name)}<button class="remove ${mine ? "mine" : ""}" ${mine ? "data-remove-mine" : "data-remove"}="${esc(t.name)}" title="Stop tracking">✕</button></h4>
+          <div class="stat">${stack(t.pubs, 8)} ${[plural(t.last7, "article") + " this week", trendStat(t.last7, t.prior7_avg)].filter(Boolean).join(" · ")}</div>
         </div>
         <div>${bars(t.weekly, ["4 wks ago", "this wk"], 3, (v, i) =>
-          `${weekLabel[i]}: ${v} in your publications · ${t.web_weekly[i]}${t.capped[i] ? "+" : ""} across the web`)}</div>
+          `${weekLabel[i]}: ${plural(v, "headline")} in your publications${t.web_weekly ? ` · ${t.web_weekly[i]}${t.capped[i] ? "+" : ""} across the web` : ""}`)}</div>
         <ul class="ex">${t.examples.slice(0, 4).map((e) => `
-          <li>${logo(e.pub)}<a ${ext(e.link)}>${esc(e.title)}</a><span class="when">${esc(ago(e.date).replace(" ago", ""))}</span></li>`).join("")}
+          <li>${logo(e.pub)}<a ${ext(e.link)}>${esc(e.title)}</a><span class="when">${esc(ago(e.date).replace(" ago", ""))}</span></li>`).join("") ||
+          `<li class="none">No matching headlines in the last 4 weeks yet.</li>`}
         </ul>
       </div>`).join("");
+  }
+
+  // Visitors to the public site track their own topics: saved in their browser, matched against the
+  // last 4 weeks of headlines the site has saved (data/archive.json, built by build.py).
+  const MY_KEY = "dailyBrief.myTopics";
+  const loadMine = () => { try { return JSON.parse(localStorage.getItem(MY_KEY)) || []; } catch { return []; } };
+  const saveMine = (list) => { try { localStorage.setItem(MY_KEY, JSON.stringify(list)); } catch { /* private mode */ } };
+  let archivePromise = null;
+  const archive = () => (archivePromise = archivePromise ||
+    fetch(`data/archive.json?t=${encodeURIComponent(DATA?.generated || "")}`).then((r) => r.json()).catch(() => (archivePromise = null)));
+
+  // "ozempic, wegovy, \"GLP-1\"" or "ozempic OR wegovy": any alternative may match; words in one alternative must all appear
+  function matcher(name, query) {
+    const alts = [name, ...(query || "").split(/\s+OR\s+|,/i)].map((x) => x.trim()).filter(Boolean);
+    const tests = alts.map((alt) => {
+      const quoted = alt.match(/^"(.+)"$/);
+      const words = quoted ? [quoted[1]] : alt.replace(/[()"]/g, " ").split(/\s+/).filter((w) => w.length > 1);
+      const res = words.map((w) => new RegExp(`(^|[^\\p{L}\\p{N}])${w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`, "iu"));
+      return (text) => res.length > 0 && res.every((re) => re.test(text));
+    });
+    return (text) => tests.some((t) => t(text));
+  }
+
+  function computeMine(t, arc) {
+    const test = matcher(t.name, t.query);
+    const last = arc.days.length - 1;
+    const weekly = [0, 0, 0, 0];
+    const hits = [];
+    for (const [di, pi, title, desc, link] of arc.items) {
+      const age = last - di;
+      if (age > 27 || !test(`${title} ${desc}`)) continue;
+      weekly[3 - Math.floor(age / 7)] += 1;
+      hits.push({ di, pub: arc.pubs[pi], title, link });
+    }
+    hits.sort((a, b) => b.di - a.di);
+    const seen = new Set(), examples = [];
+    for (const h of hits) {
+      if (seen.has(h.pub)) continue;
+      seen.add(h.pub);
+      examples.push({ pub: h.pub, title: h.title, link: h.link, date: arc.days[h.di] + "T12:00:00Z" });
+    }
+    const order = DATA.sources.map((x) => x.id);
+    return { name: t.name, query: t.query, weekly, last7: weekly[3], prior7_avg: (weekly[0] + weekly[1] + weekly[2]) / 3,
+      pubs: [...seen].sort((a, b) => order.indexOf(a) - order.indexOf(b)), examples };
+  }
+
+  async function renderTopicList() {
+    const el = $("#topics");
+    if (!el) return;
+    let html = renderTopics(DATA.topics);
+    const mine = STATIC ? loadMine() : [];
+    if (mine.length) {
+      const arc = await archive();
+      if (arc) html += renderTopics(mine.map((t) => computeMine(t, arc)), true);
+    }
+    el.innerHTML = html;
   }
 
   function renderRising(rising) {
@@ -399,7 +457,7 @@
             <div id="topics">${renderTopics(data.topics)}</div>
             <form class="add-topic" id="add-topic">
               <input name="name" placeholder="Track a topic, e.g. Ozempic" required maxlength="80">
-              <input name="query" placeholder='Search terms (optional)' maxlength="300">
+              <input name="query" placeholder='Other words (optional), e.g. wegovy, "GLP-1"' maxlength="300">
               <button type="submit">Track</button>
             </form>
           </div>
@@ -407,6 +465,7 @@
         </div>
       </section>`;
     renderMarkets();
+    if (STATIC && loadMine().length) renderTopicList();
     updateStamp();
     queueFit();
     document.querySelectorAll("section.sec").forEach((s) => navObserver.observe(s));
@@ -454,6 +513,12 @@
       ex.remove();
       return;
     }
+    const rmMine = e.target.closest("[data-remove-mine]");
+    if (rmMine) {
+      saveMine(loadMine().filter((t) => t.name !== rmMine.dataset.removeMine));
+      renderTopicList();
+      return;
+    }
     const rm = e.target.closest("[data-remove]");
     if (rm) {
       rm.disabled = true;
@@ -468,6 +533,15 @@
     const btn = f.querySelector("button");
     btn.textContent = "Searching…";
     btn.disabled = true;
+    if (STATIC) {
+      const name = f.name.value.trim(), query = f.query.value.trim();
+      saveMine(loadMine().filter((t) => t.name !== name).concat([{ name, query }]));
+      await renderTopicList();
+      f.reset();
+      btn.textContent = "Track";
+      btn.disabled = false;
+      return;
+    }
     const topics = await post({ action: "add", name: f.name.value, query: f.query.value });
     if (topics) { DATA.topics = topics; $("#topics").innerHTML = renderTopics(topics); f.reset(); }
     btn.textContent = "Track";

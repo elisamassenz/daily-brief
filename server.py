@@ -599,7 +599,7 @@ def record_history(items):
         day = d.astimezone().strftime("%Y-%m-%d")
         text = it["title"] + " " + it["desc"]
         by_day[day][it["link"]] = {
-            "pub": it["pub"], "title": it["title"], "link": it["link"],
+            "pub": it["pub"], "title": it["title"], "link": it["link"], "desc": it["desc"][:220],
             "terms": sorted(set(tokens(it["title"] + " " + it["desc"][:200]))),
             "bigrams": sorted(set(bigrams(it["title"]) + bigrams(it["desc"][:200]))),
             "forms": {k: v for k, v in surface_forms(text).items() if v[:1].isupper()},

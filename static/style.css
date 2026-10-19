@@ -328,7 +328,8 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .footer p { max-width: 760px; margin: 0 auto; }
 
 /* public (static) site: topics are curated in the repo, not edited on the page */
-body.static .add-topic, body.static .topic .remove { display: none; }
+body.static .topic .remove:not(.mine) { display: none; }
+.ex li.none { display: block; color: var(--muted); font-size: 14px; }
 
 /* ------------------------------------------------------------ responsive */
 @media (max-width: 1320px) {
