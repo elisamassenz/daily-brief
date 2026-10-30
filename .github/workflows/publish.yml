@@ -2,7 +2,8 @@ name: Publish Daily Brief
 
 on:
   schedule:
-    - cron: "*/30 * * * *"   # every 30 minutes (GitHub may run scheduled jobs a few minutes late)
+    # Every 30 minutes, at off-peak minutes: GitHub often skips jobs scheduled on the hour/half hour.
+    - cron: "11,41 * * * *"
   workflow_dispatch:          # "Run workflow" button for a manual refresh
   push:
     branches: [main]

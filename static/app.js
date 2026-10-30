@@ -584,7 +584,18 @@
   }
 
   $("#today-date").textContent = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
-  $("#refresh").addEventListener("click", () => (STATIC ? location.reload() : loadNews(true)));
+  $("#refresh").addEventListener("click", () => (STATIC ? checkForUpdate() : loadNews(true)));
+
+  // Public site: there's no server to rebuild on demand, so Refresh fetches the newest published edition.
+  async function checkForUpdate() {
+    const btn = $("#refresh");
+    btn.classList.add("busy");
+    const before = lastGenerated;
+    await Promise.all([loadNews(), loadMarkets()]);
+    btn.classList.remove("busy");
+    btn.textContent = lastGenerated !== before ? "✓ Updated" : "✓ Up to date";
+    setTimeout(() => (btn.textContent = "↻ Refresh"), 2500);
+  }
   if (STATIC) document.body.classList.add("static");
   loadNews();
   loadMarkets();
