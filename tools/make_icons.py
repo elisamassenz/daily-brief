@@ -3,6 +3,7 @@
 
   python3 tools/make_icons.py W           then open http://localhost:8799/tools/icon.html?letter=W
   python3 tools/make_icons.py --texture   then open http://localhost:8799/tools/texture.html
+  python3 tools/make_icons.py --og        then open http://localhost:8799/tools/og.html (link-preview card)
   python3 tools/make_icons.py --figma tools/src/icon-figma.png
                                           uses a full-bleed square exported from Figma for the web icons,
                                           then open http://localhost:8799/tools/mac-icon.html for the Mac app
@@ -109,7 +110,7 @@ if __name__ == "__main__":
         from_square(sys.argv[2])
         arg = "--mac"
     srv = http.server.ThreadingHTTPServer(("127.0.0.1", 8799), Handler)
-    page = {"--texture": "tools/texture.html", "--header": "tools/header.html", "--stem": "tools/stem.html",
+    page = {"--texture": "tools/texture.html", "--header": "tools/header.html", "--stem": "tools/stem.html", "--og": "tools/og.html",
             "--mac": "tools/mac-icon.html"}.get(arg, "tools/icon.html?letter=%s" % arg)
     print("open http://localhost:8799/%s" % page)
     srv.serve_forever()
