@@ -505,6 +505,9 @@
     document.querySelectorAll("section.sec").forEach((s) => navObserver.observe(s));
   }
 
+  // original AI-generated stems (Figma: "Wallflower – flower stem art"), backdrops removed by tools/stem.html
+  const STEMS = ["stem.png", "stem-b.png", "stem-c.png"];
+
   function fitFills() {
     // pad the last row of each publication grid with a stem of flowers
     let k = 0;
@@ -516,7 +519,7 @@
       if (!empty) return;
       // an original, AI-generated stem of flowers (static/stem.png, backdrop removed); mirrored in every other gap
       grid.insertAdjacentHTML("beforeend", `<div class="pad-tile" aria-hidden="true" style="grid-column: span ${empty}">
-        <img class="stem-img ${k++ % 2 ? "flip" : ""}" src="stem.png" alt=""></div>`);
+        <img class="stem-img ${Math.floor(k / STEMS.length) % 2 ? "flip" : ""}" src="${STEMS[k++ % STEMS.length]}" alt=""></div>`);
     });
   }
   let fitTimer;
