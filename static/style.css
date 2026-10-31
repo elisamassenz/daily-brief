@@ -20,7 +20,7 @@
   --pistachio: #e6e8d3;
   --periwinkle: #e5e6f8;
   --art-base: #f4efe7;
-  --ticker-bg: #1e1b18;
+  --ticker-bg: #17213b;   /* deep blue-black, same family as the Wallflower title */
   --ticker-ink: #f1f0eb;
   --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .22 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
   --serif: "kepler-std-subhead", "kepler-std", Georgia, serif;   /* Adobe Fonts kit cul0plr */
@@ -53,7 +53,7 @@
     --pistachio: #2c2f20;
   --periwinkle: #26283c;
     --art-base: #1c1916;
-    --ticker-bg: #0f0d0b;
+    --ticker-bg: #0e1426;
     color-scheme: dark;
   }
   .pub-head .wm { filter: invert(1) hue-rotate(180deg); }
@@ -94,7 +94,7 @@ a.hl:hover, a.hl:hover .hl-text, .angle a:hover, .ex a:hover, .mnews:hover span 
 .tick { flex: none; display: inline-flex; align-items: center; gap: 9px; padding: 0 20px; white-space: nowrap; }
 .tick + .tick { box-shadow: -1px 0 0 rgba(255, 255, 255, .08); }
 .tick:hover { background: rgba(255, 255, 255, .05); }
-.tick .nm { color: #b3aa9c; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+.tick .nm { color: #a6b1cb; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
 .tick .px { color: #fff; }
 .tick .ch.up { color: #a9d6a0; }
 .tick .ch.down { color: #f4a283; }
