@@ -365,6 +365,9 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .howto-install .platform { padding: 26px 30px; }
 .howto-install .platform + .platform { border-left: 1px solid var(--rule); }
 .howto-install .kicker { margin: 0 0 12px; }
+.howto-card .platform-logo { margin: 0 0 16px; height: 28px; color: #f8f5ef; }
+.platform-logo svg { height: 28px; width: 28px; fill: currentColor; display: block; }
+.platform-logo svg[fill="none"] { fill: none; }
 .support { margin-top: 18px; }
 .support-card { max-width: 640px; }
 .howto-card { background: var(--card); border-radius: var(--radius); padding: 24px 26px; display: flex; flex-direction: column; gap: 10px; }
@@ -396,7 +399,7 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .sec-num { background: var(--sky); color: var(--accent); }
 .bars .b.recent { background: var(--accent); }
 .howto-card.howto-install { background: var(--accent); color: #f8f5ef; overflow: hidden; }
-.howto-install .platform + .platform { background: #85597f; }  /* Android in dusty mauve */
+.howto-install .platform + .platform { background: #7a2a45; }  /* Android in wine */
 .howto-install .kicker { color: rgba(248, 245, 239, .72); }
 .howto-install .platform + .platform { border-color: rgba(248, 245, 239, .22); }
 .howto-install .step-icon { background: rgba(248, 245, 239, .16); }
@@ -405,7 +408,7 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .support-card { background: var(--sky); }
 @media (prefers-color-scheme: dark) {
   .howto-card.howto-install { background: #22356b; }
-  .howto-install .platform + .platform { background: #4d3449; }
+  .howto-install .platform + .platform { background: #4a1d2c; }
 }
 
 /* sans labels (formerly monospace) */
