@@ -1,6 +1,6 @@
 <!doctype html><html><head><meta charset="utf-8">
 <!-- App icon renderer: open via `python3 tools/make_icons.py W` (letter = first argument). -->
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&display=block" rel="stylesheet">
+<link rel="stylesheet" href="https://use.typekit.net/cul0plr.css">
 <style>body{margin:0;background:#ddd;padding:30px}canvas{width:384px;height:384px}</style></head>
 <body><canvas id="c" width="1024" height="1024"></canvas>
 <script>
@@ -9,30 +9,23 @@ async function draw(cv) {
   const ctx = cv.getContext("2d"), x = 100, y = 100, w = 824, r = 185;
   ctx.save();
   ctx.shadowColor = "rgba(0,0,0,0.22)"; ctx.shadowBlur = 24; ctx.shadowOffsetY = 10;
-  ctx.beginPath(); ctx.roundRect(x, y, w, w, r); ctx.fillStyle = "#f1f0eb"; ctx.fill();
+  ctx.beginPath(); ctx.roundRect(x, y, w, w, r); ctx.fillStyle = "#efebe3"; ctx.fill();
   ctx.restore();
   ctx.save();
   ctx.beginPath(); ctx.roundRect(x, y, w, w, r); ctx.clip();
-  const bg = ctx.createLinearGradient(0, y, 0, y + w);
-  bg.addColorStop(0, "#f8f7f2"); bg.addColorStop(1, "#ecebe3");
-  ctx.fillStyle = bg; ctx.fillRect(x, y, w, w);
-  // soft glows that fade to a transparent version of their own color (no grey banding)
-  const glow = (cx, cy, rad, [rr, gg, bb, a]) => {
-    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
-    g.addColorStop(0, `rgba(${rr},${gg},${bb},${a})`);
-    g.addColorStop(0.5, `rgba(${rr},${gg},${bb},${a * 0.45})`);
-    g.addColorStop(1, `rgba(${rr},${gg},${bb},0)`);
-    ctx.fillStyle = g; ctx.fillRect(x, y, w, w);
-  };
-  glow(360, 690, 430, [244, 184, 138, 0.75]);
-  glow(700, 600, 400, [190, 182, 240, 0.70]);
-  glow(560, 280, 380, [190, 210, 165, 0.45]);
+  // the site's blurred-flower texture, washed with bone so the letter stays crisp at small sizes
+  const tex = new Image();
+  tex.src = "/static/texture.jpg";
+  await tex.decode();
+  ctx.drawImage(tex, 420, 0, 900, 900, x, y, w, w);
+  ctx.fillStyle = "rgba(239,235,227,0.38)";
+  ctx.fillRect(x, y, w, w);
   ctx.restore();
-  await document.fonts.load('600px "Instrument Serif"');
-  ctx.fillStyle = "#2f4a37";
-  ctx.font = '640px "Instrument Serif"';
+  await document.fonts.load('600px "freight-big-pro"');
+  ctx.fillStyle = "#1e1b18";
+  ctx.font = '640px "freight-big-pro"';
   const width = ctx.measureText(letter).width;
-  if (width > 440) ctx.font = `${Math.round(640 * 440 / width)}px "Instrument Serif"`;  // wide letters (W, M) stay inside the iPhone crop
+  if (width > 500) ctx.font = `${Math.round(640 * 500 / width)}px "freight-big-pro"`;  // wide letters (W, M) stay inside the iPhone crop
   ctx.textAlign = "center";
   ctx.fillText(letter, 512, 742);
 }

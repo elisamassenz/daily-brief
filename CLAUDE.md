@@ -10,6 +10,7 @@ The running site uses no LLM; tokens are only spent on edits. Keep changes small
   - history: `record_history`; `rising_topics` (needs 7+ days); tracked topics: `load_topics`/`fetch_topic` (Google News, weekly)
   - markets: `markets()` (one batched Yahoo spark call; needs UA "Mozilla/5.0"), `movers()` (Yahoo screeners, $10B+)
 - `build.py`: writes the static public site to `site/` (data/news.json, markets.json, archive.json for visitor topics). It versions the CSS/JS links for cache busting.
+- `static/texture.jpg`: blurred-flower texture (masthead, empty grid slots, app icon); regenerate with `python3 tools/make_icons.py --texture`, then open http://localhost:8799/tools/texture.html. Icons: `python3 tools/make_icons.py W`, then open /tools/icon.html?letter=W.
 - `static/`: index.html, app.js (one file, all rendering; `STATIC` = public mode), style.css (tokens at top; dark mode block right below).
 - `.github/workflows/publish.yml`: cron 11,41 * * * *, runs build.py, commits data/ history, deploys Pages.
 

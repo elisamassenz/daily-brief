@@ -1,0 +1,72 @@
+<!doctype html><html><head><meta charset="utf-8">
+<!-- Paints static/texture.jpg: a field of flowers so blurred (with motion streaks) that it reads as color, not flowers.
+     Run `python3 tools/make_icons.py --texture`, then open http://localhost:8799/tools/texture.html -->
+<style>body{margin:0;background:#ddd}canvas{width:900px}</style></head>
+<body><canvas id="c" width="1800" height="900"></canvas>
+<script>
+const W = 1800, H = 900;
+const PALETTE = [
+  ["#e4472a", 5], ["#2f63d6", 4], ["#e8b022", 4], ["#c2407e", 2], ["#f0b7a6", 4], ["#8c9a3e", 3], ["#5e8f48", 2],
+];
+let seed = 7;
+const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+const pick = () => {
+  const total = PALETTE.reduce((s, [, w]) => s + w, 0);
+  let r = rand() * total;
+  for (const [c, w] of PALETTE) if ((r -= w) <= 0) return c;
+  return PALETTE[0][0];
+};
+function flower(ctx, x, y, size, color) {
+  ctx.fillStyle = color;
+  const turn = rand() * Math.PI;
+  for (let p = 0; p < 5; p++) {
+    const a = turn + (p * 2 * Math.PI) / 5;
+    ctx.beginPath();
+    ctx.ellipse(x + Math.cos(a) * size * 0.45, y + Math.sin(a) * size * 0.45, size * 0.42, size * 0.26, a, 0, 2 * Math.PI);
+    ctx.fill();
+  }
+}
+(async () => {
+  const cv = document.getElementById("c"), ctx = cv.getContext("2d");
+  ctx.fillStyle = "#e9e3d8";
+  ctx.fillRect(0, 0, W, H);
+  // a hazy green-olive underlayer, like stems and grass
+  const layer = document.createElement("canvas");
+  layer.width = W; layer.height = H;
+  const l = layer.getContext("2d");
+  l.globalAlpha = 0.5;
+  for (let i = 0; i < 40; i++) {
+    l.fillStyle = rand() < 0.5 ? "#9aa865" : "#c9c08a";
+    l.beginPath();
+    l.ellipse(rand() * W, rand() * H, 200 + rand() * 260, 40 + rand() * 60, -0.6, 0, 2 * Math.PI);
+    l.fill();
+  }
+  l.globalAlpha = 1;
+  for (let i = 0; i < 70; i++) flower(l, rand() * W, rand() * H, 50 + rand() * 120, pick());
+  // motion blur: smear the layer along a diagonal, then soften everything
+  const dx = Math.cos(-0.6), dy = Math.sin(-0.6);
+  ctx.filter = "blur(26px)";
+  const steps = 18;
+  for (let s = 0; s < steps; s++) {
+    ctx.globalAlpha = 0.11;
+    const d = (s - steps / 2) * 14;
+    ctx.drawImage(layer, d * dx, d * dy);
+  }
+  ctx.globalAlpha = 1;
+  ctx.filter = "blur(8px)";
+  ctx.drawImage(cv, 0, 0);
+  ctx.filter = "none";
+  // a few light streaks
+  ctx.strokeStyle = "rgba(255,250,240,.18)";
+  ctx.lineWidth = 3;
+  ctx.filter = "blur(3px)";
+  for (let i = 0; i < 8; i++) {
+    const x = rand() * W, y = rand() * H, len = 160 + rand() * 240;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + dx * len, y + dy * len); ctx.stroke();
+  }
+  ctx.filter = "none";
+  const blob = await new Promise((r) => cv.toBlob(r, "image/jpeg", 0.84));
+  await fetch("/save?name=texture.jpg", { method: "POST", body: blob });
+  document.title = "done";
+})();
+</script></body></html>

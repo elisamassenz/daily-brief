@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Regenerate every app icon from one letter (macOS only: uses sips and iconutil).
 
-  python3 tools/make_icons.py W
+  python3 tools/make_icons.py W           then open http://localhost:8799/tools/icon.html?letter=W
+  python3 tools/make_icons.py --texture   then open http://localhost:8799/tools/texture.html
 
-Serves tools/icon.html on http://localhost:8799/icon.html?letter=W. Open that page in a browser;
-it draws the icon with the site's fonts and posts it back here. This script then writes
+The page draws the image in a browser (with the site's fonts) and posts it back here. This script then writes
 static/favicon.png, static/icon.png, static/apple-touch-icon.png and, if present, the
 Wallflower.app icon. It exits when done."""
 import http.server
@@ -13,6 +13,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
@@ -47,26 +48,30 @@ def make_all(png):
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *a, **kw):
-        super().__init__(*a, directory=TOOLS, **kw)
+        super().__init__(*a, directory=ROOT, **kw)
 
     def log_message(self, *a):
         pass
 
     def do_POST(self):
         data = self.rfile.read(int(self.headers["Content-Length"]))
-        path = os.path.join(tempfile.mkdtemp(), "icon_1024.png")
-        with open(path, "wb") as f:
-            f.write(data)
-        make_all(path)
+        if "name=texture.jpg" in self.path:
+            with open(os.path.join(STATIC, "texture.jpg"), "wb") as f:
+                f.write(data)
+            print("texture written")
+        else:
+            path = os.path.join(tempfile.mkdtemp(), "icon_1024.png")
+            with open(path, "wb") as f:
+                f.write(data)
+            make_all(path)
         self.send_response(200)
         self.end_headers()
-        self.server.done = True
+        threading.Thread(target=self.server.shutdown).start()
 
 
 if __name__ == "__main__":
-    letter = sys.argv[1] if len(sys.argv) > 1 else "W"
-    srv = http.server.HTTPServer(("127.0.0.1", 8799), Handler)
-    srv.done = False
-    print("open http://localhost:8799/icon.html?letter=%s" % letter)
-    while not srv.done:
-        srv.handle_request()
+    arg = sys.argv[1] if len(sys.argv) > 1 else "W"
+    srv = http.server.ThreadingHTTPServer(("127.0.0.1", 8799), Handler)
+    page = "tools/texture.html" if arg == "--texture" else "tools/icon.html?letter=%s" % arg
+    print("open http://localhost:8799/%s" % page)
+    srv.serve_forever()
