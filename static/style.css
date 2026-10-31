@@ -207,14 +207,15 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .sec { position: relative; }
 .peek { position: absolute; z-index: -1; pointer-events: none; height: 760px; width: auto;
   -webkit-mask-image: linear-gradient(#000 40%, transparent 66%); mask-image: linear-gradient(#000 40%, transparent 66%); }
-/* placements set in Figma ("Wallflower – flower stem art" → Flower placement), at 1280 and 390 wide */
-.peek-1 { height: 683px; top: -31px; right: calc(-1 * var(--gutter) - 12px); transform: rotate(-24deg); }
-.peek-2 { height: 1073px; top: 309px; left: calc(-1 * var(--gutter) - 307px); transform: rotate(23deg) scaleX(-1); }
-.peek-3 { height: 677px; top: -75px; right: calc(-1 * var(--gutter) - 44px); transform: rotate(-16deg); }
+/* placements set in Figma ("Wallflower – flower stem art" → Flower placement), at 1280 and 390 wide.
+   The section header's 104px top margin collapses outside the section, so tops are Figma minus 104. */
+.peek-1 { height: 683px; top: -135px; right: calc(-1 * var(--gutter) - 12px); transform: rotate(-24deg); }
+.peek-2 { height: 1073px; top: 205px; left: calc(-1 * var(--gutter) - 307px); transform: rotate(23deg) scaleX(-1); }
+.peek-3 { height: 677px; top: -179px; right: calc(-1 * var(--gutter) - 44px); transform: rotate(-16deg); }
 @media (max-width: 900px) {
-  .peek-1 { height: 520px; top: 97px; right: calc(-1 * var(--gutter) - 95px); }
-  .peek-2 { height: 682px; top: 304px; left: calc(-1 * var(--gutter) - 148px); transform: rotate(7deg) scaleX(-1); }
-  .peek-3 { height: 503px; top: -2px; right: calc(-1 * var(--gutter) - 154px); }
+  .peek-1 { height: 520px; top: -7px; right: calc(-1 * var(--gutter) - 95px); }
+  .peek-2 { height: 682px; top: 200px; left: calc(-1 * var(--gutter) - 148px); transform: rotate(7deg) scaleX(-1); }
+  .peek-3 { height: 503px; top: -106px; right: calc(-1 * var(--gutter) - 154px); }
 }
 @media (prefers-color-scheme: dark) { .peek { opacity: .8; } }
 
