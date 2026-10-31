@@ -3,7 +3,7 @@
 The running site uses no LLM; tokens are only spent on edits. Keep changes small and targeted, and don't re-read the whole codebase when one file will do.
 
 ## Map
-- `sources.py`: SITE_TITLE, the 24 publications (feed, wordmark style, color), mood THEMES, MARKETS tickers, FINANCE_PUBS.
+- `sources.py`: SITE_TITLE, REPO_URL, SUPPORT_URL (coffee card; empty = hidden), the 24 publications (feed, wordmark style, color), mood THEMES, MARKETS tickers, FINANCE_PUBS.
 - `server.py`: everything that fetches and analyzes (stdlib only, Python 3.9-compatible). It runs as the local app (http://localhost:8787) and as a library for `build.py`.
   - feeds: `fetch_source` (stale or missing feed falls back to Google News), `parse_feed`, `og_image`
   - trending: `build_docs` → `trending_stories` (pairs need 2+ shared terms) → `prune` → `merge_related`

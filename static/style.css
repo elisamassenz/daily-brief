@@ -327,6 +327,23 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .footer { padding: 30px var(--gutter) 44px; font-family: var(--mono); font-size: 10.5px; color: var(--muted); line-height: 1.7; text-align: center; }
 .footer p { max-width: 760px; margin: 0 auto; }
 
+/* ------------------------------------------------------------ 05 how to */
+.howto { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+.howto-card { background: var(--card); border-radius: var(--radius); padding: 24px 26px; display: flex; flex-direction: column; gap: 10px; }
+.howto-head { display: flex; align-items: center; gap: 12px; }
+.howto-head h3 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 28px; line-height: 1.1; }
+.howto-icon { width: 40px; height: 40px; border-radius: 12px; background: var(--sage); display: grid; place-items: center; flex: none; }
+.howto-icon svg, .step-icon svg { width: 20px; height: 20px; fill: none; stroke: var(--accent); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.howto-icon svg circle, .step-icon svg circle { fill: var(--accent); stroke: none; }
+.howto-card p { margin: 0; color: var(--ink-2); font-size: 14.5px; }
+.howto-card .kicker { margin-top: 6px; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.steps li { display: flex; align-items: center; gap: 10px; font-size: 14.5px; }
+.step-icon { width: 30px; height: 30px; border-radius: 9px; background: var(--tint); display: grid; place-items: center; flex: none; }
+.howto-btn { margin-top: auto; align-self: flex-start; padding: 10px 18px; border-radius: 999px; background: var(--accent); color: var(--bg); font-weight: 600; font-size: 14px; }
+.howto-btn:hover { opacity: .9; }
+@media (display-mode: standalone) { .howto-card:first-child { display: none; } }  /* already on the Home Screen */
+
 /* public (static) site: topics are curated in the repo, not edited on the page */
 body.static .topic .remove:not(.mine) { display: none; }
 .ex li.none { display: block; color: var(--muted); font-size: 14px; }

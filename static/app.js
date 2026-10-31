@@ -423,6 +423,47 @@
     </article>`;
   }
 
+  // ------------------------------------------------------------ 05 how to
+  const ICON = {
+    share: '<svg viewBox="0 0 24 24"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5"/><path d="M8 11H6a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-2"/></svg>',
+    plus: '<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/></svg>',
+    dots: '<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="19" r="1.4"/></svg>',
+    phone: '<svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg>',
+    copy: '<svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>',
+    cup: '<svg viewBox="0 0 24 24"><path d="M5 9h11v6a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5z"/><path d="M16 11h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M8.5 3.5c-.6 1 .6 1.5 0 2.5M12 3.5c-.6 1 .6 1.5 0 2.5"/></svg>',
+  };
+  const step = (icon, html) => `<li><span class="step-icon">${ICON[icon]}</span><span>${html}</span></li>`;
+
+  function renderHowTo(data) {
+    const cards = [`
+      <div class="howto-card">
+        <div class="howto-head"><span class="howto-icon">${ICON.phone}</span><h3>Add it to your Home Screen</h3></div>
+        <p class="kicker">iPhone · Safari</p>
+        <ol class="steps">
+          ${step("share", "Tap <b>Share</b> at the bottom of Safari")}
+          ${step("plus", "Choose <b>Add to Home Screen</b>, then <b>Add</b>")}
+        </ol>
+        <p class="kicker">Android · Chrome</p>
+        <ol class="steps">
+          ${step("dots", "Tap the <b>⋮</b> menu at the top right")}
+          ${step("plus", "Choose <b>Add to Home screen</b>")}
+        </ol>
+      </div>`];
+    if (data.repo_url) cards.push(`
+      <div class="howto-card">
+        <div class="howto-head"><span class="howto-icon">${ICON.copy}</span><h3>Make your own</h3></div>
+        <p>Pick your own publications, topics and name. It's free and takes about 10 minutes, with no coding.</p>
+        <a class="howto-btn" ${ext(data.repo_url)}>Get your copy on GitHub →</a>
+      </div>`);
+    if (data.support_url) cards.push(`
+      <div class="howto-card">
+        <div class="howto-head"><span class="howto-icon">${ICON.cup}</span><h3>Enjoying it?</h3></div>
+        <p>This brief is a free side project. If it's part of your morning, you can buy me a coffee.</p>
+        <a class="howto-btn" ${ext(data.support_url)}>Buy me a coffee →</a>
+      </div>`);
+    return `<div class="howto">${cards.join("")}</div>`;
+  }
+
   // ------------------------------------------------------------ page
   function render(data) {
     DATA = data;
@@ -463,6 +504,11 @@
           </div>
           <div class="lv-col">${renderRising(data.rising)}</div>
         </div>
+      </section>
+
+      <section id="howto" class="sec">
+        ${sectionHead("05", "How to", "Take it with you")}
+        ${renderHowTo(data)}
       </section>`;
     renderMarkets();
     if (STATIC && loadMine().length) renderTopicList();
