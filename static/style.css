@@ -141,16 +141,19 @@ main { padding: 0 var(--gutter) 40px; max-width: 1680px; margin: 0 auto; }
 .spinner { width: 26px; height: 26px; margin: 0 auto 18px; border-radius: 50%; border: 2px solid var(--rule); border-top-color: var(--accent); animation: spin .9s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* flower photos in the header, feathered so they dissolve into the cream */
+/* flower photo in the header: turned 90° (stem pointing left), feathered so no edge shows.
+   --bw/--bh are the size as seen after rotation; the box is laid out unrotated, then turned about its center. */
 .stems { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
-.bloom { position: absolute; top: 4%; bottom: -10%; width: min(34vw, 460px); background-size: cover; background-repeat: no-repeat;
-  -webkit-mask-image: radial-gradient(closest-side, #000 38%, transparent 100%);
-  mask-image: radial-gradient(closest-side, #000 38%, transparent 100%);
-  opacity: .9; }
-.bloom-l { left: -2%; background-position: 50% 22%; }
-.bloom-r { right: -2%; background-position: 78% 74%; }
-@media (max-width: 900px) { .bloom { width: 46vw; opacity: .7; } }
-@media (max-width: 520px) { .bloom { width: 60vw; opacity: .45; } .bloom-l { left: -18%; } .bloom-r { right: -18%; } }
+.bloom { --bw: min(40vw, 560px); --bh: 230px;
+  position: absolute; width: var(--bh); height: var(--bw);
+  top: calc(50% - var(--bw) / 2); left: calc(var(--bw) / 2 - var(--bh) / 2 - 24px);
+  transform: rotate(90deg);
+  background-size: cover; background-repeat: no-repeat; background-position: 50% 22%;
+  -webkit-mask-image: radial-gradient(closest-side, #000 30%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 30%, transparent 100%);
+  opacity: .81; }
+@media (max-width: 900px) { .bloom { --bw: 56vw; --bh: 200px; opacity: .63; } }
+@media (max-width: 520px) { .bloom { --bw: 78vw; --bh: 190px; opacity: .4; } }
 
 /* ------------------------------------------------------------ section heads */
 .sec-head { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 10px 12px; margin: 104px 0 30px; }
