@@ -115,7 +115,7 @@ a.hl:hover, a.hl:hover .hl-text, .angle a:hover, .ex a:hover, .mnews:hover span 
 .secnav a.on span { color: color-mix(in srgb, var(--bg) 70%, transparent); }
 
 /* ------------------------------------------------------------ masthead */
-.masthead { padding: 0 var(--gutter); text-align: center; position: relative; overflow-x: clip; }
+.masthead { padding: 0 var(--gutter); text-align: center; position: relative; overflow: clip; display: flow-root; }
 .masthead::before {
   content: ""; position: absolute; inset: -20% 0 0; z-index: -1; pointer-events: none;
   background: var(--grain), url("texture.jpg") center 40% / cover;
@@ -123,7 +123,7 @@ a.hl:hover, a.hl:hover .hl-text, .angle a:hover, .ex a:hover, .mnews:hover span 
   /* fades out before the masthead ends, so there's no hard edge above section 01 */
   -webkit-mask-image: linear-gradient(#000 55%, transparent 100%); mask-image: linear-gradient(#000 55%, transparent 100%);
 }
-.masthead-bar { display: flex; justify-content: center; padding: 16px 0 0; font-size: 13px; color: var(--ink-2); }
+.masthead-bar { display: flex; justify-content: center; padding: 14px 0 64px; font-size: 13px; color: var(--ink-2); }
 .masthead-left { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
 .dot { color: var(--muted); }
 .refresh {
@@ -133,7 +133,7 @@ a.hl:hover, a.hl:hover .hl-text, .angle a:hover, .ex a:hover, .mnews:hover span 
 .refresh:hover { border-color: var(--accent-soft); }
 .refresh.busy { opacity: .5; pointer-events: none; }
 .masthead-title {
-  margin: 72px 0 0; padding-bottom: 104px; font-family: var(--serif); font-weight: 400; font-size: clamp(52px, 6vw, 84px); line-height: 1; letter-spacing: -.01em;
+  margin: 214px 0 0; padding-bottom: 0; font-family: var(--serif); font-weight: 400; font-size: clamp(52px, 6vw, 84px); line-height: 1; letter-spacing: -.01em;
 }
 
 main { padding: 0 var(--gutter) 40px; max-width: 1680px; margin: 0 auto; }
@@ -141,19 +141,18 @@ main { padding: 0 var(--gutter) 40px; max-width: 1680px; margin: 0 auto; }
 .spinner { width: 26px; height: 26px; margin: 0 auto 18px; border-radius: 50%; border: 2px solid var(--rule); border-top-color: var(--accent); animation: spin .9s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* flower photo in the header (static/header-poppy.jpg, built by tools/header.html): base on the left edge.
-   Only the extended backdrop fades (top, bottom, right); the petals stay crisp. It may overhang the
-   header's bottom edge, behind section 01, so no edge is ever clipped. */
+/* flower photo in the header (static/header-poppy.jpg, built by tools/header.html): hangs upside down
+   from the top edge, centered, with its upper part cropped off so only the petal skirt shows. Only the extended backdrop fades (left, right, bottom); petals stay crisp. */
 .stems { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
-.bloom { position: absolute; left: 0; top: -32%; height: 165%; aspect-ratio: 1090 / 2240;
+.bloom { position: absolute; top: -170px; left: 50%; transform: translateX(-50%); height: 580px; aspect-ratio: 2240 / 1041;
   background: url("header-poppy.jpg") center / cover no-repeat;
-  -webkit-mask-image: linear-gradient(transparent 0%, #000 22%, #000 80%, transparent 100%), linear-gradient(90deg, #000 66%, transparent 100%);
+  -webkit-mask-image: linear-gradient(#000 0%, #000 52%, transparent 84%), linear-gradient(90deg, transparent 0%, #000 23%, #000 77%, transparent 100%);
   -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(transparent 0%, #000 22%, #000 80%, transparent 100%), linear-gradient(90deg, #000 66%, transparent 100%);
+  mask-image: linear-gradient(#000 0%, #000 52%, transparent 84%), linear-gradient(90deg, transparent 0%, #000 23%, #000 77%, transparent 100%);
   mask-composite: intersect;
   opacity: .81; }
-@media (max-width: 900px) { .bloom { opacity: .63; } }
-@media (max-width: 520px) { .bloom { opacity: .4; } }
+@media (max-width: 900px) { .bloom { height: 480px; top: -140px; } .masthead-title { margin-top: 180px; } }
+@media (max-width: 520px) { .bloom { height: 380px; top: -110px; } .masthead-title { margin-top: 150px; } }
 
 /* ------------------------------------------------------------ section heads */
 .sec-head { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 10px 12px; margin: 104px 0 30px; }
@@ -204,13 +203,8 @@ a:hover .img-wrap img { transform: scale(1.03); }
     var(--art-base);
 }
 .img-wrap .art { position: absolute; inset: 0; }
-.art.pad-tile {
-  height: auto; min-height: 200px; border-radius: 0;
-  background: var(--grain), url("texture.jpg") var(--x1) var(--y1) / 260% auto;
-  -webkit-mask-image: radial-gradient(closest-side, #000 40%, transparent 100%);
-  mask-image: radial-gradient(closest-side, #000 40%, transparent 100%);
-  opacity: .85;
-}
+.pad-tile { position: relative; min-height: 220px; border-radius: var(--radius); overflow: hidden; background: var(--card); }
+.pad-photo { position: absolute; inset: -40px; background-repeat: no-repeat; filter: blur(16px) saturate(.95); opacity: .88; }
 
 .card, .pub, .index-card, .topic, .collecting { background: var(--card); border-radius: var(--radius); }
 
@@ -381,10 +375,10 @@ a:hover .img-wrap img { transform: scale(1.03); }
 
 /* ------------------------------------------------------------ palette highlights */
 /* story cards stay white; the pastel tint lives in each "How it's covered" box */
-.story-grid .story:nth-child(4n + 1) .coverage { background: var(--sky); }
-.story-grid .story:nth-child(4n + 2) .coverage { background: var(--pistachio); }
-.story-grid .story:nth-child(4n + 3) .coverage { background: var(--periwinkle); }
-.story-grid .story:nth-child(4n + 4) .coverage { background: var(--butter); }
+.story-grid .story:nth-child(4n + 1) .coverage { background: color-mix(in srgb, var(--sky) 50%, transparent); }
+.story-grid .story:nth-child(4n + 2) .coverage { background: color-mix(in srgb, var(--pistachio) 50%, transparent); }
+.story-grid .story:nth-child(4n + 3) .coverage { background: color-mix(in srgb, var(--periwinkle) 50%, transparent); }
+.story-grid .story:nth-child(4n + 4) .coverage { background: color-mix(in srgb, var(--butter) 50%, transparent); }
 .story-grid .angle { border-color: color-mix(in srgb, var(--ink) 9%, transparent); }
 .eyebrow .num { color: var(--accent); }
 .sec-num { background: var(--sky); color: var(--accent); }

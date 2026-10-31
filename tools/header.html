@@ -1,7 +1,7 @@
 <!doctype html><html><head><meta charset="utf-8">
-<!-- Builds static/header-poppy.jpg from the Unsplash photo (Lorin Both): turned 90° clockwise so the
-     flower's base sits on the left edge, stem cropped off, and the smooth backdrop extended above and
-     below so the page can fade it out without touching the petals.
+<!-- Builds static/header-poppy.jpg from the Unsplash photo (Lorin Both): turned upside down so the
+     flower's base sits on the top edge, stem cropped off, and the smooth backdrop extended left and
+     right so the page can fade it out without touching the petals.
      Run `python3 tools/make_icons.py --header`, then open http://localhost:8799/tools/header.html -->
 <style>body{margin:0;background:#ddd}canvas{max-width:100%}</style></head>
 <body><canvas id="c"></canvas>
@@ -17,23 +17,44 @@ const PAD = +(p.get("pad") || 0.3);       // extra backdrop added above and belo
   img.src = SRC;
   await (img.complete && img.naturalWidth ? Promise.resolve() : new Promise((ok, fail) => { img.onload = ok; img.onerror = fail; }));  // decode() can stall in background tabs
   const w = img.naturalWidth, h = img.naturalHeight;
-  // rotated: new width comes from the original height (TOP..BASE), new height = original width
-  const outW = Math.round((BASE - TOP) * h), coreH = w, padH = Math.round(w * PAD), outH = coreH + 2 * padH;
-  const cv = document.getElementById("c");
-  cv.width = outW; cv.height = outH;
-  const ctx = cv.getContext("2d");
+  const cropH = Math.round((BASE - TOP) * h);   // the flower and the backdrop above it, stem cut off
   const core = document.createElement("canvas");
-  core.width = outW; core.height = coreH;
+  core.width = w; core.height = cropH;
   const k = core.getContext("2d");
-  // rotate 90° clockwise: the original bottom (the stem side) becomes the left edge
-  k.translate(outW, 0);
-  k.rotate(Math.PI / 2);
-  k.drawImage(img, 0, h * TOP, w, outW, 0, 0, w, outW);
-  // after this rotation the original's bottom (BASE, where the stem was) is the left edge
-  ctx.drawImage(core, 0, padH);
-  // extend the smooth backdrop: stretch the outermost rows into the padding
-  ctx.drawImage(core, 0, 0, outW, 2, 0, 0, outW, padH);
-  ctx.drawImage(core, 0, coreH - 2, outW, 2, 0, padH + coreH, outW, padH);
+  // turn 180°: the flower's base (where the stem was) becomes the top edge, petals hang down
+  k.translate(w, cropH);
+  k.rotate(Math.PI);
+  k.drawImage(img, 0, h * TOP, w, cropH, 0, 0, w, cropH);
+  // extend the smooth backdrop sideways so the page can fade it without touching the petals
+  const padW = Math.round(w * PAD), outW = w + 2 * padW;
+  const cv = document.getElementById("c");
+  cv.width = outW; cv.height = cropH;
+  const ctx = cv.getContext("2d");
+  ctx.drawImage(core, padW, 0);
+  ctx.drawImage(core, 0, 0, 2, cropH, 0, 0, padW, cropH);
+  ctx.drawImage(core, w - 2, 0, 2, cropH, padW + w, 0, padW, cropH);
+  // cyanotype: map brightness onto Prussian blue (shadows) to pale paper-blue (highlights).
+  // Kept light and low-contrast, then given a soft glow so it reads as ethereal, not inky.
+  if ((p.get("tone") || "cyanotype") === "cyanotype") {
+    const px = ctx.getImageData(0, 0, outW, cropH), d = px.data;
+    const deep = [36, 72, 150], paper = [242, 246, 251];
+    for (let i = 0; i < d.length; i += 4) {
+      const l = (0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]) / 255;
+      const t = Math.pow(Math.min(1, Math.max(0, (l - 0.28) / 0.44)), 0.75);   // backdrop goes to paper
+      for (let c = 0; c < 3; c++) d[i + c] = deep[c] + (paper[c] - deep[c]) * t;
+    }
+    ctx.putImageData(px, 0, 0);
+    // dreamy bloom: a blurred copy screened back over the petals
+    const glow = document.createElement("canvas");
+    glow.width = outW; glow.height = cropH;
+    glow.getContext("2d").drawImage(cv, 0, 0);
+    ctx.save();
+    ctx.filter = "blur(22px)";
+    ctx.globalCompositeOperation = "screen";
+    ctx.globalAlpha = 0.55;
+    ctx.drawImage(glow, 0, 0);
+    ctx.restore();
+  }
   const blob = await new Promise((r) => cv.toBlob(r, "image/jpeg", 0.86));
   await fetch("/save?name=header-poppy.jpg", { method: "POST", body: blob });
   document.title = "done";
