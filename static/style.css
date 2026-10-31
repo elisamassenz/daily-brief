@@ -115,7 +115,7 @@ a.hl:hover, a.hl:hover .hl-text, .angle a:hover, .ex a:hover, .mnews:hover span 
 .secnav a.on span { color: color-mix(in srgb, var(--bg) 70%, transparent); }
 
 /* ------------------------------------------------------------ masthead */
-.masthead { padding: 0 var(--gutter); text-align: center; position: relative; overflow: hidden; }
+.masthead { padding: 0 var(--gutter); text-align: center; position: relative; overflow-x: clip; }
 .masthead::before {
   content: ""; position: absolute; inset: -20% 0 0; z-index: -1; pointer-events: none;
   background: var(--grain), url("texture.jpg") center 40% / cover;
@@ -133,7 +133,7 @@ a.hl:hover, a.hl:hover .hl-text, .angle a:hover, .ex a:hover, .mnews:hover span 
 .refresh:hover { border-color: var(--accent-soft); }
 .refresh.busy { opacity: .5; pointer-events: none; }
 .masthead-title {
-  margin: 44px 0 0; padding-bottom: 72px; font-family: var(--serif); font-weight: 400; font-size: clamp(52px, 6vw, 84px); line-height: 1; letter-spacing: -.01em;
+  margin: 72px 0 0; padding-bottom: 104px; font-family: var(--serif); font-weight: 400; font-size: clamp(52px, 6vw, 84px); line-height: 1; letter-spacing: -.01em;
 }
 
 main { padding: 0 var(--gutter) 40px; max-width: 1680px; margin: 0 auto; }
@@ -141,19 +141,19 @@ main { padding: 0 var(--gutter) 40px; max-width: 1680px; margin: 0 auto; }
 .spinner { width: 26px; height: 26px; margin: 0 auto 18px; border-radius: 50%; border: 2px solid var(--rule); border-top-color: var(--accent); animation: spin .9s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* flower photo in the header: turned 90° (stem pointing left), feathered so no edge shows.
-   --bw/--bh are the size as seen after rotation; the box is laid out unrotated, then turned about its center. */
+/* flower photo in the header (static/header-poppy.jpg, built by tools/header.html): base on the left edge.
+   Only the extended backdrop fades (top, bottom, right); the petals stay crisp. It may overhang the
+   header's bottom edge, behind section 01, so no edge is ever clipped. */
 .stems { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
-.bloom { --bw: min(40vw, 560px); --bh: 230px;
-  position: absolute; width: var(--bh); height: var(--bw);
-  top: calc(50% - var(--bw) / 2); left: calc(var(--bw) / 2 - var(--bh) / 2 - 24px);
-  transform: rotate(90deg);
-  background-size: cover; background-repeat: no-repeat; background-position: 50% 22%;
-  -webkit-mask-image: radial-gradient(closest-side, #000 30%, transparent 100%);
-  mask-image: radial-gradient(closest-side, #000 30%, transparent 100%);
+.bloom { position: absolute; left: 0; top: -32%; height: 165%; aspect-ratio: 1090 / 2240;
+  background: url("header-poppy.jpg") center / cover no-repeat;
+  -webkit-mask-image: linear-gradient(transparent 0%, #000 22%, #000 80%, transparent 100%), linear-gradient(90deg, #000 66%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(transparent 0%, #000 22%, #000 80%, transparent 100%), linear-gradient(90deg, #000 66%, transparent 100%);
+  mask-composite: intersect;
   opacity: .81; }
-@media (max-width: 900px) { .bloom { --bw: 56vw; --bh: 200px; opacity: .63; } }
-@media (max-width: 520px) { .bloom { --bw: 78vw; --bh: 190px; opacity: .4; } }
+@media (max-width: 900px) { .bloom { opacity: .63; } }
+@media (max-width: 520px) { .bloom { opacity: .4; } }
 
 /* ------------------------------------------------------------ section heads */
 .sec-head { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 10px 12px; margin: 104px 0 30px; }
@@ -380,11 +380,12 @@ a:hover .img-wrap img { transform: scale(1.03); }
   font: inherit; font-size: 14px; font-weight: 600; color: var(--accent); cursor: pointer; }
 
 /* ------------------------------------------------------------ palette highlights */
-.story-grid .story:nth-child(4n + 1) { background: var(--sky); }
-.story-grid .story:nth-child(4n + 2) { background: var(--pistachio); }
-.story-grid .story:nth-child(4n + 3) { background: var(--periwinkle); }
-.story-grid .story:nth-child(4n + 4) { background: var(--butter); }
-.story-grid .coverage { background: color-mix(in srgb, var(--card) 62%, transparent); }
+/* story cards stay white; the pastel tint lives in each "How it's covered" box */
+.story-grid .story:nth-child(4n + 1) .coverage { background: var(--sky); }
+.story-grid .story:nth-child(4n + 2) .coverage { background: var(--pistachio); }
+.story-grid .story:nth-child(4n + 3) .coverage { background: var(--periwinkle); }
+.story-grid .story:nth-child(4n + 4) .coverage { background: var(--butter); }
+.story-grid .angle { border-color: color-mix(in srgb, var(--ink) 9%, transparent); }
 .eyebrow .num { color: var(--accent); }
 .sec-num { background: var(--sky); color: var(--accent); }
 .bars .b.recent { background: var(--accent); }

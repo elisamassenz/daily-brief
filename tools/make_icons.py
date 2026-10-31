@@ -55,10 +55,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
     def do_POST(self):
         data = self.rfile.read(int(self.headers["Content-Length"]))
-        if "name=texture.jpg" in self.path:
-            with open(os.path.join(STATIC, "texture.jpg"), "wb") as f:
+        if "name=" in self.path:   # texture.jpg, header-poppy.jpg, ...: saved into static/
+            name = os.path.basename(self.path.split("name=", 1)[1].split("&")[0])
+            with open(os.path.join(STATIC, name), "wb") as f:
                 f.write(data)
-            print("texture written")
+            print(name, "written")
         else:
             path = os.path.join(tempfile.mkdtemp(), "icon_1024.png")
             with open(path, "wb") as f:
@@ -72,6 +73,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 if __name__ == "__main__":
     arg = sys.argv[1] if len(sys.argv) > 1 else "W"
     srv = http.server.ThreadingHTTPServer(("127.0.0.1", 8799), Handler)
-    page = "tools/texture.html" if arg == "--texture" else "tools/icon.html?letter=%s" % arg
+    page = {"--texture": "tools/texture.html", "--header": "tools/header.html"}.get(arg, "tools/icon.html?letter=%s" % arg)
     print("open http://localhost:8799/%s" % page)
     srv.serve_forever()

@@ -1,0 +1,41 @@
+<!doctype html><html><head><meta charset="utf-8">
+<!-- Builds static/header-poppy.jpg from the Unsplash photo (Lorin Both): turned 90° clockwise so the
+     flower's base sits on the left edge, stem cropped off, and the smooth backdrop extended above and
+     below so the page can fade it out without touching the petals.
+     Run `python3 tools/make_icons.py --header`, then open http://localhost:8799/tools/header.html -->
+<style>body{margin:0;background:#ddd}canvas{max-width:100%}</style></head>
+<body><canvas id="c"></canvas>
+<script>
+const SRC = "https://images.unsplash.com/photo-1749587452511-d615311b854d?w=1400&q=88&fm=jpg";
+const p = new URLSearchParams(location.search);
+const BASE = +(p.get("base") || 0.53);   // where the petals meet the stem, as a fraction of the photo's height
+const TOP = +(p.get("top") || 0.0);       // how much backdrop above the flower to keep
+const PAD = +(p.get("pad") || 0.3);       // extra backdrop added above and below, as a fraction of the height
+(async () => {
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.src = SRC;
+  await (img.complete && img.naturalWidth ? Promise.resolve() : new Promise((ok, fail) => { img.onload = ok; img.onerror = fail; }));  // decode() can stall in background tabs
+  const w = img.naturalWidth, h = img.naturalHeight;
+  // rotated: new width comes from the original height (TOP..BASE), new height = original width
+  const outW = Math.round((BASE - TOP) * h), coreH = w, padH = Math.round(w * PAD), outH = coreH + 2 * padH;
+  const cv = document.getElementById("c");
+  cv.width = outW; cv.height = outH;
+  const ctx = cv.getContext("2d");
+  const core = document.createElement("canvas");
+  core.width = outW; core.height = coreH;
+  const k = core.getContext("2d");
+  // rotate 90° clockwise: the original bottom (the stem side) becomes the left edge
+  k.translate(outW, 0);
+  k.rotate(Math.PI / 2);
+  k.drawImage(img, 0, h * TOP, w, outW, 0, 0, w, outW);
+  // after this rotation the original's bottom (BASE, where the stem was) is the left edge
+  ctx.drawImage(core, 0, padH);
+  // extend the smooth backdrop: stretch the outermost rows into the padding
+  ctx.drawImage(core, 0, 0, outW, 2, 0, 0, outW, padH);
+  ctx.drawImage(core, 0, coreH - 2, outW, 2, 0, padH + coreH, outW, padH);
+  const blob = await new Promise((r) => cv.toBlob(r, "image/jpeg", 0.86));
+  await fetch("/save?name=header-poppy.jpg", { method: "POST", body: blob });
+  document.title = "done";
+})();
+</script></body></html>

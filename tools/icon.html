@@ -16,7 +16,7 @@ async function draw(cv) {
   // the site's blurred-flower texture, washed with bone so the letter stays crisp at small sizes
   const tex = new Image();
   tex.src = "/static/texture.jpg";
-  await tex.decode();
+  await (tex.complete && tex.naturalWidth ? Promise.resolve() : new Promise((ok, fail) => { tex.onload = ok; tex.onerror = fail; }));  // decode() can stall in background tabs
   ctx.drawImage(tex, 420, 0, 900, 900, x, y, w, w);
   ctx.fillStyle = "rgba(241,240,235,0.38)";
   ctx.fillRect(x, y, w, w);
