@@ -207,14 +207,14 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .sec { position: relative; }
 .peek { position: absolute; z-index: -1; pointer-events: none; height: 760px; width: auto;
   -webkit-mask-image: linear-gradient(#000 40%, transparent 66%); mask-image: linear-gradient(#000 40%, transparent 66%); }
-.peek-1 { top: 60px; right: calc(-1 * var(--gutter) - 260px); transform: rotate(-24deg); }
-.peek-2 { top: 160px; left: calc(-1 * var(--gutter) - 340px); transform: rotate(28deg) scaleX(-1); }
-.peek-3 { top: 40px; right: calc(-1 * var(--gutter) - 240px); transform: rotate(-16deg); }
+/* placements set in Figma ("Wallflower – flower stem art" → Flower placement), at 1280 and 390 wide */
+.peek-1 { height: 683px; top: -31px; right: calc(-1 * var(--gutter) - 12px); transform: rotate(-24deg); }
+.peek-2 { height: 1073px; top: 309px; left: calc(-1 * var(--gutter) - 307px); transform: rotate(23deg) scaleX(-1); }
+.peek-3 { height: 677px; top: -75px; right: calc(-1 * var(--gutter) - 44px); transform: rotate(-16deg); }
 @media (max-width: 900px) {
-  .peek { height: 520px; }
-  .peek-1 { top: 10px; right: calc(-1 * var(--gutter) - 90px); }
-  .peek-2 { top: 110px; left: calc(-1 * var(--gutter) - 220px); }
-  .peek-3 { top: 30px; right: calc(-1 * var(--gutter) - 190px); }
+  .peek-1 { height: 520px; top: 97px; right: calc(-1 * var(--gutter) - 95px); }
+  .peek-2 { height: 682px; top: 304px; left: calc(-1 * var(--gutter) - 148px); transform: rotate(7deg) scaleX(-1); }
+  .peek-3 { height: 503px; top: -2px; right: calc(-1 * var(--gutter) - 154px); }
 }
 @media (prefers-color-scheme: dark) { .peek { opacity: .8; } }
 
@@ -369,7 +369,30 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .platform-logo svg { height: 28px; width: 28px; fill: currentColor; display: block; }
 .platform-logo svg[fill="none"] { fill: none; }
 .support { margin-top: 18px; }
-.support-card { max-width: 640px; }
+.support-card { position: relative; overflow: hidden; border-radius: var(--radius, 22px); background: #16223f; color: #f4efe7;
+  padding: clamp(32px, 5vw, 64px); min-height: 340px; display: flex; align-items: center; }
+.support-bloom { position: absolute; right: -40px; top: -70px; height: 560px; width: auto; transform: rotate(-14deg); opacity: .95; pointer-events: none;
+  -webkit-mask-image: linear-gradient(#000 38%, transparent 70%); mask-image: linear-gradient(#000 38%, transparent 70%); }
+.support-card::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, #16223f 30%, rgba(22, 34, 63, .75) 55%, rgba(22, 34, 63, 0) 80%); }
+.support-copy { position: relative; z-index: 1; max-width: 480px; }
+.support-eyebrow { display: flex; align-items: center; gap: 10px; margin: 0 0 18px; font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #c9d6f5; }
+.support-eyebrow .pill { display: grid; place-items: center; width: 30px; height: 22px; border-radius: 999px; background: rgba(201, 214, 245, .16); color: #f0b7a6; letter-spacing: 0; }
+.support-card h3 { margin: 0 0 14px; font-family: var(--serif); font-weight: 400; font-size: clamp(36px, 4.4vw, 52px); line-height: 1.02; color: #f4efe7; }
+.support-card h3 em { font-style: italic; color: #f0b7a6; }
+.support-copy > p:not([class]) { margin: 0 0 26px; font-size: 16px; line-height: 1.55; color: rgba(244, 239, 231, .82); }
+.support-btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 22px 14px 18px; border-radius: 999px; background: #f4efe7; color: #16223f;
+  font-weight: 700; font-size: 15px; text-decoration: none; transition: transform .15s ease, box-shadow .15s ease; box-shadow: 0 6px 20px rgba(0, 0, 0, .25); }
+.support-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(0, 0, 0, .3); }
+.support-btn svg { width: 20px; height: 20px; fill: none; stroke: var(--accent); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.support-btn span:last-child { transition: transform .15s ease; }
+.support-btn:hover span:last-child { transform: translateX(3px); }
+.support-note { margin: 16px 0 0; font-size: 13px; color: rgba(244, 239, 231, .55); }
+@media (max-width: 640px) {
+  .support-card { display: block; padding: 210px 24px 30px; min-height: 0; }
+  .support-bloom { height: 420px; right: -30px; top: -60px; }
+  .support-card::after { background: linear-gradient(180deg, rgba(22, 34, 63, 0) 25%, rgba(22, 34, 63, .85) 52%, #16223f 62%); }
+}
 .howto-card { background: var(--card); border-radius: var(--radius); padding: 24px 26px; display: flex; flex-direction: column; gap: 10px; }
 .howto-head { display: flex; align-items: center; gap: 12px; }
 .howto-head h3 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 28px; line-height: 1.1; }
@@ -405,7 +428,6 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .howto-install .step-icon { background: rgba(248, 245, 239, .16); }
 .howto-install .step-icon svg { stroke: #f8f5ef; }
 .howto-install .step-icon svg circle { fill: #f8f5ef; }
-.support-card { background: var(--sky); }
 @media (prefers-color-scheme: dark) {
   .howto-card.howto-install { background: #22356b; }
   .howto-install .platform + .platform { background: #2e0f18; }

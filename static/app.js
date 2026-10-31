@@ -444,10 +444,15 @@
   function renderSupport(data) {
     if (!data.support_url) return "";
     return `<section id="support" class="sec support">
-      <div class="howto-card support-card">
-        <div class="howto-head"><span class="howto-icon">${ICON.cup}</span><h3>Support ${esc(data.title)}</h3></div>
-        <p>This brief is a free side project. If it's part of your morning, you can buy me a coffee.</p>
-        <a class="howto-btn" ${ext(data.support_url)}>Buy me a coffee →</a>
+      <div class="support-card">
+        <img class="support-bloom" src="stem-b.png" alt="" aria-hidden="true">
+        <div class="support-copy">
+          <p class="support-eyebrow"><span class="pill">♥</span> Keep it growing</p>
+          <h3>Help ${esc(data.title)} <em>bloom</em></h3>
+          <p>${esc(data.title)} is free, ad-free and made by one person. If it's become part of your morning, a coffee helps keep the news coming.</p>
+          <a class="support-btn" ${ext(data.support_url)}>${ICON.cup}<span>Buy me a coffee</span><span aria-hidden="true">→</span></a>
+          <p class="support-note">No ads. No paywall. Ever.</p>
+        </div>
       </div>
     </section>`;
   }
