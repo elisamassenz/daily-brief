@@ -1,0 +1,42 @@
+<!doctype html><html><head><meta charset="utf-8">
+<!-- Paints static/og.png, the link-preview card (iMessage, Slack, social): the header poppy over the masthead title.
+     Run `python3 tools/make_icons.py --og`, then open http://localhost:8799/tools/og.html -->
+<link rel="stylesheet" href="https://use.typekit.net/cul0plr.css">
+<style>body{margin:0;background:#ddd}canvas{width:600px}</style></head>
+<body><canvas id="c" width="1200" height="630"></canvas>
+<script>
+const W = 1200, H = 630;
+const load = (src) => new Promise((r) => { const i = new Image(); i.onload = () => r(i); i.src = src; });
+(async () => {
+  await document.fonts.load('400 150px "kepler-std-subhead"');
+  const img = await load("/static/header-poppy.jpg");
+  const cv = document.getElementById("c"), ctx = cv.getContext("2d");
+  ctx.fillStyle = "#f4efe7";
+  ctx.fillRect(0, 0, W, H);
+  // the poppy, sized and faded like .bloom on the site
+  const bh = 780, bw = bh * img.width / img.height, by = -215;
+  const b = document.createElement("canvas");
+  b.width = W; b.height = H;
+  const bx = b.getContext("2d");
+  bx.drawImage(img, (W - bw) / 2, by, bw, bh);
+  bx.globalCompositeOperation = "destination-in";
+  const v = bx.createLinearGradient(0, by, 0, by + bh);
+  v.addColorStop(0, "#000"); v.addColorStop(.52, "#000"); v.addColorStop(.84, "transparent");
+  bx.fillStyle = v; bx.fillRect(0, 0, W, H);
+  const h = bx.createLinearGradient((W - bw) / 2, 0, (W + bw) / 2, 0);
+  h.addColorStop(0, "transparent"); h.addColorStop(.23, "#000"); h.addColorStop(.77, "#000"); h.addColorStop(1, "transparent");
+  bx.fillStyle = h; bx.fillRect(0, 0, W, H);
+  ctx.globalCompositeOperation = "multiply";
+  ctx.globalAlpha = .8;
+  ctx.drawImage(b, 0, 0);
+  ctx.globalCompositeOperation = "source-over";
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = "#1e1b18";
+  ctx.font = '400 150px "kepler-std-subhead", Georgia, serif';
+  ctx.textAlign = "center";
+  ctx.fillText("Wallflower", W / 2, 492);
+  const blob = await new Promise((r) => cv.toBlob(r, "image/png"));
+  await fetch("/save?name=og.png", { method: "POST", body: blob });
+  document.title = "done";
+})();
+</script></body></html>
