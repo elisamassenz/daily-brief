@@ -15,7 +15,7 @@
   --art-base: #f3f1ea;
   --ticker-bg: #233127;
   --ticker-ink: #edefe6;
-  --serif: "Instrument Serif", Georgia, serif;
+  --serif: "freight-big-pro", Georgia, serif;   /* Adobe Fonts kit cul0plr */
   --sans: "Manrope", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
   --gutter: clamp(16px, 4vw, 56px);
