@@ -207,14 +207,14 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .sec { position: relative; }
 .peek { position: absolute; z-index: -1; pointer-events: none; height: 760px; width: auto;
   -webkit-mask-image: linear-gradient(#000 40%, transparent 66%); mask-image: linear-gradient(#000 40%, transparent 66%); }
-.peek-1 { top: -150px; right: calc(-1 * var(--gutter) - 170px); transform: rotate(-24deg); }
-.peek-2 { top: -20px; left: calc(-1 * var(--gutter) - 250px); transform: rotate(28deg) scaleX(-1); }
-.peek-3 { top: -170px; right: calc(-1 * var(--gutter) - 150px); transform: rotate(-16deg); }
+.peek-1 { top: 60px; right: calc(-1 * var(--gutter) - 260px); transform: rotate(-24deg); }
+.peek-2 { top: 160px; left: calc(-1 * var(--gutter) - 340px); transform: rotate(28deg) scaleX(-1); }
+.peek-3 { top: 40px; right: calc(-1 * var(--gutter) - 240px); transform: rotate(-16deg); }
 @media (max-width: 900px) {
   .peek { height: 520px; }
-  .peek-1 { top: -110px; right: calc(-1 * var(--gutter) - 150px); }
-  .peek-2 { top: -40px; left: calc(-1 * var(--gutter) - 160px); }
-  .peek-3 { top: -120px; right: calc(-1 * var(--gutter) - 130px); }
+  .peek-1 { top: 40px; right: calc(-1 * var(--gutter) - 210px); }
+  .peek-2 { top: 110px; left: calc(-1 * var(--gutter) - 220px); }
+  .peek-3 { top: 30px; right: calc(-1 * var(--gutter) - 190px); }
 }
 @media (prefers-color-scheme: dark) { .peek { opacity: .8; } }
 
@@ -395,7 +395,8 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .eyebrow .num { color: var(--accent); }
 .sec-num { background: var(--sky); color: var(--accent); }
 .bars .b.recent { background: var(--accent); }
-.howto-card.howto-install { background: var(--accent); color: #f8f5ef; }
+.howto-card.howto-install { background: var(--accent); color: #f8f5ef; overflow: hidden; }
+.howto-install .platform + .platform { background: #85597f; }  /* Android in dusty mauve */
 .howto-install .kicker { color: rgba(248, 245, 239, .72); }
 .howto-install .platform + .platform { border-color: rgba(248, 245, 239, .22); }
 .howto-install .step-icon { background: rgba(248, 245, 239, .16); }
@@ -404,6 +405,7 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .support-card { background: var(--sky); }
 @media (prefers-color-scheme: dark) {
   .howto-card.howto-install { background: #22356b; }
+  .howto-install .platform + .platform { background: #4d3449; }
 }
 
 /* sans labels (formerly monospace) */
