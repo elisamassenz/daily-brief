@@ -9,20 +9,20 @@ async function draw(cv) {
   const ctx = cv.getContext("2d"), x = 100, y = 100, w = 824, r = 185;
   ctx.save();
   ctx.shadowColor = "rgba(0,0,0,0.22)"; ctx.shadowBlur = 24; ctx.shadowOffsetY = 10;
-  ctx.beginPath(); ctx.roundRect(x, y, w, w, r); ctx.fillStyle = "#f1f0eb"; ctx.fill();
+  ctx.beginPath(); ctx.roundRect(x, y, w, w, r); ctx.fillStyle = "#f4efe7"; ctx.fill();
   ctx.restore();
   ctx.save();
   ctx.beginPath(); ctx.roundRect(x, y, w, w, r); ctx.clip();
-  // the site's blurred-flower texture, washed with bone so the letter stays crisp at small sizes
+  // the header's cyanotype poppy hanging from the top, washed with cream so the letter stays crisp
   const tex = new Image();
-  tex.src = "/static/texture.jpg";
+  tex.src = "/static/header-poppy.jpg";
   await (tex.complete && tex.naturalWidth ? Promise.resolve() : new Promise((ok, fail) => { tex.onload = ok; tex.onerror = fail; }));  // decode() can stall in background tabs
-  ctx.drawImage(tex, 420, 0, 900, 900, x, y, w, w);
-  ctx.fillStyle = "rgba(241,240,235,0.38)";
+  ctx.drawImage(tex, 690, 0, 860, 860, x, y, w, w);   // square crop around the flower, base on the top edge
+  ctx.fillStyle = "rgba(244,239,231,0.42)";
   ctx.fillRect(x, y, w, w);
   ctx.restore();
   await document.fonts.load('italic 600px "kepler-std-subhead"');
-  ctx.fillStyle = "#1e1b18";
+  ctx.fillStyle = "#16223f";
   ctx.font = 'italic 640px "kepler-std-subhead"';
   const width = ctx.measureText(letter).width;
   if (width > 500) ctx.font = `italic ${Math.round(640 * 500 / width)}px "kepler-std-subhead"`;  // wide letters (W, M) stay inside the iPhone crop
