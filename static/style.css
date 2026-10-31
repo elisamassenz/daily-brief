@@ -372,7 +372,7 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .support-card { position: relative; overflow: hidden; border-radius: var(--radius, 22px); background: #16223f; color: #f4efe7;
   padding: clamp(32px, 5vw, 64px); min-height: 340px; display: flex; align-items: center; }
 .support-bloom { position: absolute; right: 4%; top: 28px; height: 680px; width: auto; transform: rotate(-10deg); pointer-events: none;
-  -webkit-mask-image: linear-gradient(#000 30%, transparent 52%); mask-image: linear-gradient(#000 30%, transparent 52%); }
+  -webkit-mask-image: linear-gradient(#000 50%, transparent 82%); mask-image: linear-gradient(#000 50%, transparent 82%); }
 .support-card::after { content: ""; position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(90deg, #16223f 30%, rgba(22, 34, 63, .75) 55%, rgba(22, 34, 63, 0) 80%); }
 .support-copy { position: relative; z-index: 1; max-width: 480px; }
@@ -391,7 +391,7 @@ a:hover .img-wrap img { transform: scale(1.03); }
 @media (max-width: 640px) {
   .support-card { display: block; padding: 210px 24px 30px; min-height: 0; }
   .support-bloom { height: 470px; right: -10px; top: 6px; }
-  .support-card::after { background: linear-gradient(180deg, rgba(22, 34, 63, 0) 25%, rgba(22, 34, 63, .85) 52%, #16223f 62%); }
+  .support-card::after { background: linear-gradient(180deg, rgba(22, 34, 63, 0) 40%, rgba(22, 34, 63, .8) 56%, #16223f 64%); }
 }
 .howto-card { background: var(--card); border-radius: var(--radius); padding: 24px 26px; display: flex; flex-direction: column; gap: 10px; }
 .howto-head { display: flex; align-items: center; gap: 12px; }
