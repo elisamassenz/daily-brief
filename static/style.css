@@ -90,8 +90,10 @@ a.hl:hover, a.hl:hover .hl-text, .angle a:hover, .ex a:hover, .mnews:hover span 
   display: flex; height: 36px; overflow-x: auto; scrollbar-width: none;
   font-family: var(--mono); font-size: 12px;
 }
-.ticker > :first-child, .secnav > :first-child { margin-left: auto; }  /* centred when it fits, scrollable from the start when it doesn't */
-.ticker > :last-child, .secnav > :last-child { margin-right: auto; }
+.ticker > :first-child { margin-left: auto; }  /* centered when it fits, scrollable from the start when it doesn't */
+.ticker > :last-child { margin-right: auto; }
+/* secnav uses spacer pseudo-elements instead, since its last link (Support) can be hidden */
+.secnav::before, .secnav::after { content: ""; flex: none; margin: auto; }
 .tick { flex: none; display: inline-flex; align-items: center; gap: 9px; padding: 0 20px; white-space: nowrap; }
 .tick + .tick { box-shadow: -1px 0 0 rgba(255, 255, 255, .08); }
 .tick:hover { background: rgba(255, 255, 255, .05); }
@@ -222,17 +224,24 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .card, .pub, .index-card, .topic, .collecting { background: var(--card); border-radius: var(--radius); }
 
 /* ------------------------------------------------------------ 01 trending */
-.story-lead { max-width: 1040px; margin: 0 auto; text-align: center; }
+/* lead story lines up with the section title: left-aligned, stacked; image beside the text on wide screens */
+.story-lead { text-align: left; }
 .story-lead .img-wrap { aspect-ratio: 16 / 8; border-radius: var(--radius); }
-.story-lead .eyebrow { justify-content: center; margin-top: 26px; }
+.story-lead .eyebrow { justify-content: flex-start; margin-top: 26px; }
 .story-lead h3 {
-  font-family: var(--sans); font-weight: 600; font-size: clamp(30px, 2.8vw, 42px); line-height: 1.12; letter-spacing: -.02em; margin: 0 auto 14px; max-width: 880px;
+  font-family: var(--sans); font-weight: 600; font-size: clamp(30px, 2.8vw, 42px); line-height: 1.12; letter-spacing: -.02em; margin: 0 0 14px; max-width: 880px;
 }
 .story-lead .summary {
-  font-size: 17px; line-height: 1.55; color: var(--ink-2); margin: 0 auto 18px; max-width: 720px;
+  font-size: 17px; line-height: 1.55; color: var(--ink-2); margin: 0 0 18px; max-width: 720px;
   display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
 }
-.story-meta { display: flex; justify-content: center; margin-bottom: 22px; }
+.story-meta { display: flex; justify-content: flex-start; margin-bottom: 22px; }
+@media (min-width: 1100px) {
+  .story-lead { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); column-gap: clamp(32px, 3.5vw, 56px); align-content: start; }
+  .story-lead > * { grid-column: 2; }
+  .story-lead > .lead-img { grid-column: 1; grid-row: 1 / span 8; align-self: start; }
+  .story-lead .eyebrow { margin-top: 4px; }
+}
 .story-lead .coverage { text-align: left; background: var(--card); }
 
 .coverage { background: var(--tint); border-radius: var(--radius-sm); padding: 12px 18px 14px; margin-top: 16px; }
