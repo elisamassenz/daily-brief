@@ -10,7 +10,7 @@ color: brand accent for the block's top rule.
 SITE_TITLE = "Elisa’s Daily Brief"
 
 # Shown in the "How to" section at the bottom of the page. Leave SUPPORT_URL empty to hide the coffee card.
-REPO_URL = "https://github.com/elisamassenz/daily-brief"
+REPO_URL = ""   # set to your repo URL to show a "Make your own" card
 SUPPORT_URL = ""   # e.g. "https://buymeacoffee.com/yourname" or "https://ko-fi.com/yourname"
 
 SECTIONS = ["News", "Ideas & Analysis", "Business & Markets", "Technology"]
