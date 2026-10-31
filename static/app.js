@@ -509,7 +509,7 @@
   const BLOOMS = [
     { id: "1749587452511-d615311b854d", pos: "58% 33%", size: "320%" },   // pink poppy petals, Lorin Both
     { id: "1649219088222-33f44270bdcb", pos: "55% 44%", size: "380%" },   // pink cluster, Nile Pereira
-    { id: "1580411788274-e75779dc08f2", pos: "70% 64%", size: "360%" },   // pale tulip, Annie Spratt
+    { id: "1749587452511-d615311b854d", pos: "30% 46%", size: "420%" },   // poppy edge, a second crop
     { id: "1770650776137-d9e749697fc4", pos: "50% 27%", size: "520%" },   // blurred red tulip, Danielle Suijkerbuijk
   ];
 

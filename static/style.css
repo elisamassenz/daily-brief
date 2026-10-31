@@ -203,8 +203,11 @@ a:hover .img-wrap img { transform: scale(1.03); }
     var(--art-base);
 }
 .img-wrap .art { position: absolute; inset: 0; }
-.pad-tile { position: relative; min-height: 220px; border-radius: var(--radius); overflow: hidden; background: var(--card); }
-.pad-photo { position: absolute; inset: -40px; background-repeat: no-repeat; filter: blur(16px) saturate(.95); opacity: .88; }
+/* gap fillers: blurred flower close-ups with no box, feathered into the page background */
+.pad-tile { position: relative; min-height: 220px; }
+.pad-photo { position: absolute; inset: 0; background-repeat: no-repeat; filter: blur(18px) saturate(.95); opacity: .85;
+  -webkit-mask-image: radial-gradient(closest-side, #000 25%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 25%, transparent 100%); }
 
 .card, .pub, .index-card, .topic, .collecting { background: var(--card); border-radius: var(--radius); }
 
