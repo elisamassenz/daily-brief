@@ -1,4 +1,4 @@
-# Daily Brief: notes for Claude
+# Wallflower (formerly Daily Brief): notes for Claude
 
 The running site uses no LLM; tokens are only spent on edits. Keep changes small and targeted, and don't re-read the whole codebase when one file will do.
 

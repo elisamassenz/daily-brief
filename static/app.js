@@ -608,7 +608,7 @@
       }
       if (!STATIC && (j.refreshing || !j.data || refresh)) setTimeout(() => loadNews(), 3000);
     } catch {
-      $("#updated").textContent = "Can’t reach the Daily Brief server — is it running?";
+      $("#updated").textContent = "Can’t reach the Wallflower server — is it running?";
       setTimeout(() => loadNews(), 10000);
     }
   }

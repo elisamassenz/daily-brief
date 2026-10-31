@@ -1,11 +1,11 @@
-# The Daily Brief
+# Wallflower
 
 **Make your own** (free, about 10 minutes, no coding needed)
 
 1. **Copy this project.** Sign in to GitHub, click the green **Use this template** button at the top of this page, then **Create a new repository**. Name it `daily-brief` and set it to **Public**.
 2. **Turn on the website.** In your new repository, go to **Settings → Pages**. Under "Source", choose **GitHub Actions**.
 3. **Make it yours.** Click a file, then the pencil icon to edit it, then **Commit changes**:
-   - `sources.py`: change `SITE_TITLE` to your own name, e.g. `"Sam’s Daily Brief"`. You can also add or remove publications in the `SOURCES` list, or change the stock ticker in `MARKETS`.
+   - `sources.py`: change `SITE_TITLE` to your own name, e.g. `"Sam’s Morning Paper"`. You can also add or remove publications in the `SOURCES` list, or change the stock ticker in `MARKETS`.
    - `data/topics.txt` (optional): the starter topics everyone sees in "Over the weeks", one per line, like `Ozempic | wegovy OR "GLP-1"`.
 4. **Publish.** Saving a file starts a build automatically. Watch it in the **Actions** tab (about 2 minutes). Your site will be at `https://YOUR-USERNAME.github.io/daily-brief/`. From then on, it refreshes itself every 30 minutes; nothing needs to stay running on your computer.
 
@@ -23,7 +23,7 @@ A news dashboard in four sections:
 4. **Over the weeks**: tracked topics, plus stories rising across your feeds.
 
 ## Open it
-- Double-click **Daily Brief.app** (drag it to your Dock). It starts the server if needed and opens http://localhost:8787.
+- Double-click **Wallflower.app** (drag it to your Dock). It starts the server if needed and opens http://localhost:8787.
 - Or run `python3 server.py` and open http://localhost:8787.
 
 The server refreshes feeds every 20 minutes while it runs. The page checks for new data every 5 minutes, and markets update every minute.

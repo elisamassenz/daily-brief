@@ -7,7 +7,7 @@ color: brand accent for the block's top rule.
 """
 
 # The name shown at the top of the page and in the browser tab.
-SITE_TITLE = "Elisa’s Daily Brief"
+SITE_TITLE = "Wallflower"
 
 # Shown in the "How to" section at the bottom of the page. Leave SUPPORT_URL empty to hide the coffee card.
 REPO_URL = ""   # set to your repo URL to show a "Make your own" card
