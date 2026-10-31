@@ -1,0 +1,25 @@
+<!doctype html><html><head><meta charset="utf-8">
+<!-- Wraps static/icon.png (full-bleed square) in the macOS rounded-square grid (824px on a 1024 canvas)
+     for the Wallflower.app icon. Opened by `python3 tools/make_icons.py --figma <png>`. -->
+<style>body{margin:0;background:#ddd}canvas{width:384px}</style></head>
+<body><canvas id="c" width="1024" height="1024"></canvas>
+<script>
+(async () => {
+  const img = new Image();
+  img.src = "/static/icon.png?" + Date.now();
+  await (img.complete && img.naturalWidth ? Promise.resolve() : new Promise((ok, fail) => { img.onload = ok; img.onerror = fail; }));
+  const ctx = document.getElementById("c").getContext("2d");
+  const x = 100, y = 100, w = 824, r = 185;
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,0.22)"; ctx.shadowBlur = 24; ctx.shadowOffsetY = 10;
+  ctx.beginPath(); ctx.roundRect(x, y, w, w, r); ctx.fillStyle = "#f4efe7"; ctx.fill();
+  ctx.restore();
+  ctx.save();
+  ctx.beginPath(); ctx.roundRect(x, y, w, w, r); ctx.clip();
+  ctx.drawImage(img, x, y, w, w);
+  ctx.restore();
+  const blob = await new Promise((r) => document.getElementById("c").toBlob(r, "image/png"));
+  await fetch("/save?name=mac-icon.png", { method: "POST", body: blob });
+  document.title = "done";
+})();
+</script></body></html>
