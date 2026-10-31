@@ -212,7 +212,7 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .peek-3 { top: 40px; right: calc(-1 * var(--gutter) - 240px); transform: rotate(-16deg); }
 @media (max-width: 900px) {
   .peek { height: 520px; }
-  .peek-1 { top: 40px; right: calc(-1 * var(--gutter) - 210px); }
+  .peek-1 { top: 10px; right: calc(-1 * var(--gutter) - 90px); }
   .peek-2 { top: 110px; left: calc(-1 * var(--gutter) - 220px); }
   .peek-3 { top: 30px; right: calc(-1 * var(--gutter) - 190px); }
 }
