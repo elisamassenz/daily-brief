@@ -158,6 +158,8 @@ main { padding: 0 var(--gutter) 40px; max-width: 1680px; margin: 0 auto; }
 /* ------------------------------------------------------------ section heads */
 .sec-head { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 10px 12px; margin: 104px 0 30px; }
 #today .sec-head { margin-top: 0; }
+#today .sec-head { display: flex; flex-wrap: wrap; justify-content: center; text-align: center; }
+#today .sec-title, #today .sec-dek { flex-basis: 100%; }
 .sec-text { display: contents; }
 .sec-num {
   font-family: var(--sans); font-size: 11px; color: var(--accent); background: var(--sage);
@@ -224,18 +226,18 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .card, .pub, .index-card, .topic, .collecting { background: var(--card); border-radius: var(--radius); }
 
 /* ------------------------------------------------------------ 01 trending */
-/* lead story lines up with the section title: left-aligned and stacked */
-.story-lead { max-width: 1040px; text-align: left; }
+/* trending is centered: header, lead image and text on one axis */
+.story-lead { max-width: 1040px; margin-inline: auto; text-align: center; }
 .story-lead .img-wrap { aspect-ratio: 16 / 8; border-radius: var(--radius); }
-.story-lead .eyebrow { justify-content: flex-start; margin-top: 26px; }
+.story-lead .eyebrow { justify-content: center; margin-top: 26px; }
 .story-lead h3 {
-  font-family: var(--sans); font-weight: 600; font-size: clamp(30px, 2.8vw, 42px); line-height: 1.12; letter-spacing: -.02em; margin: 0 0 14px; max-width: 880px;
+  font-family: var(--sans); font-weight: 600; font-size: clamp(30px, 2.8vw, 42px); line-height: 1.12; letter-spacing: -.02em; margin: 0 auto 14px; max-width: 880px;
 }
 .story-lead .summary {
-  font-size: 17px; line-height: 1.55; color: var(--ink-2); margin: 0 0 18px; max-width: 720px;
+  font-size: 17px; line-height: 1.55; color: var(--ink-2); margin: 0 auto 18px; max-width: 720px;
   display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
 }
-.story-meta { display: flex; justify-content: flex-start; margin-bottom: 22px; }
+.story-meta { display: flex; justify-content: center; margin-bottom: 22px; }
 .story-lead .coverage { text-align: left; background: var(--card); }
 
 .coverage { background: var(--tint); border-radius: var(--radius-sm); padding: 12px 18px 14px; margin-top: 16px; }
