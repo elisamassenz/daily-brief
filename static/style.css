@@ -61,6 +61,7 @@
   .pub-head[data-pub="ap"] .wm, .pub-head[data-pub="bbc"] .wm { filter: none; }
   .art { opacity: .6; }
   .masthead::before { opacity: .38; }
+  .stems { display: none; }   /* white-background photos don't blend into a dark page */
   body::before { opacity: .5; mix-blend-mode: screen; }
 }
 
@@ -118,7 +119,7 @@ a.hl:hover, a.hl:hover .hl-text, .angle a:hover, .ex a:hover, .mnews:hover span 
 .masthead::before {
   content: ""; position: absolute; inset: -20% 0 0; z-index: -1; pointer-events: none;
   background: var(--grain), url("texture.jpg") center 40% / cover;
-  opacity: .9;
+  opacity: 0;   /* light mode: the flower stems carry the header; dark mode shows the texture */
   /* fades out before the masthead ends, so there's no hard edge above section 01 */
   -webkit-mask-image: linear-gradient(#000 55%, transparent 100%); mask-image: linear-gradient(#000 55%, transparent 100%);
 }
@@ -139,6 +140,17 @@ main { padding: 0 var(--gutter) 40px; max-width: 1680px; margin: 0 auto; }
 .loading { text-align: center; padding: 80px 0; font-size: 17px; }
 .spinner { width: 26px; height: 26px; margin: 0 auto 18px; border-radius: 50%; border: 2px solid var(--rule); border-top-color: var(--accent); animation: spin .9s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* flower photos in the header, feathered so they dissolve into the cream */
+.stems { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+.bloom { position: absolute; top: 4%; bottom: -10%; width: min(34vw, 460px); background-size: cover; background-repeat: no-repeat;
+  -webkit-mask-image: radial-gradient(closest-side, #000 38%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 38%, transparent 100%);
+  opacity: .9; }
+.bloom-l { left: -2%; background-position: 50% 22%; }
+.bloom-r { right: -2%; background-position: 78% 74%; }
+@media (max-width: 900px) { .bloom { width: 46vw; opacity: .7; } }
+@media (max-width: 520px) { .bloom { width: 60vw; opacity: .45; } .bloom-l { left: -18%; } .bloom-r { right: -18%; } }
 
 /* ------------------------------------------------------------ section heads */
 .sec-head { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 10px 12px; margin: 104px 0 30px; }
