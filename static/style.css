@@ -1,6 +1,6 @@
 /* Palette (Wallflower): bone neutrals, warm near-black, cobalt, poppy, olive, plus soft card tints */
 :root {
-  --bg: #f1f0eb;
+  --bg: #f4efe7;
   --surface: #fbfaf7;
   --card: #ffffff;
   --tint: #f4f3ee;
@@ -19,7 +19,7 @@
   --sky: #dfe7f6;
   --pistachio: #e6e8d3;
   --periwinkle: #e5e6f8;
-  --art-base: #f1f0eb;
+  --art-base: #f4efe7;
   --ticker-bg: #1e1b18;
   --ticker-ink: #f1f0eb;
   --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .22 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
@@ -144,15 +144,15 @@ main { padding: 0 var(--gutter) 40px; max-width: 1680px; margin: 0 auto; }
 /* flower photo in the header (static/header-poppy.jpg, built by tools/header.html): hangs upside down
    from the top edge, centered, with its upper part cropped off so only the petal skirt shows. Only the extended backdrop fades (left, right, bottom); petals stay crisp. */
 .stems { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
-.bloom { position: absolute; top: -170px; left: 50%; transform: translateX(-50%); height: 580px; aspect-ratio: 2240 / 1041;
+.bloom { position: absolute; top: -225px; left: 50%; transform: translateX(-50%); height: 760px; aspect-ratio: 2240 / 1041;
   background: url("header-poppy.jpg") center / cover no-repeat;
   -webkit-mask-image: linear-gradient(#000 0%, #000 52%, transparent 84%), linear-gradient(90deg, transparent 0%, #000 23%, #000 77%, transparent 100%);
   -webkit-mask-composite: source-in;
   mask-image: linear-gradient(#000 0%, #000 52%, transparent 84%), linear-gradient(90deg, transparent 0%, #000 23%, #000 77%, transparent 100%);
   mask-composite: intersect;
-  opacity: .81; }
-@media (max-width: 900px) { .bloom { height: 480px; top: -140px; } .masthead-title { margin-top: 180px; } }
-@media (max-width: 520px) { .bloom { height: 380px; top: -110px; } .masthead-title { margin-top: 150px; } }
+  opacity: .57; }
+@media (max-width: 900px) { .bloom { height: 620px; top: -172px; } .masthead-title { margin-top: 180px; } }
+@media (max-width: 520px) { .bloom { height: 480px; top: -118px; } .masthead-title { margin-top: 150px; } }
 
 /* ------------------------------------------------------------ section heads */
 .sec-head { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 10px 12px; margin: 104px 0 30px; }
