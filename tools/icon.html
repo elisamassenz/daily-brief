@@ -17,8 +17,13 @@ async function draw(cv) {
   const tex = new Image();
   tex.src = "/static/header-poppy.jpg";
   await (tex.complete && tex.naturalWidth ? Promise.resolve() : new Promise((ok, fail) => { tex.onload = ok; tex.onerror = fail; }));  // decode() can stall in background tabs
-  ctx.drawImage(tex, 690, 0, 860, 860, x, y, w, w);   // square crop around the flower, base on the top edge
-  ctx.fillStyle = "rgba(244,239,231,0.42)";
+  ctx.drawImage(tex, 690, 150, 860, 860, x, y, w, w);   // square crop starting inside the petals, so they fill the top edge
+  // multiply by the page cream: the white backdrop becomes exactly #F4EFE7, the petals warm slightly
+  ctx.globalCompositeOperation = "multiply";
+  ctx.fillStyle = "#f4efe7";
+  ctx.fillRect(x, y, w, w);
+  ctx.globalCompositeOperation = "source-over";
+  ctx.fillStyle = "rgba(244,239,231,0.3)";   // a light wash so the letter stays crisp
   ctx.fillRect(x, y, w, w);
   ctx.restore();
   await document.fonts.load('italic 600px "kepler-std-subhead"');
@@ -26,8 +31,12 @@ async function draw(cv) {
   ctx.font = 'italic 640px "kepler-std-subhead"';
   const width = ctx.measureText(letter).width;
   if (width > 500) ctx.font = `italic ${Math.round(640 * 500 / width)}px "kepler-std-subhead"`;  // wide letters (W, M) stay inside the iPhone crop
-  ctx.textAlign = "center";
-  ctx.fillText(letter, 512, 742);
+  // center the visible ink (italics lean, so the font box isn't centered on the glyph)
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+  const m = ctx.measureText(letter);
+  const inkW = m.actualBoundingBoxLeft + m.actualBoundingBoxRight, inkH = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
+  ctx.fillText(letter, 512 - inkW / 2 + m.actualBoundingBoxLeft, 512 - inkH / 2 + m.actualBoundingBoxAscent);
 }
 (async () => {
   const cv = document.getElementById("c");
