@@ -393,7 +393,6 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .support-btn svg { width: 20px; height: 20px; fill: none; stroke: var(--accent); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .support-btn span:last-child { transition: transform .15s ease; }
 .support-btn:hover span:last-child { transform: translateX(3px); }
-.support-note { margin: 16px 0 0; font-size: 13px; color: rgba(244, 239, 231, .55); }
 @media (max-width: 640px) {
   .support-card { display: block; padding: 210px 24px 30px; min-height: 0; }
   .support-bloom { height: 470px; right: -10px; top: 6px; }
