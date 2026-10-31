@@ -9,7 +9,7 @@ async function draw(cv) {
   const ctx = cv.getContext("2d"), x = 100, y = 100, w = 824, r = 185;
   ctx.save();
   ctx.shadowColor = "rgba(0,0,0,0.22)"; ctx.shadowBlur = 24; ctx.shadowOffsetY = 10;
-  ctx.beginPath(); ctx.roundRect(x, y, w, w, r); ctx.fillStyle = "#efebe3"; ctx.fill();
+  ctx.beginPath(); ctx.roundRect(x, y, w, w, r); ctx.fillStyle = "#f1f0eb"; ctx.fill();
   ctx.restore();
   ctx.save();
   ctx.beginPath(); ctx.roundRect(x, y, w, w, r); ctx.clip();
@@ -18,14 +18,14 @@ async function draw(cv) {
   tex.src = "/static/texture.jpg";
   await tex.decode();
   ctx.drawImage(tex, 420, 0, 900, 900, x, y, w, w);
-  ctx.fillStyle = "rgba(239,235,227,0.38)";
+  ctx.fillStyle = "rgba(241,240,235,0.38)";
   ctx.fillRect(x, y, w, w);
   ctx.restore();
-  await document.fonts.load('600px "freight-big-pro"');
+  await document.fonts.load('italic 600px "kepler-std-subhead"');
   ctx.fillStyle = "#1e1b18";
-  ctx.font = '640px "freight-big-pro"';
+  ctx.font = 'italic 640px "kepler-std-subhead"';
   const width = ctx.measureText(letter).width;
-  if (width > 500) ctx.font = `${Math.round(640 * 500 / width)}px "freight-big-pro"`;  // wide letters (W, M) stay inside the iPhone crop
+  if (width > 500) ctx.font = `italic ${Math.round(640 * 500 / width)}px "kepler-std-subhead"`;  // wide letters (W, M) stay inside the iPhone crop
   ctx.textAlign = "center";
   ctx.fillText(letter, 512, 742);
 }

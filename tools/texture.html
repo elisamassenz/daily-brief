@@ -5,8 +5,8 @@
 <body><canvas id="c" width="1800" height="900"></canvas>
 <script>
 const W = 1800, H = 900;
-const PALETTE = [
-  ["#e4472a", 5], ["#2f63d6", 4], ["#e8b022", 4], ["#c2407e", 2], ["#f0b7a6", 4], ["#8c9a3e", 3], ["#5e8f48", 2],
+const PALETTE = [  // blue-led: cobalt and sky, with marigold, greens and a little blush/poppy
+  ["#2f63d6", 6], ["#8fb3f0", 5], ["#6b7fe0", 3], ["#e8b022", 3], ["#8c9a3e", 2], ["#5e8f48", 1], ["#f0b7a6", 2], ["#e4472a", 1],
 ];
 let seed = 7;
 const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
@@ -28,15 +28,15 @@ function flower(ctx, x, y, size, color) {
 }
 (async () => {
   const cv = document.getElementById("c"), ctx = cv.getContext("2d");
-  ctx.fillStyle = "#e9e3d8";
+  ctx.fillStyle = "#ebe9e2";
   ctx.fillRect(0, 0, W, H);
-  // a hazy green-olive underlayer, like stems and grass
+  // a hazy sky-blue and straw underlayer
   const layer = document.createElement("canvas");
   layer.width = W; layer.height = H;
   const l = layer.getContext("2d");
   l.globalAlpha = 0.5;
   for (let i = 0; i < 40; i++) {
-    l.fillStyle = rand() < 0.5 ? "#9aa865" : "#c9c08a";
+    l.fillStyle = rand() < 0.6 ? "#a9bfe6" : "#d6d3b0";
     l.beginPath();
     l.ellipse(rand() * W, rand() * H, 200 + rand() * 260, 40 + rand() * 60, -0.6, 0, 2 * Math.PI);
     l.fill();
