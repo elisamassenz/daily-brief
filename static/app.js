@@ -450,7 +450,7 @@
           <p class="support-eyebrow"><span class="pill">♥</span> Keep it growing</p>
           <h3>Help ${esc(data.title)} <em>bloom</em></h3>
           <p>${esc(data.title)} is free, ad-free and made by one person. If it's become part of your morning, a coffee helps keep the news coming.</p>
-          <a class="support-btn" ${ext(data.support_url)}>${ICON.cup}<span>Buy me a coffee</span><span aria-hidden="true">→</span></a>
+          <a class="support-btn" ${ext(data.support_url)}><span>Buy me a coffee</span><span aria-hidden="true">→</span></a>
           <p class="support-note">No ads. No paywall. Ever.</p>
         </div>
       </div>
