@@ -412,8 +412,9 @@ a:hover .img-wrap img { transform: scale(1.03); }
 /* story cards stay white; the pastel tint lives in each "How it's covered" box */
 .story-grid .story:nth-child(4n + 1) .coverage { background: color-mix(in srgb, var(--sky) 50%, transparent); }
 .story-grid .story:nth-child(4n + 2) .coverage { background: color-mix(in srgb, var(--pistachio) 50%, transparent); }
-.story-grid .story:nth-child(4n + 3) .coverage { background: color-mix(in srgb, var(--periwinkle) 50%, transparent); }
-.story-grid .story:nth-child(4n + 4) .coverage { background: color-mix(in srgb, var(--butter) 50%, transparent); }
+/* checkerboard in the 2-column grid: blue and warm alternate across rows as well as columns */
+.story-grid .story:nth-child(4n + 3) .coverage { background: color-mix(in srgb, var(--butter) 50%, transparent); }
+.story-grid .story:nth-child(4n + 4) .coverage { background: color-mix(in srgb, var(--periwinkle) 50%, transparent); }
 .story-grid .angle { border-color: color-mix(in srgb, var(--ink) 9%, transparent); }
 .eyebrow .num { color: var(--accent); }
 .sec-num { background: var(--sky); color: var(--accent); }
