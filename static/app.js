@@ -105,7 +105,7 @@
   function renderTrending(stories) {
     if (!stories.length) return `<p class="collecting">No single story is being covered by three or more publications right now.</p>`;
     const [lead, ...rest] = stories;
-    const top = rest.slice(0, 6), more = rest.slice(6);
+    const top = rest.slice(0, 6);
     let n = 1;
     return `
     <article class="story story-lead">
@@ -116,8 +116,8 @@
       ${meta(lead)}
       ${coverage(lead.angles, lead.angles.length)}
     </article>
-    <div class="story-grid">${top.map((s) => `
-      <article class="story card">
+    <div class="story-grid">${top.map((s, i) => `
+      <article class="story card ${i >= 2 ? "extra" : ""}">
         <div class="card-top ${s.image ? "" : "no-thumb"}">
           <div>
             ${storyEyebrow(s, ++n)}
@@ -128,15 +128,7 @@
         ${coverage(s.angles, 3)}
       </article>`).join("")}
     </div>
-    ${more.length ? `
-      ${subHead("More stories in multiple outlets")}
-      <div class="more-grid">${more.map((s) => `
-        <article class="story card">
-          ${storyEyebrow(s, ++n)}
-          <h3><a class="hl" ${ext(leadLink(s))}>${esc(s.headline)}</a></h3>
-          ${coverage(s.angles, 3)}
-        </article>`).join("")}
-      </div>` : ""}`;
+    ${top.length > 2 ? `<button class="show-more" data-show-more>Show ${plural(top.length - 2, "more story")}</button>` : ""}`;
   }
 
   // ------------------------------------------------------------ 02 markets & money
@@ -252,7 +244,7 @@
         </div>
         <div>
           ${subHead("Market headlines", "Markets and economy coverage from the financial press and beyond")}
-          <ul class="ex fin-news">${(DATA?.finance || []).map((e) => `
+          <ul class="ex fin-news">${(DATA?.finance || []).slice(0, 10).map((e) => `
             <li>${logo(e.pub)}<a ${ext(e.link)}>${esc(e.title)}</a><span class="when">${esc(ago(e.date))}</span></li>`).join("")}
           </ul>
         </div>
@@ -434,40 +426,35 @@
   };
   const step = (icon, html) => `<li><span class="step-icon">${ICON[icon]}</span><span>${html}</span></li>`;
 
-  function renderHowTo(data) {
-    const cards = [`
-      <div class="howto-card">
-        <div class="howto-head"><span class="howto-icon">${ICON.phone}</span><h3>Add it to your Home Screen</h3></div>
-        <p class="kicker">iPhone · Safari</p>
-        <ol class="steps">
-          ${step("share", "Tap <b>Share</b> at the bottom of Safari")}
-          ${step("plus", "Choose <b>Add to Home Screen</b>, then <b>Add</b>")}
-        </ol>
-        <p class="kicker">Android · Chrome</p>
-        <ol class="steps">
-          ${step("dots", "Tap the <b>⋮</b> menu at the top right")}
-          ${step("plus", "Choose <b>Add to Home screen</b>")}
-        </ol>
-      </div>`];
-    if (data.repo_url) cards.push(`
-      <div class="howto-card">
-        <div class="howto-head"><span class="howto-icon">${ICON.copy}</span><h3>Make your own</h3></div>
-        <p>Pick your own publications, topics and name. It's free and takes about 10 minutes, with no coding.</p>
-        <a class="howto-btn" ${ext(data.repo_url)}>Get your copy on GitHub →</a>
-      </div>`);
-    if (data.support_url) cards.push(`
-      <div class="howto-card">
-        <div class="howto-head"><span class="howto-icon">${ICON.cup}</span><h3>Enjoying it?</h3></div>
+  function renderHowTo() {
+    const platform = (name, app, steps) => `
+      <div class="platform"><p class="kicker">${name} · ${app}</p><ol class="steps">${steps}</ol></div>`;
+    return `<div class="howto-card howto-install">
+      ${platform("iPhone", "Safari",
+        step("share", "Tap <b>Share</b> at the bottom of Safari") + step("plus", "Choose <b>Add to Home Screen</b>, then <b>Add</b>"))}
+      ${platform("Android", "Chrome",
+        step("dots", "Tap the <b>⋮</b> menu at the top right") + step("plus", "Choose <b>Add to Home screen</b>"))}
+    </div>`;
+  }
+
+  function renderSupport(data) {
+    if (!data.support_url) return "";
+    return `<section id="support" class="sec support">
+      <div class="howto-card support-card">
+        <div class="howto-head"><span class="howto-icon">${ICON.cup}</span><h3>Support ${esc(data.title)}</h3></div>
         <p>This brief is a free side project. If it's part of your morning, you can buy me a coffee.</p>
         <a class="howto-btn" ${ext(data.support_url)}>Buy me a coffee →</a>
-      </div>`);
-    return `<div class="howto">${cards.join("")}</div>`;
+      </div>
+    </section>`;
   }
 
   // ------------------------------------------------------------ page
   function render(data) {
     DATA = data;
     if (data.title) { document.title = data.title; $(".masthead-title").textContent = data.title; }
+    const navSupport = $("#nav-support");
+    navSupport.hidden = !data.support_url;
+    navSupport.lastChild.textContent = `Support ${data.title || ""}`.trim();
     SRC = Object.fromEntries(data.sources.map((s) => [s.id, s]));
     app.innerHTML = `
       <section id="today" class="sec">
@@ -507,9 +494,10 @@
       </section>
 
       <section id="howto" class="sec">
-        ${sectionHead("05", "How to", "Take it with you")}
-        ${renderHowTo(data)}
-      </section>`;
+        ${sectionHead("05", "How to", `Add ${esc(data.title || "it")} to your Home Screen`)}
+        ${renderHowTo()}
+      </section>
+      ${renderSupport(data)}`;
     renderMarkets();
     if (STATIC && loadMine().length) renderTopicList();
     updateStamp();
@@ -553,6 +541,12 @@
 
   // expand / remove / add (delegated)
   app.addEventListener("click", async (e) => {
+    const sm = e.target.closest("[data-show-more]");
+    if (sm) {
+      sm.previousElementSibling.classList.add("expanded");
+      sm.remove();
+      return;
+    }
     const ex = e.target.closest("[data-expand]");
     if (ex) {
       ex.previousElementSibling.querySelectorAll("[data-more]").forEach((li) => (li.hidden = false));

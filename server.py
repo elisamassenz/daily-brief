@@ -511,7 +511,7 @@ def trending_stories(docs):
             "score": len(pubs) * 3 + len(g),
         })
     stories.sort(key=lambda s: -s["score"])
-    return stories[:12]
+    return stories[:7]
 
 
 def tone_of(text):
@@ -960,7 +960,7 @@ def finance_news(by_pub, corpus):
         seen.append(toks)
         per_pub[it["pub"]] += 1
         out.append({k: it[k] for k in ("pub", "title", "link", "desc", "date", "image", "tone")})
-        if len(out) == 12:
+        if len(out) == 10:
             break
     return out
 
