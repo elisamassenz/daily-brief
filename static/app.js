@@ -445,7 +445,7 @@
     if (!data.support_url) return "";
     return `<section id="support" class="sec support">
       <div class="support-card">
-        <img class="support-bloom" src="stem-b.png" alt="" aria-hidden="true">
+        <img class="support-bloom" src="support-bloom.png" alt="" aria-hidden="true">
         <div class="support-copy">
           <p class="support-eyebrow"><span class="pill">♥</span> Keep it growing</p>
           <h3>Help ${esc(data.title)} <em>bloom</em></h3>
