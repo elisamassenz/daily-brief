@@ -505,16 +505,8 @@
     document.querySelectorAll("section.sec").forEach((s) => navObserver.observe(s));
   }
 
-  // Blurred, closely cropped flower photos (free Unsplash licence) for gaps at the end of a grid row.
-  const BLOOMS = [
-    { id: "1749587452511-d615311b854d", pos: "58% 33%", size: "320%" },   // pink poppy petals, Lorin Both
-    { id: "1649219088222-33f44270bdcb", pos: "55% 44%", size: "380%" },   // pink cluster, Nile Pereira
-    { id: "1749587452511-d615311b854d", pos: "30% 46%", size: "420%" },   // poppy edge, a second crop
-    { id: "1770650776137-d9e749697fc4", pos: "50% 27%", size: "520%" },   // blurred red tulip, Danielle Suijkerbuijk
-  ];
-
   function fitFills() {
-    // pad the last row of each publication grid with a blurred flower crop
+    // pad the last row of each publication grid with a stem of flowers
     let k = 0;
     document.querySelectorAll(".pubs").forEach((grid) => {
       grid.querySelectorAll(".pad-tile").forEach((t) => t.remove());
@@ -522,9 +514,9 @@
       const n = grid.querySelectorAll(".pub").length;
       const empty = (cols - (n % cols)) % cols;
       if (!empty) return;
-      const b = BLOOMS[k++ % BLOOMS.length];
+      // an original, AI-generated stem of flowers (static/stem.png, backdrop removed); mirrored in every other gap
       grid.insertAdjacentHTML("beforeend", `<div class="pad-tile" aria-hidden="true" style="grid-column: span ${empty}">
-        <div class="pad-photo" style="background-image:url('https://images.unsplash.com/photo-${b.id}?w=1200&q=70&auto=format');background-position:${b.pos};background-size:${b.size} auto"></div></div>`);
+        <img class="stem-img ${k++ % 2 ? "flip" : ""}" src="stem.png" alt=""></div>`);
     });
   }
   let fitTimer;

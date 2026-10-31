@@ -73,6 +73,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 if __name__ == "__main__":
     arg = sys.argv[1] if len(sys.argv) > 1 else "W"
     srv = http.server.ThreadingHTTPServer(("127.0.0.1", 8799), Handler)
-    page = {"--texture": "tools/texture.html", "--header": "tools/header.html"}.get(arg, "tools/icon.html?letter=%s" % arg)
+    page = {"--texture": "tools/texture.html", "--header": "tools/header.html", "--stem": "tools/stem.html"}.get(arg, "tools/icon.html?letter=%s" % arg)
     print("open http://localhost:8799/%s" % page)
     srv.serve_forever()

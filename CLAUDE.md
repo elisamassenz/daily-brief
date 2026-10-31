@@ -11,7 +11,7 @@ The running site uses no LLM; tokens are only spent on edits. Keep changes small
   - markets: `markets()` (one batched Yahoo spark call; needs UA "Mozilla/5.0"), `movers()` (Yahoo screeners, $10B+)
 - `build.py`: writes the static public site to `site/` (data/news.json, markets.json, archive.json for visitor topics). It versions the CSS/JS links for cache busting.
 - `static/texture.jpg`: blurred-flower texture (masthead, empty grid slots, app icon); regenerate with `python3 tools/make_icons.py --texture`, then open http://localhost:8799/tools/texture.html. Icons: `python3 tools/make_icons.py W`, then open /tools/icon.html?letter=W.
-- `static/header-poppy.jpg`: header flower (Unsplash, Lorin Both), cyanotype-toned and hung from the top; rebuild with `python3 tools/make_icons.py --header`, then open http://localhost:8799/tools/header.html. Gap tiles use blurred Unsplash crops (BLOOMS in app.js).
+- `static/header-poppy.jpg`: header flower (Unsplash, Lorin Both), cyanotype-toned and hung from the top; rebuild with `python3 tools/make_icons.py --header`, then open http://localhost:8799/tools/header.html. Grid gaps show `static/stem.png`, an original AI-generated stem (Figma file "Wallflower – flower stem art") with its backdrop removed by `python3 tools/make_icons.py --stem`.
 - `static/`: index.html, app.js (one file, all rendering; `STATIC` = public mode), style.css (tokens at top; dark mode block right below).
 - `.github/workflows/publish.yml`: cron 11,41 * * * *, runs build.py, commits data/ history, deploys Pages.
 
