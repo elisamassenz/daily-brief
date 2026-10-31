@@ -399,7 +399,7 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .sec-num { background: var(--sky); color: var(--accent); }
 .bars .b.recent { background: var(--accent); }
 .howto-card.howto-install { background: var(--accent); color: #f8f5ef; overflow: hidden; }
-.howto-install .platform + .platform { background: #7a2a45; }  /* Android in wine */
+.howto-install .platform + .platform { background: #2e0f18; }  /* Android in deep wine */
 .howto-install .kicker { color: rgba(248, 245, 239, .72); }
 .howto-install .platform + .platform { border-color: rgba(248, 245, 239, .22); }
 .howto-install .step-icon { background: rgba(248, 245, 239, .16); }
@@ -408,7 +408,7 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .support-card { background: var(--sky); }
 @media (prefers-color-scheme: dark) {
   .howto-card.howto-install { background: #22356b; }
-  .howto-install .platform + .platform { background: #4a1d2c; }
+  .howto-install .platform + .platform { background: #2e0f18; }
 }
 
 /* sans labels (formerly monospace) */
