@@ -68,6 +68,7 @@
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html { scroll-behavior: smooth; scroll-padding-top: 100px; }
+html, body { overflow-x: clip; }   /* the peeking flowers overhang the page edges */
 body {
   margin: 0; background: var(--bg); color: var(--ink);
   font-family: var(--sans); font-size: 15px; line-height: 1.5;
@@ -201,12 +202,21 @@ a:hover .img-wrap img { transform: scale(1.03); }
     var(--art-base);
 }
 .img-wrap .art { position: absolute; inset: 0; }
-/* gap fillers: a stem of flowers (backdrop removed), the cut stem end fading out */
-.pad-tile { position: relative; min-height: 260px; display: flex; justify-content: center; }
-.stem-img { height: 100%; max-height: 640px; width: auto; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-  -webkit-mask-image: linear-gradient(#000 82%, transparent 100%); mask-image: linear-gradient(#000 82%, transparent 100%); }
-.stem-img.flip { transform: translateX(-50%) scaleX(-1); }
-@media (prefers-color-scheme: dark) { .stem-img { opacity: .85; } }
+/* three flowers peeking in from the page edges, behind the cards. Big, tightly cropped, rotated;
+   the stems fade out so you mostly see the blooms. */
+.sec { position: relative; }
+.peek { position: absolute; z-index: -1; pointer-events: none; height: 760px; width: auto;
+  -webkit-mask-image: linear-gradient(#000 40%, transparent 66%); mask-image: linear-gradient(#000 40%, transparent 66%); }
+.peek-1 { top: -150px; right: calc(-1 * var(--gutter) - 170px); transform: rotate(-24deg); }
+.peek-2 { top: -20px; left: calc(-1 * var(--gutter) - 250px); transform: rotate(28deg) scaleX(-1); }
+.peek-3 { top: -170px; right: calc(-1 * var(--gutter) - 150px); transform: rotate(-16deg); }
+@media (max-width: 900px) {
+  .peek { height: 520px; }
+  .peek-1 { top: -110px; right: calc(-1 * var(--gutter) - 150px); }
+  .peek-2 { top: -40px; left: calc(-1 * var(--gutter) - 160px); }
+  .peek-3 { top: -120px; right: calc(-1 * var(--gutter) - 130px); }
+}
+@media (prefers-color-scheme: dark) { .peek { opacity: .8; } }
 
 .card, .pub, .index-card, .topic, .collecting { background: var(--card); border-radius: var(--radius); }
 

@@ -463,6 +463,7 @@
       </section>
 
       <section id="fronts" class="sec">
+        <img class="peek peek-1" src="stem-b.png" alt="" aria-hidden="true">
         ${sectionHead("02", "Front pages", "Every publication’s top two")}
         ${data.sections.map((sec) => `
           <div class="pub-section">
@@ -472,12 +473,14 @@
       </section>
 
       <section id="markets" class="sec">
+        <img class="peek peek-2" src="stem-c.png" alt="" aria-hidden="true">
         ${sectionHead("03", "Markets & money", "Markets")}
         <div id="markets-body"></div>
       </section>
 
 
       <section id="weeks" class="sec">
+        <img class="peek peek-3" src="stem.png" alt="" aria-hidden="true">
         ${sectionHead("04", "Trending over the weeks", "Stories that keep coming back")}
         <div class="longview">
           <div class="lv-col">
@@ -505,22 +508,8 @@
     document.querySelectorAll("section.sec").forEach((s) => navObserver.observe(s));
   }
 
-  // original AI-generated stems (Figma: "Wallflower – flower stem art"), backdrops removed by tools/stem.html
-  const STEMS = ["stem.png", "stem-b.png", "stem-c.png"];
-
   function fitFills() {
-    // pad the last row of each publication grid with a stem of flowers
-    let k = 0;
-    document.querySelectorAll(".pubs").forEach((grid) => {
-      grid.querySelectorAll(".pad-tile").forEach((t) => t.remove());
-      const cols = getComputedStyle(grid).gridTemplateColumns.split(" ").length;
-      const n = grid.querySelectorAll(".pub").length;
-      const empty = (cols - (n % cols)) % cols;
-      if (!empty) return;
-      // an original, AI-generated stem of flowers (static/stem.png, backdrop removed); mirrored in every other gap
-      grid.insertAdjacentHTML("beforeend", `<div class="pad-tile" aria-hidden="true" style="grid-column: span ${empty}">
-        <img class="stem-img ${Math.floor(k / STEMS.length) % 2 ? "flip" : ""}" src="${STEMS[k++ % STEMS.length]}" alt=""></div>`);
-    });
+    document.querySelectorAll(".pad-tile").forEach((t) => t.remove());
   }
   let fitTimer;
   const queueFit = () => { clearTimeout(fitTimer); fitTimer = setTimeout(fitFills, 120); };
