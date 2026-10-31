@@ -265,126 +265,27 @@
     </div><div class="bars-axis"><span>${esc(labels[0])}</span><span>${esc(labels[1])}</span></div>`;
   }
 
-  function trendStat(recent, prior) {
-    if (recent < 3 && prior < 3) return "";  // too few articles for a ratio to mean anything
-    if (!prior) return recent ? `<span class="up">New this week</span>` : "";
-    const r = recent / prior;
-    if (r >= 1.15) return `<span class="up">▲ ${r.toFixed(1)}× usual</span>`;
-    if (r <= 0.85) return `<span class="down">▼ ${r.toFixed(1)}× usual</span>`;
-    return `steady`;
-  }
-
-  function renderTopics(topics, mine = false) {
-    const weekLabel = ["3 weeks ago", "2 weeks ago", "Last week", "This week"];
-    return topics.map((t) => `
+  // one grid of stories that keep coming back: rising names and phrases across the saved headlines
+  // (needs a week of history); until then, the most widely covered this month
+  function renderRising(rising) {
+    const cards = rising.topics.length ? rising.topics.map((t) => {
+      const recentFrom = t.series.length - Math.min(7, Math.max(1, Math.floor(t.series.length / 3)));
+      return { label: t.label, pubs: t.pubs, examples: t.examples,
+        stat: `<span class="up">▲ ${t.growth}× earlier share</span>`,
+        chart: bars(t.series, [t.days[0].slice(5), "today"], recentFrom, (v, i) => `${t.days[i]}: ${plural(v, "article")}`) };
+    }) : (rising.leaders || []).map((t) => ({ label: t.label, pubs: t.pubs, examples: t.examples, stat: `${t.pubs.length} publications`, chart: "" }));
+    if (!cards.length) return `<div class="collecting">Fills in after a week of saved headlines.</div>`;
+    return `<div class="longview">${cards.map((c) => `
       <div class="topic">
         <div>
-          <h4>${esc(t.name)}<button class="remove ${mine ? "mine" : ""}" ${mine ? "data-remove-mine" : "data-remove"}="${esc(t.name)}" title="Stop tracking">✕</button></h4>
-          <div class="stat">${stack(t.pubs, 8)} ${[plural(t.last7, "article") + " this week", trendStat(t.last7, t.prior7_avg)].filter(Boolean).join(" · ")}</div>
+          <h4>${esc(c.label)}</h4>
+          <div class="stat">${stack(c.pubs, 8)} ${c.stat}</div>
         </div>
-        <div>${bars(t.weekly, ["4 wks ago", "this wk"], 3, (v, i) =>
-          `${weekLabel[i]}: ${plural(v, "headline")} in your publications${t.web_weekly ? ` · ${t.web_weekly[i]}${t.capped[i] ? "+" : ""} across the web` : ""}`)}</div>
-        <ul class="ex">${t.examples.slice(0, 4).map((e) => `
-          <li>${logo(e.pub)}<a ${ext(e.link)}>${esc(e.title)}</a><span class="when">${esc(ago(e.date).replace(" ago", ""))}</span></li>`).join("") ||
-          `<li class="none">No matching headlines in the last 4 weeks yet.</li>`}
+        <div>${c.chart}</div>
+        <ul class="ex">${c.examples.slice(0, 4).map((e) => `
+          <li>${logo(e.pub)}<a ${ext(e.link)}>${esc(e.title)}</a><span class="when">${esc(e.day.slice(5))}</span></li>`).join("")}
         </ul>
-      </div>`).join("");
-  }
-
-  // Visitors to the public site track their own topics: saved in their browser, matched against the
-  // last 4 weeks of headlines the site has saved (data/archive.json, built by build.py).
-  const MY_KEY = "dailyBrief.myTopics";
-  const loadMine = () => { try { return JSON.parse(localStorage.getItem(MY_KEY)) || []; } catch { return []; } };
-  const saveMine = (list) => { try { localStorage.setItem(MY_KEY, JSON.stringify(list)); } catch { /* private mode */ } };
-  let archivePromise = null;
-  const archive = () => (archivePromise = archivePromise ||
-    fetch(`data/archive.json?t=${encodeURIComponent(DATA?.generated || "")}`).then((r) => r.json()).catch(() => (archivePromise = null)));
-
-  // "ozempic, wegovy, \"GLP-1\"" or "ozempic OR wegovy": any alternative may match; words in one alternative must all appear
-  function matcher(name, query) {
-    const alts = [name, ...(query || "").split(/\s+OR\s+|,/i)].map((x) => x.trim()).filter(Boolean);
-    const tests = alts.map((alt) => {
-      const quoted = alt.match(/^"(.+)"$/);
-      const words = quoted ? [quoted[1]] : alt.replace(/[()"]/g, " ").split(/\s+/).filter((w) => w.length > 1);
-      const res = words.map((w) => new RegExp(`(^|[^\\p{L}\\p{N}])${w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`, "iu"));
-      return (text) => res.length > 0 && res.every((re) => re.test(text));
-    });
-    return (text) => tests.some((t) => t(text));
-  }
-
-  function computeMine(t, arc) {
-    const test = matcher(t.name, t.query);
-    const last = arc.days.length - 1;
-    const weekly = [0, 0, 0, 0];
-    const hits = [];
-    for (const [di, pi, title, desc, link] of arc.items) {
-      const age = last - di;
-      if (age > 27 || !test(`${title} ${desc}`)) continue;
-      weekly[3 - Math.floor(age / 7)] += 1;
-      hits.push({ di, pub: arc.pubs[pi], title, link });
-    }
-    hits.sort((a, b) => b.di - a.di);
-    const seen = new Set(), examples = [];
-    for (const h of hits) {
-      if (seen.has(h.pub)) continue;
-      seen.add(h.pub);
-      examples.push({ pub: h.pub, title: h.title, link: h.link, date: arc.days[h.di] + "T12:00:00Z" });
-    }
-    const order = DATA.sources.map((x) => x.id);
-    return { name: t.name, query: t.query, weekly, last7: weekly[3], prior7_avg: (weekly[0] + weekly[1] + weekly[2]) / 3,
-      pubs: [...seen].sort((a, b) => order.indexOf(a) - order.indexOf(b)), examples };
-  }
-
-  async function renderTopicList() {
-    const el = $("#topics");
-    if (!el) return;
-    let html = renderTopics(DATA.topics);
-    const mine = STATIC ? loadMine() : [];
-    if (mine.length) {
-      const arc = await archive();
-      if (arc) html += renderTopics(mine.map((t) => computeMine(t, arc)), true);
-    }
-    el.innerHTML = html;
-  }
-
-  function renderRising(rising) {
-    const need = 7;
-    if (rising.topics.length) {
-      return subHead("Rising in your feeds", "Names and phrases taking up a growing share of headlines") + rising.topics.map((t) => {
-        const recentFrom = t.series.length - Math.min(7, Math.max(1, Math.floor(t.series.length / 3)));
-        return `
-        <div class="topic">
-          <div>
-            <h4>${esc(t.label)}</h4>
-            <div class="stat">${stack(t.pubs, 8)} <span class="up">▲ ${t.growth}× earlier share</span></div>
-          </div>
-          <div>${bars(t.series, [t.days[0].slice(5), "today"], recentFrom, (v, i) => `${t.days[i]}: ${plural(v, "article")}`)}</div>
-          <ul class="ex">${t.examples.slice(0, 4).map((e) => `
-            <li>${logo(e.pub)}<a ${ext(e.link)}>${esc(e.title)}</a><span class="when">${esc(e.day.slice(5))}</span></li>`).join("")}
-          </ul>
-        </div>`;
-      }).join("");
-    }
-    const n = Math.min(rising.days_collected, need);
-    return `${subHead("Rising in your feeds", "Detected automatically from the headlines the dashboard saves each day")}
-      <div class="collecting">
-        Fills in after a week of saved headlines.
-        <div class="progress"><div style="width:${(n / need) * 100}%"></div></div>
-        <div class="kicker" style="margin-top:8px">${n} of ${need} days collected</div>
-      </div>
-      ${(rising.leaders || []).length ? `
-      ${subHead("Most widely covered this month")}
-      ${rising.leaders.map((t) => `
-        <div class="topic">
-          <div>
-            <h4>${esc(t.label)}</h4>
-            <div class="stat">${stack(t.pubs, 8)} ${t.pubs.length} publications</div>
-          </div>
-          <div></div>
-          <ul class="ex">${t.examples.map((e) => `
-            <li>${logo(e.pub)}<a ${ext(e.link)}>${esc(e.title)}</a><span class="when">${esc(e.day.slice(5))}</span></li>`).join("")}
-          </ul>
-        </div>`).join("")}` : ""}`;
+      </div>`).join("")}</div>`;
   }
 
   // ------------------------------------------------------------ 05 front pages
@@ -490,18 +391,7 @@
       <section id="weeks" class="sec">
         <img class="peek peek-3" src="stem.png" alt="" aria-hidden="true">
         ${sectionHead("04", "Trending over the weeks", "Stories that keep coming back")}
-        <div class="longview">
-          <div class="lv-col">
-            ${subHead("Topics you’re tracking")}
-            <div id="topics">${renderTopics(data.topics)}</div>
-            <form class="add-topic" id="add-topic">
-              <input name="name" placeholder="Track a topic, e.g. Ozempic" required maxlength="80">
-              <input name="query" placeholder='Other words (optional), e.g. wegovy, "GLP-1"' maxlength="300">
-              <button type="submit">Track</button>
-            </form>
-          </div>
-          <div class="lv-col">${renderRising(data.rising)}</div>
-        </div>
+        ${renderRising(data.rising)}
       </section>
 
       <section id="howto" class="sec">
@@ -510,7 +400,6 @@
       </section>
       ${renderSupport(data)}`;
     renderMarkets();
-    if (STATIC && loadMine().length) renderTopicList();
     updateStamp();
     queueFit();
     document.querySelectorAll("section.sec").forEach((s) => navObserver.observe(s));
@@ -557,47 +446,7 @@
       ex.remove();
       return;
     }
-    const rmMine = e.target.closest("[data-remove-mine]");
-    if (rmMine) {
-      saveMine(loadMine().filter((t) => t.name !== rmMine.dataset.removeMine));
-      renderTopicList();
-      return;
-    }
-    const rm = e.target.closest("[data-remove]");
-    if (rm) {
-      rm.disabled = true;
-      const topics = await post({ action: "remove", name: rm.dataset.remove });
-      if (topics) { DATA.topics = topics; $("#topics").innerHTML = renderTopics(topics); }
-    }
   });
-  app.addEventListener("submit", async (e) => {
-    if (e.target.id !== "add-topic") return;
-    e.preventDefault();
-    const f = e.target;
-    const btn = f.querySelector("button");
-    btn.textContent = "Searching…";
-    btn.disabled = true;
-    if (STATIC) {
-      const name = f.name.value.trim(), query = f.query.value.trim();
-      saveMine(loadMine().filter((t) => t.name !== name).concat([{ name, query }]));
-      await renderTopicList();
-      f.reset();
-      btn.textContent = "Track";
-      btn.disabled = false;
-      return;
-    }
-    const topics = await post({ action: "add", name: f.name.value, query: f.query.value });
-    if (topics) { DATA.topics = topics; $("#topics").innerHTML = renderTopics(topics); f.reset(); }
-    btn.textContent = "Track";
-    btn.disabled = false;
-  });
-  async function post(body) {
-    try {
-      const r = await fetch("api/topics", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-      return r.ok ? r.json() : null;
-    } catch { return null; }
-  }
-
   // ------------------------------------------------------------ data loading
   async function loadNews(refresh = false) {
     try {

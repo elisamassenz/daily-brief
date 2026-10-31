@@ -178,7 +178,7 @@ main { padding: 0 var(--gutter) 40px; max-width: 1680px; margin: 0 auto; }
 
 .sub-head { margin: 56px 0 18px; }
 .sub-head h3 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 34px; line-height: 1.1; }
-.lv-col > .sub-head:first-child, .money-grid .sub-head { margin-top: 0; }
+.money-grid .sub-head { margin-top: 0; }
 
 .eyebrow { display: flex; align-items: baseline; gap: 8px; font-family: var(--sans); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
 .eyebrow .acc { color: var(--accent); }
@@ -333,26 +333,18 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .ex .when { margin-top: 3px; }
 
 /* ------------------------------------------------------------ 04 over the weeks */
-.longview { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 44px; }
+.longview { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }   /* cards pair up in rows, so neither column runs long */
+.longview .topic { margin-bottom: 0; }
 .topic { display: grid; grid-template-columns: minmax(0, 1fr) 140px; gap: 10px 22px; padding: 22px 24px 16px; margin-bottom: 14px; }
 .topic h4 { font-weight: 600; font-size: 19px; letter-spacing: -.01em; margin: 0; line-height: 1.25; }
 .topic .stat { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; font-family: var(--sans); font-size: 11.5px; color: var(--ink-2); }
 .topic .stat .up, .topic .stat .down { font-weight: 500; }
 .topic .ex { grid-column: 1 / -1; }
-.topic .remove { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 11px; padding: 0; margin-left: 8px; vertical-align: 2px; }
-.topic .remove:hover { color: var(--down); }
 .bars { display: flex; align-items: flex-end; gap: 4px; height: 52px; }
 .bars .b { flex: 1; background: var(--sage); border-radius: 5px 5px 2px 2px; min-height: 3px; }
 .bars .b.recent { background: var(--accent-soft); }
 .bars .b:hover { opacity: .75; }
 .bars-axis { display: flex; justify-content: space-between; font-family: var(--sans); font-size: 9.5px; color: var(--muted); margin-top: 5px; }
-.add-topic { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
-.add-topic input {
-  flex: 1 1 180px; font: inherit; font-size: 14px; padding: 10px 16px; border: 1px solid transparent; border-radius: 999px;
-  background: var(--card); color: var(--ink);
-}
-.add-topic input:focus { outline: none; border-color: var(--accent-soft); }
-.add-topic button { font: inherit; font-size: 14px; font-weight: 600; padding: 10px 20px; border: none; border-radius: 999px; background: var(--accent); color: var(--bg); cursor: pointer; }
 .collecting { padding: 20px 24px; font-size: 14.5px; color: var(--ink-2); margin-bottom: 14px; }
 .progress { height: 6px; background: var(--sage); border-radius: 999px; margin-top: 12px; overflow: hidden; }
 .progress div { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #c7d5b6, var(--accent-soft)); }
@@ -444,7 +436,6 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .masthead-title { font-style: italic; color: #16223f; }   /* near-black with a hint of blue */
 
 /* public (static) site: topics are curated in the repo, not edited on the page */
-body.static .topic .remove:not(.mine) { display: none; }
 .ex li.none { display: block; color: var(--muted); font-size: 14px; }
 
 /* ------------------------------------------------------------ responsive */
@@ -455,7 +446,6 @@ body.static .topic .remove:not(.mine) { display: none; }
 }
 @media (max-width: 1100px) {
   .longview { grid-template-columns: 1fr; }
-  .lv-col + .lv-col > .sub-head:first-child { margin-top: 72px; }
   .angle, .more-grid .angle, .story-grid .angle { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 900px) {

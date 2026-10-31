@@ -72,13 +72,6 @@ record records high highs boost boosts boosted climb climbs climbed rebound rebo
 strong stronger strength beat beats optimism optimistic upbeat win wins won breakthrough boom booming best improve improves improved
 easing eases eased relief deal deals cheers hope hopes hopeful upgrade upgrades""".split())
 
-# Tracked topics seeded on first run (editable from the dashboard).
-DEFAULT_TOPICS = [
-    {"name": "Brain rot & the decline of reading", "query": "\"brain rot\" OR doomscrolling OR \"reading for pleasure\" OR \"attention spans\" OR \"stopped reading\" OR \"can't read\""},
-    {"name": "AI and jobs", "query": "AI (layoffs OR \"entry-level\" OR \"white-collar\" OR \"job losses\")"},
-    {"name": "AI bubble", "query": "\"AI bubble\" OR \"AI spending\" OR \"AI capex\""},
-    {"name": "Loneliness", "query": "loneliness OR \"social isolation\""},
-]
 
 # (symbol, display name, group). "index" shows in the top ticker; everything shows in Markets & Money.
 MARKETS = [

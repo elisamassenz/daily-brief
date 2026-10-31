@@ -23,7 +23,7 @@ from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
-from sources import DEFAULT_TOPICS, FINANCE_PUBS, MARKETS, NEGATIVE, POSITIVE, REPO_URL, SECTIONS, SITE_TITLE, SOURCES, SUPPORT_URL, THEMES
+from sources import FINANCE_PUBS, MARKETS, NEGATIVE, POSITIVE, REPO_URL, SECTIONS, SITE_TITLE, SOURCES, SUPPORT_URL, THEMES
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 STATIC = os.path.join(ROOT, "static")
@@ -34,8 +34,6 @@ CI = bool(os.environ.get("GITHUB_ACTIONS"))
 RUNTIME = DATA if CI else os.path.join(ROOT, ".local")
 HIST = os.path.join(RUNTIME, "history")
 LOGOS = os.path.join(DATA, "logos")
-TOPICS_FILE = os.path.join(DATA, "topics.txt")
-OLD_TOPICS_FILE = os.path.join(DATA, "topics.json")
 OG_CACHE_FILE = os.path.join(RUNTIME, "og_cache.json")
 if not CI and not os.path.isdir(HIST) and os.path.isdir(os.path.join(DATA, "history")):
     import shutil
@@ -45,7 +43,6 @@ for d in (DATA, HIST, LOGOS):
 
 PORT = int(os.environ.get("PORT", 8787))
 REFRESH_SECONDS = 20 * 60
-TOPIC_REFRESH_SECONDS = 6 * 3600
 HISTORY_DAYS = 60
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 "
       "(KHTML, like Gecko) Version/17.0 Safari/605.1.15")
@@ -215,7 +212,7 @@ going goes come comes came here's isn't opinion analysis video photos watch podc
 three four five six seven ten more most part story stories ahead exclusive record records warn warns warning
 here's could get set amid key behind""".split())
 
-WORD_RE = re.compile(r"[a-z0-9][a-z0-9'’.&-]*[a-z0-9]|[a-z0-9]")
+WORD_RE = re.compile(r"[^\W_][\w'’.&-]*[^\W_]|[^\W_]")  # letters include accents (Flávio, São Paulo)
 
 
 def stem(w):
@@ -243,7 +240,7 @@ def tokens(text):
 def surface_forms(text):
     """Map stem -> original casing, preferring Capitalized forms (names)."""
     forms = {}
-    for w in re.findall(r"[A-Za-z0-9][A-Za-z0-9'’.&-]*[A-Za-z0-9]|[A-Za-z0-9]", text or ""):
+    for w in re.findall(r"[^\W_][\w'’.&-]*[^\W_]|[^\W_]", text or ""):
         s = stem(w.lower())
         clean = re.sub(r"['’]s$", "", w).strip("'.-&")
         if s not in forms or (clean[:1].isupper() and not forms[s][:1].isupper()):
@@ -262,7 +259,7 @@ def bigrams(text):
 
 
 def phrase_in(text_lc, phrase):
-    return re.search(r"(?<![a-z0-9])" + re.escape(phrase) + r"(?![a-z0-9])", text_lc) is not None
+    return re.search(r"(?<![^\W_])" + re.escape(phrase) + r"(?![^\W_])", text_lc) is not None
 
 
 # ------------------------------------------------------------------- fetching
@@ -733,125 +730,6 @@ def rising_topics(window=28, recent=7):
     return {"days_collected": len(days_with_data), "topics": chosen, "leaders": leaders}
 
 
-# ------------------------------------------------------------ tracked topics
-
-topics_lock = threading.Lock()
-topic_cache = {}  # name -> (fetched_at, result)
-
-
-TOPICS_HEADER = """# Topics tracked in "Over the weeks" — one per line:
-#
-#   Topic name | search terms
-#
-# Search terms work like Google News: put phrases in "quotes", use OR between alternatives,
-# and brackets to group. Leave the search terms out to search for the name itself.
-# Example:
-#   Ozempic | ozempic OR wegovy OR "GLP-1"
-#
-"""
-
-
-def load_topics():
-    """Tracked topics from data/topics.txt (plain text so anyone can edit it on GitHub)."""
-    if not os.path.exists(TOPICS_FILE):
-        save_topics(load_json(OLD_TOPICS_FILE, None) or DEFAULT_TOPICS)
-    topics = []
-    with open(TOPICS_FILE, encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith("#"):
-                continue
-            name, _, query = line.partition("|")
-            name, query = name.strip(), query.strip()
-            if name:
-                topics.append({"name": name, "query": query or '"%s"' % name})
-    return topics
-
-
-def save_topics(topics):
-    with open(TOPICS_FILE, "w", encoding="utf-8") as f:
-        f.write(TOPICS_HEADER)
-        for t in topics:
-            f.write("%s | %s\n" % (t["name"].replace("|", "/"), t["query"].replace("\n", " ")))
-
-
-def fetch_topic(topic):
-    """Coverage of a topic week by week for 4 weeks, via Google News.
-
-    Google News returns its 100 most relevant results per query (site: filters
-    make matching sloppy), so each week is one query across all outlets, and
-    the dashboard counts the ones from our publications. web_weekly is the
-    all-outlet count; a week that hits 100 is flagged as capped."""
-    today = datetime.now().date()
-    items = {}
-    capped = [False] * 4
-    web_counts = [0] * 4
-
-    def week(w):
-        after = today - timedelta(days=7 * (w + 1) - 1)
-        before = today - timedelta(days=7 * w - 1)
-        q = "%s after:%s before:%s" % (topic["query"], after.isoformat(), before.isoformat())
-        try:
-            raw, _ = http_get(google_news_url(q))
-            return w, parse_feed(raw, google=True)
-        except Exception as e:
-            log("topic fetch failed", topic["name"], e)
-            return w, []
-
-    with ThreadPoolExecutor(4) as ex:
-        for w, got in ex.map(week, range(4)):
-            web_counts[3 - w] = len(got)
-            capped[3 - w] = len(got) >= 100
-            for it in got:
-                items[it["link"]] = it
-    weekly = [0, 0, 0, 0]  # oldest -> most recent 7 days
-    pubs = set()
-    arts = []
-    for it in items.values():
-        su = (it.get("source_url") or "").replace("https://", "").replace("http://", "").replace("www.", "").rstrip("/")
-        pid = DOMAIN_TO_ID.get(su) or next((v for k, v in DOMAIN_TO_ID.items() if su.endswith(k) or k.endswith(su)), None)
-        if not pid or not it["date"]:
-            continue
-        d = parse_date(it["date"]).astimezone().date()
-        age = (today - d).days
-        if age < 0 or age >= 28:
-            continue
-        weekly[3 - age // 7] += 1
-        pubs.add(pid)
-        it["pub"] = pid
-        arts.append(it)
-    arts.sort(key=lambda i: i["date"], reverse=True)
-    seen, examples = set(), []
-    for a in arts:
-        if a["pub"] in seen:
-            continue
-        seen.add(a["pub"])
-        examples.append({"pub": a["pub"], "title": a["title"], "link": a["link"], "date": a["date"]})
-        if len(examples) == 6:
-            break
-    prior = sum(weekly[:3]) / 3
-    return {"name": topic["name"], "query": topic["query"], "weekly": weekly, "capped": capped,
-            "web_weekly": web_counts,
-            "article_count": len(arts), "last7": weekly[3], "prior7_avg": round(prior, 1),
-            "pubs": sorted(pubs, key=lambda p: SOURCES.index(SRC[p])), "examples": examples}
-
-
-def tracked_topics(force=False):
-    topics = load_topics()
-    out = []
-    now = time.time()
-    todo = [t for t in topics if force or t["name"] not in topic_cache
-            or now - topic_cache[t["name"]][0] > TOPIC_REFRESH_SECONDS
-            or topic_cache[t["name"]][1]["query"] != t["query"]]
-    with ThreadPoolExecutor(4) as ex:
-        for t, res in zip(todo, ex.map(fetch_topic, todo)):
-            topic_cache[t["name"]] = (now, res)
-    for t in topics:
-        if t["name"] in topic_cache:
-            out.append(topic_cache[t["name"]][1])
-    return out
-
-
 # ------------------------------------------------------------------- markets
 
 market_cache = {"at": 0, "data": []}
@@ -1025,7 +903,6 @@ def refresh():
         movers_cache["at"] = 0
         record_history([i for items in by_pub.values() for i in items])
         rising = rising_topics()
-        topics = tracked_topics()
 
         payload = {
             "generated": datetime.now(timezone.utc).isoformat(),
@@ -1040,7 +917,6 @@ def refresh():
             "moods": moods,
             "finance": fin,
             "rising": rising,
-            "topics": topics,
         }
         with state_lock:
             state.update(generated=payload["generated"], payload=payload, error=None)
@@ -1108,33 +984,6 @@ class Handler(SimpleHTTPRequestHandler):
                 self.send_error(404)
             return
         return super().do_GET()
-
-    def do_POST(self):
-        path = urllib.parse.urlparse(self.path).path
-        if path != "/api/topics":
-            self.send_error(404)
-            return
-        length = int(self.headers.get("Content-Length") or 0)
-        try:
-            body = json.loads(self.rfile.read(length) or b"{}")
-        except ValueError:
-            self.send_json({"error": "bad json"}, 400)
-            return
-        with topics_lock:
-            topics = load_topics()
-            if body.get("action") == "remove":
-                topics = [t for t in topics if t["name"] != body.get("name")]
-                topic_cache.pop(body.get("name"), None)
-            elif body.get("action") == "add" and body.get("name"):
-                name = body["name"].strip()[:80]
-                query = (body.get("query") or "").strip()[:300] or '"%s"' % name
-                topics = [t for t in topics if t["name"] != name] + [{"name": name, "query": query}]
-            save_topics(topics)
-        result = tracked_topics()
-        with state_lock:
-            if state["payload"]:
-                state["payload"]["topics"] = result
-        self.send_json(result)
 
 
 def main():

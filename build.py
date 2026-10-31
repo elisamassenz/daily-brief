@@ -18,22 +18,6 @@ SITE = os.path.join(server.ROOT, "site")
 LAST_MARKETS = os.path.join(server.RUNTIME, "markets_last.json")  # data/ on GitHub, .local/ on your Mac
 
 
-def write_archive(path, days=28):
-    """Compact list of the last 4 weeks of saved headlines, so visitors can track their own
-    topics on the public site (searched in their browser, no server needed)."""
-    today = datetime.now(timezone.utc).date()
-    day_list = [(today - timedelta(days=k)).isoformat() for k in range(days - 1, -1, -1)]
-    pubs = [s["id"] for s in server.SOURCES]
-    items = []
-    for di, day in enumerate(day_list):
-        for a in server.load_json(server.history_path(day), {}).values():
-            if a.get("pub") in pubs:
-                items.append([di, pubs.index(a["pub"]), a["title"], a.get("desc", ""), a["link"]])
-    with open(path, "w") as f:
-        json.dump({"days": day_list, "pubs": pubs, "items": items}, f, separators=(",", ":"))
-    return len(items)
-
-
 def main():
     server.refresh()
     payload = server.state["payload"]
@@ -54,7 +38,6 @@ def main():
     with open(os.path.join(SITE, "data", "markets.json"), "w") as f:
         json.dump(markets, f)
 
-    write_archive(os.path.join(SITE, "data", "archive.json"))
 
     index = os.path.join(SITE, "index.html")
     with open(index) as f:
