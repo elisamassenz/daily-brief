@@ -288,10 +288,10 @@
       </div>`).join("")}</div>`;
   }
 
-  // ------------------------------------------------------------ follow a story (topic search)
+  // ------------------------------------------------------------ back issues (topic search)
   // Searches the last 4 weeks of saved headlines (data/archive.json, built by build.py) in the browser.
   // Searches last only for this visit: nothing is saved.
-  const FOLLOW = { list: [], query: "", off: new Set() };
+  const FOLLOW = { list: [], query: "", off: new Set(), covers: [], focus: 0 };
   let archivePromise = null;
   const archive = () => (archivePromise = archivePromise ||
     fetch(STATIC ? `data/archive.json?t=${encodeURIComponent(DATA?.generated || "")}` : "api/archive")
@@ -316,9 +316,13 @@
       ? FOLLOW.list.map((q) => `<button type="button" class="chip ${q === FOLLOW.query ? "on" : ""}" data-follow="${esc(q)}">${esc(q)}</button>`).join("")
       : tries.map((q) => `<button type="button" class="chip" data-follow="${esc(q)}">${esc(q)}</button>`).join("");
     return `<div class="follow">
+      <div class="follow-intro">
+        <h3>Back Issues</h3>
+        <p>Pick any topic and get its cover story for each day: the headline the most outlets ran with. Flip back through the stack the way you'd leaf through old magazines.</p>
+      </div>
       <form class="follow-search" id="follow-form" role="search">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
-        <input name="q" placeholder="Follow a story, e.g. Pope Leo" maxlength="80" autocomplete="off" value="${esc(FOLLOW.query)}" aria-label="Follow a story">
+        <input name="q" placeholder="Pick a topic, e.g. Pope Leo" maxlength="80" autocomplete="off" value="${esc(FOLLOW.query)}" aria-label="Pick a topic">
         <button type="submit">Search</button>
       </form>
       <div class="follow-chips">${chips ? `<span class="kicker">${FOLLOW.list.length ? "This visit" : "Try"}</span>${chips}` : ""}</div>
@@ -345,61 +349,107 @@
     }
     const order = (DATA?.sources || []).map((x) => x.id);
     const pubs = [...new Set(all.map((h) => h.pub))].sort((a, b) => order.indexOf(a) - order.indexOf(b));
-    const hits = all.filter((h) => !FOLLOW.off.has(h.pub)).sort((a, b) => a.di - b.di).slice(-80);  // oldest → newest
+    const hits = all.filter((h) => !FOLLOW.off.has(h.pub));
+    const covers = coverStories(hits);   // one per day, oldest → newest
+    FOLLOW.covers = covers;
+    FOLLOW.focus = covers.length - 1;    // open on the latest issue
     const counts = arc.days.map((_, i) => hits.filter((h) => h.di === i).length);
     const first = counts.findIndex((c) => c > 0);
     const from = Math.max(0, Math.min(first < 0 ? 0 : first, arc.days.length - 14));  // at least two weeks of bars
     const max = Math.max(1, ...counts);
+    const mast = Math.min(19, 150 / Math.max(5, FOLLOW.query.length));   // masthead fills the cover width
     el.innerHTML = `
       <div class="follow-head">
         <div>
           <h3>${esc(FOLLOW.query)}</h3>
-          <p class="stat">${plural(all.length, "headline")} from ${plural(pubs.length, "publication")} since ${esc(dayLabel(arc.days[Math.max(0, all.reduce((m, h) => Math.min(m, h.di), 1e9))], { month: "short", day: "numeric" }))}</p>
+          <p class="stat">${plural(covers.length, "issue")} · ${plural(all.length, "headline")} from ${plural(pubs.length, "publication")}</p>
         </div>
         <div class="follow-pubs" aria-label="Filter by publication">${pubs.map((p) => `
           <button type="button" class="fpub ${FOLLOW.off.has(p) ? "off" : ""}" data-fpub="${esc(p)}" title="${esc(SRC[p]?.name || p)}">${logo(p)}</button>`).join("")}
         </div>
+      </div>
+      <div class="issues" tabindex="0" aria-label="Back issues: use the arrow keys to flip">
+        <button type="button" class="car-btn" data-car="-1" aria-label="Older issue">←</button>
+        <div class="issue-stack" style="--mast:${mast.toFixed(1)}">${covers.map((c, i) => `
+          <a class="cover" data-ci="${i}" draggable="false" ${ext(c.link)}>
+            ${c.img ? `<img class="cover-img" draggable="false" src="${safeUrl(c.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ""}${art(c.title, "cover-art")}
+            <div class="cover-top">
+              <div class="cover-mast">${esc(FOLLOW.query)}</div>
+              <div class="cover-issue">${esc(dayLabel(arc.days[c.di], { weekday: "long", month: "long", day: "numeric" }))}</div>
+            </div>
+            <div class="cover-bottom">
+              <h4>${esc(c.title)}</h4>
+              <div class="cover-credit">${logo(c.pub)}<span>${esc(SRC[c.pub]?.name || c.pub)}${c.n > 1 ? ` · 1 of ${c.n} headlines that day` : ""}</span></div>
+            </div>
+          </a>`).join("")}
+        </div>
+        <button type="button" class="car-btn" data-car="1" aria-label="Newer issue">→</button>
       </div>
       <div class="follow-chart">
         <div class="bars">${counts.slice(from).map((c, k) => `
           <button type="button" class="b ${c ? "" : "zero"}" data-fday="${from + k}" style="height:${Math.max(3, (c / max) * 100)}%" data-tip="${esc(dayLabel(arc.days[from + k]))}: ${plural(c, "headline")}"></button>`).join("")}
         </div>
         <div class="bars-axis"><span>${esc(dayLabel(arc.days[from], { month: "short", day: "numeric" }))}</span><span>today</span></div>
-      </div>
-      <div class="carousel">
-        <button type="button" class="car-btn" data-car="-1" aria-label="Older">←</button>
-        <div class="track">${hits.map((h) => `
-          <a class="fcard" data-di="${h.di}" ${ext(h.link)}>
-            ${h.img ? image(h.img) : ""}${h.img ? "" : art(h.title, "fcard-art")}
-            <div class="fcard-body">
-              ${pubtag(h.pub)}
-              <h4>${esc(h.title)}</h4>
-              <div class="when">${esc(dayLabel(arc.days[h.di]))}</div>
-            </div>
-          </a>`).join("")}
-        </div>
-        <button type="button" class="car-btn" data-car="1" aria-label="Newer">→</button>
       </div>`;
-    const track = el.querySelector(".track");
-    track.addEventListener("scroll", () => requestAnimationFrame(() => markCard(track)), { passive: true });
-    track.scrollLeft = track.scrollWidth;   // start on the most recent
-    markCard(track);
+    stackCovers();
+    const st = el.querySelector(".issues");
+    let x0 = null;   // swipe to flip
+    st.addEventListener("pointerdown", (e) => { x0 = e.clientX; });
+    st.addEventListener("pointerup", (e) => {
+      if (x0 !== null && Math.abs(e.clientX - x0) > 40) { flip(e.clientX < x0 ? 1 : -1); st.dataset.swiped = "1"; }
+      x0 = null;
+    });
+    st.addEventListener("click", (e) => {   // a swipe that ends on a cover shouldn't open it
+      if (st.dataset.swiped) { e.preventDefault(); e.stopPropagation(); delete st.dataset.swiped; }
+    }, true);
+    st.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") { e.preventDefault(); flip(e.key === "ArrowRight" ? 1 : -1); }
+    });
   }
 
-  // the card nearest the middle is in focus; the rest fade back
-  function markCard(track) {
-    const mid = track.getBoundingClientRect().left + track.clientWidth / 2;
-    let best = null, dist = Infinity;
-    for (const c of track.children) {
-      const r = c.getBoundingClientRect();
-      const d = Math.abs(r.left + r.width / 2 - mid);
-      if (d < dist) { dist = d; best = c; }
-    }
-    for (const c of track.children) c.classList.toggle("on", c === best);
-    const day = best?.dataset.di;
-    document.querySelectorAll(".follow-chart .b").forEach((b) => b.classList.toggle("recent", b.dataset.fday === day));
+  // each day's cover story: the matching headline that shares the most words with that day's other
+  // matching headlines (the angle most outlets ran with), preferring one with a photo
+  function coverStories(hits) {
+    const skip = new Set(FOLLOW.query.toLowerCase().split(/\W+/u));
+    const words = (t) => new Set(t.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter((w) => w.length > 3 && !skip.has(w)));
+    const byDay = new Map();
+    for (const h of hits) byDay.set(h.di, [...(byDay.get(h.di) || []), h]);
+    return [...byDay.keys()].sort((a, b) => a - b).map((di) => {
+      const day = byDay.get(di).map((h) => ({ ...h, w: words(h.title) }));
+      let best = null, top = -1;
+      for (const h of day) {
+        let score = h.img ? 1.5 : 0;
+        for (const o of day) if (o !== h) for (const w of h.w) if (o.w.has(w)) score += 1;
+        if (score > top) { top = score; best = h; }
+      }
+      return { ...best, n: day.length };
+    });
   }
-  const focusCard = (card) => card?.parentElement.scrollTo({ left: card.offsetLeft - (card.parentElement.clientWidth - card.offsetWidth) / 2, behavior: "smooth" });
+
+  // the stack: the issue in focus sits on top, full size; older and newer ones tuck in behind it
+  function stackCovers() {
+    const narrow = window.innerWidth < 620;
+    const step = narrow ? 34 : 120;
+    document.querySelectorAll(".cover").forEach((c) => {
+      const d = Number(c.dataset.ci) - FOLLOW.focus, a = Math.abs(d);
+      c.style.transform = `translateX(calc(-50% + ${d * step + Math.sign(d) * (narrow ? 26 : 70)}px)) scale(${a ? Math.max(.6, .84 - (a - 1) * .08) : 1})`;
+      c.style.zIndex = 100 - a;
+      c.style.opacity = a > (narrow ? 3 : 4) ? 0 : a ? 1 - a * .12 : 1;
+      c.classList.toggle("on", !a);
+      c.tabIndex = a ? -1 : 0;
+    });
+    const cur = FOLLOW.covers[FOLLOW.focus];
+    document.querySelectorAll(".follow-chart .b").forEach((b) => b.classList.toggle("recent", Number(b.dataset.fday) === cur?.di));
+    document.querySelectorAll('.issues [data-car]').forEach((b) => {
+      b.disabled = b.dataset.car === "1" ? FOLLOW.focus >= FOLLOW.covers.length - 1 : FOLLOW.focus <= 0;
+    });
+  }
+  function flip(by, to) {
+    const n = FOLLOW.covers.length;
+    FOLLOW.focus = Math.max(0, Math.min(n - 1, to ?? FOLLOW.focus + by));
+    stackCovers();
+  }
+  window.addEventListener("resize", () => { if (FOLLOW.covers.length) stackCovers(); });
 
   function follow(q) {
     q = q.trim();
@@ -577,16 +627,14 @@
     }
     const fd = e.target.closest("[data-fday]");
     if (fd) {
-      const cards = [...document.querySelectorAll(".fcard")].filter((c) => c.dataset.di === fd.dataset.fday);
-      focusCard(cards[cards.length - 1]);
+      const i = FOLLOW.covers.findIndex((c) => c.di === Number(fd.dataset.fday));
+      if (i >= 0) flip(0, i);
       return;
     }
     const cb = e.target.closest("[data-car]");
-    if (cb) {
-      const on = document.querySelector(".fcard.on");
-      focusCard(cb.dataset.car === "1" ? on?.nextElementSibling : on?.previousElementSibling);
-      return;
-    }
+    if (cb) { flip(Number(cb.dataset.car)); return; }
+    const cv = e.target.closest(".cover:not(.on)");
+    if (cv) { e.preventDefault(); flip(0, Number(cv.dataset.ci)); return; }   // tap a tucked-in issue to bring it up
     const ex = e.target.closest("[data-expand]");
     if (ex) {
       ex.previousElementSibling.querySelectorAll("[data-more]").forEach((li) => (li.hidden = false));
