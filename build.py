@@ -37,6 +37,8 @@ def main():
         json.dump(payload, f)
     with open(os.path.join(SITE, "data", "markets.json"), "w") as f:
         json.dump(markets, f)
+    with open(os.path.join(SITE, "data", "archive.json"), "w") as f:   # topic search
+        json.dump(server.archive(), f, separators=(",", ":"))
 
 
     index = os.path.join(SITE, "index.html")
@@ -46,6 +48,10 @@ def main():
     for old, new in ((">Wallflower<", ">%s<"), ('content="Wallflower"', 'content="%s"')):
         html = html.replace(old, new % server.SITE_TITLE)
     html = html.replace("<head>", '<head>\n<meta name="static-build" content="1">', 1)
+    if server.GA_ID:   # Google Analytics, public site only
+        html = html.replace("</head>", ('<script async src="https://www.googletagmanager.com/gtag/js?id={0}"></script>\n'
+            '<script>window.dataLayer=window.dataLayer||[];function gtag(){{dataLayer.push(arguments)}}'
+            'gtag("js",new Date());gtag("config","{0}");</script>\n</head>').format(server.GA_ID), 1)
     # version the stylesheet and script so browsers fetch the new copy after every change
     for name in ("style.css", "app.js"):
         with open(os.path.join(SITE, name), "rb") as f:

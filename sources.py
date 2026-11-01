@@ -12,6 +12,8 @@ SITE_TITLE = "Wallflower"
 # Shown in the "How to" section at the bottom of the page. Leave SUPPORT_URL empty to hide the coffee card.
 REPO_URL = ""   # set to your repo URL to show a "Make your own" card
 SUPPORT_URL = "https://buymeacoffee.com/wallflowernews"
+# Google Analytics 4 measurement ID ("G-XXXXXXXXXX"); empty = no analytics. Only the public site gets it.
+GA_ID = ""
 
 SECTIONS = ["News", "Ideas & Analysis", "Business & Markets", "Technology"]
 

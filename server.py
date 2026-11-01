@@ -23,7 +23,7 @@ from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
-from sources import FINANCE_PUBS, MARKETS, NEGATIVE, POSITIVE, REPO_URL, SECTIONS, SITE_TITLE, SOURCES, SUPPORT_URL, THEMES
+from sources import FINANCE_PUBS, GA_ID, MARKETS, NEGATIVE, POSITIVE, REPO_URL, SECTIONS, SITE_TITLE, SOURCES, SUPPORT_URL, THEMES
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 STATIC = os.path.join(ROOT, "static")
@@ -597,6 +597,7 @@ def record_history(items):
         text = it["title"] + " " + it["desc"]
         by_day[day][it["link"]] = {
             "pub": it["pub"], "title": it["title"], "link": it["link"], "desc": it["desc"][:220],
+            "image": it.get("image") or og_cache.get(it["link"]) or "",
             "terms": sorted(set(tokens(it["title"] + " " + it["desc"][:200]))),
             "bigrams": sorted(set(bigrams(it["title"]) + bigrams(it["desc"][:200]))),
             "forms": {k: v for k, v in surface_forms(text).items() if v[:1].isupper()},
@@ -611,6 +612,22 @@ def record_history(items):
         for f in os.listdir(HIST):
             if f.endswith(".json") and f[:-5] < cutoff:
                 os.remove(os.path.join(HIST, f))
+
+
+def archive(days=28):
+    """Every saved headline from the last 4 weeks, compact, for topic search on the page
+    (searched in the browser). Rows are [day index, publication index, title, link, image]."""
+    today = datetime.now().date()
+    day_list = [(today - timedelta(days=k)).isoformat() for k in range(days - 1, -1, -1)]
+    pubs = [s["id"] for s in SOURCES]
+    items = []
+    with hist_lock:
+        for di, day in enumerate(day_list):
+            for a in load_json(history_path(day), {}).values():
+                if a.get("pub") in pubs:
+                    items.append([di, pubs.index(a["pub"]), a["title"], a["link"],
+                                  a.get("image") or og_cache.get(a["link"]) or ""])
+    return {"days": day_list, "pubs": pubs, "items": items}
 
 
 GENERIC = set("""state united company security tech u.s america american government president house white senate congress
@@ -965,6 +982,9 @@ class Handler(SimpleHTTPRequestHandler):
             with state_lock:
                 self.send_json({"refreshing": state["refreshing"], "error": state["error"],
                                 "data": state["payload"]})
+            return
+        if path.path == "/api/archive":
+            self.send_json(archive())
             return
         if path.path == "/api/markets":
             self.send_json({"quotes": markets(), "movers": movers()})

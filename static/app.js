@@ -288,6 +288,130 @@
       </div>`).join("")}</div>`;
   }
 
+  // ------------------------------------------------------------ follow a story (topic search)
+  // Searches the last 4 weeks of saved headlines (data/archive.json, built by build.py) in the browser.
+  // Searches last only for this visit: nothing is saved.
+  const FOLLOW = { list: [], query: "", off: new Set() };
+  let archivePromise = null;
+  const archive = () => (archivePromise = archivePromise ||
+    fetch(STATIC ? `data/archive.json?t=${encodeURIComponent(DATA?.generated || "")}` : "api/archive")
+      .then((r) => r.json()).catch(() => (archivePromise = null)));
+
+  // "pope leo": every word must appear (as the start of a word); "ozempic, wegovy" or "ozempic OR wegovy": either may match
+  function matcher(query) {
+    const tests = query.split(/\s+OR\s+|,/i).map((x) => x.trim()).filter(Boolean).map((alt) => {
+      const quoted = alt.match(/^"(.+)"$/);
+      const words = quoted ? [quoted[1]] : alt.replace(/[()"]/g, " ").split(/\s+/).filter((w) => w.length > 1);
+      const res = words.map((w) => new RegExp(`(^|[^\\p{L}\\p{N}])${w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`, "iu"));
+      return (text) => res.length > 0 && res.every((re) => re.test(text));
+    });
+    return (text) => tests.some((t) => t(text));
+  }
+  const dayLabel = (d, opts = { weekday: "short", month: "short", day: "numeric" }) =>
+    new Date(`${d}T12:00:00`).toLocaleDateString("en-US", opts);
+
+  function renderFollow() {
+    const tries = (DATA?.rising?.topics || DATA?.rising?.leaders || []).slice(0, 4).map((t) => t.label);
+    const chips = FOLLOW.list.length
+      ? FOLLOW.list.map((q) => `<button type="button" class="chip ${q === FOLLOW.query ? "on" : ""}" data-follow="${esc(q)}">${esc(q)}</button>`).join("")
+      : tries.map((q) => `<button type="button" class="chip" data-follow="${esc(q)}">${esc(q)}</button>`).join("");
+    return `<div class="follow">
+      <form class="follow-search" id="follow-form" role="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+        <input name="q" placeholder="Follow a story, e.g. Pope Leo" maxlength="80" autocomplete="off" value="${esc(FOLLOW.query)}" aria-label="Follow a story">
+        <button type="submit">Search</button>
+      </form>
+      <div class="follow-chips">${chips ? `<span class="kicker">${FOLLOW.list.length ? "This visit" : "Try"}</span>${chips}` : ""}</div>
+      <div id="follow-results"></div>
+    </div>`;
+  }
+
+  async function paintFollow() {
+    const el = $("#follow-results");
+    if (!el || !FOLLOW.query) return;
+    el.innerHTML = `<div class="follow-note">Searching 4 weeks of headlines…</div>`;
+    const arc = await archive();
+    if (!arc) { el.innerHTML = `<div class="follow-note">Couldn’t load the saved headlines. Try again in a moment.</div>`; return; }
+    const test = matcher(FOLLOW.query);
+    const seen = new Set();
+    const all = arc.items.filter(([, , title, link]) => {
+      if (seen.has(link) || !test(title)) return false;
+      seen.add(link);
+      return true;
+    }).map(([di, pi, title, link, img]) => ({ di, pub: arc.pubs[pi], title, link, img }));
+    if (!all.length) {
+      el.innerHTML = `<div class="follow-note">No headlines about “${esc(FOLLOW.query)}” in the last 4 weeks.</div>`;
+      return;
+    }
+    const order = (DATA?.sources || []).map((x) => x.id);
+    const pubs = [...new Set(all.map((h) => h.pub))].sort((a, b) => order.indexOf(a) - order.indexOf(b));
+    const hits = all.filter((h) => !FOLLOW.off.has(h.pub)).sort((a, b) => a.di - b.di).slice(-80);  // oldest → newest
+    const counts = arc.days.map((_, i) => hits.filter((h) => h.di === i).length);
+    const first = counts.findIndex((c) => c > 0);
+    const from = Math.max(0, Math.min(first < 0 ? 0 : first, arc.days.length - 14));  // at least two weeks of bars
+    const max = Math.max(1, ...counts);
+    el.innerHTML = `
+      <div class="follow-head">
+        <div>
+          <h3>${esc(FOLLOW.query)}</h3>
+          <p class="stat">${plural(all.length, "headline")} from ${plural(pubs.length, "publication")} since ${esc(dayLabel(arc.days[Math.max(0, all.reduce((m, h) => Math.min(m, h.di), 1e9))], { month: "short", day: "numeric" }))}</p>
+        </div>
+        <div class="follow-pubs" aria-label="Filter by publication">${pubs.map((p) => `
+          <button type="button" class="fpub ${FOLLOW.off.has(p) ? "off" : ""}" data-fpub="${esc(p)}" title="${esc(SRC[p]?.name || p)}">${logo(p)}</button>`).join("")}
+        </div>
+      </div>
+      <div class="follow-chart">
+        <div class="bars">${counts.slice(from).map((c, k) => `
+          <button type="button" class="b ${c ? "" : "zero"}" data-fday="${from + k}" style="height:${Math.max(3, (c / max) * 100)}%" data-tip="${esc(dayLabel(arc.days[from + k]))}: ${plural(c, "headline")}"></button>`).join("")}
+        </div>
+        <div class="bars-axis"><span>${esc(dayLabel(arc.days[from], { month: "short", day: "numeric" }))}</span><span>today</span></div>
+      </div>
+      <div class="carousel">
+        <button type="button" class="car-btn" data-car="-1" aria-label="Older">←</button>
+        <div class="track">${hits.map((h) => `
+          <a class="fcard" data-di="${h.di}" ${ext(h.link)}>
+            ${h.img ? image(h.img) : ""}${h.img ? "" : art(h.title, "fcard-art")}
+            <div class="fcard-body">
+              ${pubtag(h.pub)}
+              <h4>${esc(h.title)}</h4>
+              <div class="when">${esc(dayLabel(arc.days[h.di]))}</div>
+            </div>
+          </a>`).join("")}
+        </div>
+        <button type="button" class="car-btn" data-car="1" aria-label="Newer">→</button>
+      </div>`;
+    const track = el.querySelector(".track");
+    track.addEventListener("scroll", () => requestAnimationFrame(() => markCard(track)), { passive: true });
+    track.scrollLeft = track.scrollWidth;   // start on the most recent
+    markCard(track);
+  }
+
+  // the card nearest the middle is in focus; the rest fade back
+  function markCard(track) {
+    const mid = track.getBoundingClientRect().left + track.clientWidth / 2;
+    let best = null, dist = Infinity;
+    for (const c of track.children) {
+      const r = c.getBoundingClientRect();
+      const d = Math.abs(r.left + r.width / 2 - mid);
+      if (d < dist) { dist = d; best = c; }
+    }
+    for (const c of track.children) c.classList.toggle("on", c === best);
+    const day = best?.dataset.di;
+    document.querySelectorAll(".follow-chart .b").forEach((b) => b.classList.toggle("recent", b.dataset.fday === day));
+  }
+  const focusCard = (card) => card?.parentElement.scrollTo({ left: card.offsetLeft - (card.parentElement.clientWidth - card.offsetWidth) / 2, behavior: "smooth" });
+
+  function follow(q) {
+    q = q.trim();
+    if (!q) return;
+    FOLLOW.query = q;
+    FOLLOW.off.clear();
+    FOLLOW.list = [q, ...FOLLOW.list.filter((x) => x.toLowerCase() !== q.toLowerCase())].slice(0, 8);
+    const wrap = $(".follow");
+    if (wrap) wrap.outerHTML = renderFollow();
+    paintFollow();
+  }
+
   // ------------------------------------------------------------ 05 front pages
   function pubHead(src) {
     const mark = src.wordmark
@@ -391,6 +515,7 @@
       <section id="weeks" class="sec">
         <img class="peek peek-3" src="stem.png" alt="" aria-hidden="true">
         ${sectionHead("04", "Trending over the weeks", "Stories that keep coming back")}
+        ${renderFollow()}
         ${renderRising(data.rising)}
       </section>
 
@@ -400,6 +525,7 @@
       </section>
       ${renderSupport(data)}`;
     renderMarkets();
+    paintFollow();
     updateStamp();
     queueFit();
     document.querySelectorAll("section.sec").forEach((s) => navObserver.observe(s));
@@ -440,6 +566,27 @@
       sm.remove();
       return;
     }
+    const fq = e.target.closest("[data-follow]");
+    if (fq) { follow(fq.dataset.follow); return; }
+    const fp = e.target.closest("[data-fpub]");
+    if (fp) {
+      const p = fp.dataset.fpub;
+      FOLLOW.off.has(p) ? FOLLOW.off.delete(p) : FOLLOW.off.add(p);
+      paintFollow();
+      return;
+    }
+    const fd = e.target.closest("[data-fday]");
+    if (fd) {
+      const cards = [...document.querySelectorAll(".fcard")].filter((c) => c.dataset.di === fd.dataset.fday);
+      focusCard(cards[cards.length - 1]);
+      return;
+    }
+    const cb = e.target.closest("[data-car]");
+    if (cb) {
+      const on = document.querySelector(".fcard.on");
+      focusCard(cb.dataset.car === "1" ? on?.nextElementSibling : on?.previousElementSibling);
+      return;
+    }
     const ex = e.target.closest("[data-expand]");
     if (ex) {
       ex.previousElementSibling.querySelectorAll("[data-more]").forEach((li) => (li.hidden = false));
@@ -447,6 +594,12 @@
       return;
     }
   });
+  app.addEventListener("submit", (e) => {
+    if (e.target.id !== "follow-form") return;
+    e.preventDefault();
+    follow(e.target.q.value);
+  });
+
   // ------------------------------------------------------------ data loading
   async function loadNews(refresh = false) {
     try {
