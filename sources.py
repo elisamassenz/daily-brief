@@ -16,7 +16,7 @@ SUPPORT_URL = "https://buymeacoffee.com/wallflowernews"
 # Google Analytics 4 measurement ID ("G-XXXXXXXXXX"); empty = no analytics. Only the public site gets it.
 GA_ID = "G-XSBQG2JKS5"
 # "Report a problem" form (e.g. a Google Form link, so no email address is public); empty hides the link.
-REPORT_URL = ""
+REPORT_URL = "https://forms.gle/tuqskG5WR36Tq4wd6"
 # Instagram profile; empty hides the "Follow on Instagram" button. Set it once the intro post is live.
 INSTAGRAM_URL = "https://www.instagram.com/wallflower.news/"
 
