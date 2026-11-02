@@ -640,7 +640,7 @@ a:hover .img-wrap img { transform: scale(1.03); }
   /* the poppy photo has a white background: inverted (and hue-turned back to blue) it sits on black, which "screen" drops out */
   /* the poppy cut out of its pale photo background (static/header-poppy-cut.webp, Photoshop select-subject), so its petals sit on the dark page */
   .stems { display: block; }
-  .bloom { background-image: url("header-poppy-cut.webp"); -webkit-mask-image: none; mask-image: none; opacity: .9; }
+  .bloom { background-image: url("header-poppy-cut.webp"); -webkit-mask-image: none; mask-image: none; opacity: .8; }
   /* the section nav stays the usual cream bar */
   .secnav { background: color-mix(in srgb, #f4efe7 94%, transparent); border-bottom-color: #e3e1d9; }
   .secnav a { color: #4a443d; }
