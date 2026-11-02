@@ -367,7 +367,6 @@
         <button type="button" class="car-btn" data-car="-1" aria-label="Older issue">←</button>
         <div class="issue-stack">${covers.map((c, i) => `
           <a class="cover" data-ci="${i}" draggable="false" ${ext(c.link)}>
-            <div class="cover-pic">${art(c.title, "cover-art")}${c.img ? `<img class="cover-img" draggable="false" src="${safeUrl(c.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ""}</div>
             <div class="cover-body">
               <h4>${esc(c.title)}</h4>
               <div class="cover-credit">${logo(c.pub)}<span>${esc(SRC[c.pub]?.name || c.pub)}${c.n > 1 ? ` · 1 of ${c.n} headlines that day` : ""}</span></div>
@@ -400,7 +399,7 @@
   }
 
   // each day's cover story: the matching headline that shares the most words with that day's other
-  // matching headlines (the angle most outlets ran with), preferring one with a photo
+  // matching headlines (the angle most outlets ran with)
   function coverStories(hits) {
     const skip = new Set(FOLLOW.query.toLowerCase().split(/\W+/u));
     const words = (t) => new Set(t.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter((w) => w.length > 3 && !skip.has(w)));
@@ -410,7 +409,7 @@
       const day = byDay.get(di).map((h) => ({ ...h, w: words(h.title) }));
       let best = null, top = -1;
       for (const h of day) {
-        let score = h.img ? 1.5 : 0;
+        let score = 0;
         for (const o of day) if (o !== h) for (const w of h.w) if (o.w.has(w)) score += 1;
         if (score > top) { top = score; best = h; }
       }
