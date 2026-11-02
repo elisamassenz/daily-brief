@@ -361,10 +361,11 @@
         </div>
         <div class="follow-pubs" aria-label="Filter by publication">${pubs.map((p) => `
           <button type="button" class="fpub ${FOLLOW.off.has(p) ? "off" : ""}" data-fpub="${esc(p)}" title="${esc(SRC[p]?.name || p)}">${logo(p)}</button>`).join("")}
+          <button type="button" class="fpub-all ${FOLLOW.off.size ? "" : "on"}" data-fpub-all title="${FOLLOW.off.size ? "Show all publications" : "Hide all publications"}"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></button>
         </div>
       </div>
       <div class="issues" tabindex="0" aria-label="Back issues: use the arrow keys to flip">
-        <div class="issue-stack">${covers.map((c, i) => `
+        <div class="issue-stack">${covers.length ? "" : `<div class="follow-note issues-empty">Pick a publication above to see its issues.</div>`}${covers.map((c, i) => `
           <a class="cover" data-ci="${i}" draggable="false" ${ext(c.link)}>
             <div class="cover-body">
               <h4>${esc(c.title)}</h4>
@@ -645,6 +646,12 @@
     }
     const fq = e.target.closest("[data-follow]");
     if (fq) { follow(fq.dataset.follow); return; }
+    if (e.target.closest("[data-fpub-all]")) {   // all on → all off; otherwise all back on
+      if (FOLLOW.off.size) FOLLOW.off.clear();
+      else document.querySelectorAll("[data-fpub]").forEach((b) => FOLLOW.off.add(b.dataset.fpub));
+      paintFollow();
+      return;
+    }
     const fp = e.target.closest("[data-fpub]");
     if (fp) {
       const p = fp.dataset.fpub;

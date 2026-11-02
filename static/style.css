@@ -170,7 +170,7 @@ main { padding: 0 var(--gutter) 40px; max-width: 1680px; margin: 0 auto; }
   grid-column: 1 / -1; margin: 0; font-family: var(--serif); font-weight: 400;
   font-size: clamp(44px, 4.6vw, 68px); line-height: 1; letter-spacing: -.015em;
 }
-.sec-dek { grid-column: 1 / -1; margin: 4px 0 0; font-size: 15px; color: var(--ink-2); }
+.sec-dek { grid-column: 1 / -1; margin: 4px 0 0; max-width: 620px; font-size: 15px; color: var(--ink-2); }   /* clear of the section flowers */
 .sec-dek:empty { display: none; }
 .sec-dek b { font-weight: 600; }
 #markets[data-level="alarm"] .sec-title, #markets[data-level="down"] .sec-title { color: var(--down); }
@@ -460,6 +460,10 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .fpub { padding: 0; border: none; background: none; cursor: pointer; border-radius: 50%; transition: opacity .2s; }
 .fpub .logo { width: 28px; height: 28px; border-radius: 50%; padding: 3px; }
 .fpub.off { opacity: .3; }
+.fpub-all { width: 28px; height: 28px; margin-left: 4px; border-radius: 50%; border: 1.5px solid var(--accent); background: none; color: var(--accent);
+  display: grid; place-items: center; cursor: pointer; padding: 0; }
+.fpub-all svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.fpub-all.on { background: var(--accent); color: var(--bg); }
 .follow-chart { max-width: 640px; margin: 0 auto; }
 .follow-chart .bars { height: 56px; gap: 3px; }
 .follow-chart .b { border: none; padding: 0; cursor: pointer; }
@@ -469,6 +473,7 @@ a:hover .img-wrap img { transform: scale(1.03); }
 /* back issues: a stack of magazine covers, the day in focus on top and the rest tucked in behind */
 .issues { position: relative; height: 270px; margin: 8px calc(-1 * var(--gutter)) 0; overflow: hidden; touch-action: pan-y; outline: none; user-select: none; }
 .issue-stack { position: absolute; inset: 0; }
+.issues-empty { text-align: center; margin-top: 110px; }
 .cover {
   position: absolute; left: 50%; top: 14px; width: 300px; border-radius: var(--radius); overflow: hidden;
   background: var(--card); color: var(--ink);
