@@ -30,6 +30,8 @@ body { margin: 0; background: #ccc; font-family: var(--sans); color: var(--ink);
   -webkit-mask-image: linear-gradient(#000 60%, transparent 70%), linear-gradient(90deg, transparent 21%, #000 28%, #000 74%, transparent 82%);
   -webkit-mask-composite: source-in; mask-image: linear-gradient(#000 60%, transparent 70%), linear-gradient(90deg, transparent 21%, #000 28%, #000 74%, transparent 82%); mask-composite: intersect; }
 .top { padding-bottom: 24px; border-bottom: 1.5px solid var(--rule); }
+/* the poppy is multiply-blended, so a rule under it shows through the petals: end the line where the flower begins */
+.slide:has(> .poppy) > .top { border-bottom: none; background: linear-gradient(90deg, var(--rule) 0 470px, transparent 560px) left bottom / 100% 1.5px no-repeat; }
 .brand { font-family: var(--serif); font-size: 50px; line-height: 1; }
 .date { display: block; margin-top: 12px; font-size: 20px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 .eyebrow { display: flex; align-items: center; gap: 16px; margin: 52px 0 24px; font-size: 22px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent-soft); }
