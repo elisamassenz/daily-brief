@@ -614,7 +614,6 @@
   }
 
   // ------------------------------------------------------------ about
-  const reportHref = (email) => `mailto:${email}?subject=${encodeURIComponent("Wallflower: problem report")}&body=${encodeURIComponent("What looks wrong (a headline, a link, two stories grouped together, a market number)?\n\n")}`;
   function renderAbout(data) {
     return `<section id="about" class="sec about">
       ${sectionHead("", "About", "How Wallflower works")}
@@ -624,7 +623,7 @@
         <div><h4>Their words, their links</h4><p>Every headline appears exactly as the outlet wrote it, credited, and links to the original article. Read the full story at the source.</p></div>
         <div><h4>Markets</h4><p>Prices come from Yahoo Finance and may be delayed. The date shows which trading session they’re from.</p></div>
       </div>
-      ${data.report_email ? `<p class="about-report">Spot a wrong grouping, a broken link or a headline that looks off? <a href="${esc(reportHref(data.report_email))}">Report a problem</a></p>` : ""}
+      ${data.report_url ? `<p class="about-report">Spot a wrong grouping, a broken link or a headline that looks off? <a ${ext(data.report_url)}>Report a problem</a></p>` : ""}
     </section>`;
   }
 
@@ -679,8 +678,8 @@
       ${renderSupport(data)}
       ${renderAbout(data)}`;
     const rep = $("#foot-report");
-    rep.hidden = !data.report_email;
-    if (data.report_email) rep.querySelector("a").href = reportHref(data.report_email);
+    rep.hidden = !data.report_url;
+    if (data.report_url) Object.assign(rep.querySelector("a"), { href: data.report_url, target: "_blank", rel: "noopener" });
     applyFront();
     renderMarkets();
     paintFollow();
