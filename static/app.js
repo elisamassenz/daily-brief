@@ -275,8 +275,8 @@
         chart: bars(t.series, [t.days[0].slice(5), "today"], recentFrom, (v, i) => `${t.days[i]}: ${plural(v, "article")}`) };
     }) : (rising.leaders || []).map((t) => ({ label: t.label, pubs: t.pubs, examples: t.examples, stat: `${t.pubs.length} publications`, chart: "" }));
     if (!cards.length) return `<div class="collecting">Fills in after a week of saved headlines.</div>`;
-    return `<div class="longview">${cards.map((c) => `
-      <div class="topic">
+    return `<div class="longview">${cards.map((c, i) => `
+      <div class="topic ${i >= 4 ? "extra" : ""}">
         <div>
           <h4>${esc(c.label)}</h4>
           <div class="stat">${stack(c.pubs, 8)} ${c.stat}</div>
@@ -285,7 +285,8 @@
         <ul class="ex">${c.examples.slice(0, 4).map((e) => `
           <li>${logo(e.pub)}<a ${ext(e.link)}>${esc(e.title)}</a><span class="when">${esc(e.day.slice(5))}</span></li>`).join("")}
         </ul>
-      </div>`).join("")}</div>`;
+      </div>`).join("")}</div>
+      ${cards.length > 4 ? `<button class="show-more lv-more" data-show-more>Show ${plural(cards.length - 4, "more story")}</button>` : ""}`;
   }
 
   // ------------------------------------------------------------ back issues (topic search)

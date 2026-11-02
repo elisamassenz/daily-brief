@@ -335,6 +335,8 @@ a:hover .img-wrap img { transform: scale(1.03); }
 /* ------------------------------------------------------------ 04 over the weeks */
 .longview { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }   /* cards pair up in rows, so neither column runs long */
 .longview .topic { margin-bottom: 0; }
+.longview:not(.expanded) .extra { display: none; }   /* four on landing, the rest on demand */
+.show-more.lv-more { display: block; margin-top: 22px; }
 .topic { display: grid; grid-template-columns: minmax(0, 1fr) 140px; gap: 10px 22px; padding: 22px 24px 16px; margin-bottom: 14px; }
 .topic h4 { font-weight: 600; font-size: 19px; letter-spacing: -.01em; margin: 0; line-height: 1.25; }
 .topic .stat { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; font-family: var(--sans); font-size: 11.5px; color: var(--ink-2); }
