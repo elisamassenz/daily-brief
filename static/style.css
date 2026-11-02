@@ -636,9 +636,17 @@ a:hover .img-wrap img { transform: scale(1.03); }
 
 /* ------------------------------------------------------------ dark mode touch-ups */
 @media (prefers-color-scheme: dark) {
-  .masthead-title { color: #dfe6f8; }   /* the light-mode navy disappears on the dark page */
+  .masthead-title { color: #16223f; }   /* navy, as in light mode: it sits on the cut-out poppy */
   /* the poppy photo has a white background: inverted (and hue-turned back to blue) it sits on black, which "screen" drops out */
+  /* the poppy cut out of its pale photo background (static/header-poppy-cut.webp), so its petals sit on the dark page */
   .stems { display: block; }
-  .bloom { filter: invert(1) hue-rotate(180deg) brightness(1.5); mix-blend-mode: screen; opacity: .6; }
+  .bloom { background-image: url("header-poppy-cut.webp"); -webkit-mask-image: none; mask-image: none; opacity: .9; }
+  /* the section nav stays the usual cream bar */
+  .secnav { background: color-mix(in srgb, #f4efe7 94%, transparent); border-bottom-color: #e3e1d9; }
+  .secnav a { color: #4a443d; }
+  .secnav a span { color: #8c857b; }
+  .secnav a:hover { background: #e6e3cf; }
+  .secnav a.on { background: #1f4fc4; color: #f4efe7; }
+  .secnav a.on span { color: rgba(244, 239, 231, .7); }
   .cover:not(.on)::after { background: rgba(28, 25, 22, .45); }   /* tucked-in back issues dim instead of fogging */
 }
