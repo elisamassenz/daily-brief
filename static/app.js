@@ -364,7 +364,6 @@
         </div>
       </div>
       <div class="issues" tabindex="0" aria-label="Back issues: use the arrow keys to flip">
-        <button type="button" class="car-btn" data-car="-1" aria-label="Older issue">←</button>
         <div class="issue-stack">${covers.map((c, i) => `
           <a class="cover" data-ci="${i}" draggable="false" ${ext(c.link)}>
             <div class="cover-body">
@@ -374,13 +373,16 @@
             </div>
           </a>`).join("")}
         </div>
-        <button type="button" class="car-btn" data-car="1" aria-label="Newer issue">→</button>
       </div>
       <div class="follow-chart">
         <div class="bars">${counts.slice(from).map((c, k) => `
           <button type="button" class="b ${c ? "" : "zero"}" data-fday="${from + k}" style="height:${Math.max(3, (c / max) * 100)}%" data-tip="${esc(dayLabel(arc.days[from + k]))}: ${plural(c, "headline")}"></button>`).join("")}
         </div>
         <div class="bars-axis"><span>${esc(dayLabel(arc.days[from], { month: "short", day: "numeric" }))}</span><span>today</span></div>
+      </div>
+      <div class="issue-nav">
+        <button type="button" class="car-btn" data-car="-1" aria-label="Older issue">←</button>
+        <button type="button" class="car-btn" data-car="1" aria-label="Newer issue">→</button>
       </div>`;
     stackCovers();
     const st = el.querySelector(".issues");
@@ -393,6 +395,17 @@
     st.addEventListener("click", (e) => {   // a swipe that ends on a cover shouldn't open it
       if (st.dataset.swiped) { e.preventDefault(); e.stopPropagation(); delete st.dataset.swiped; }
     }, true);
+    // trackpad: a sideways two-finger swipe flips one issue; the gesture (and its momentum) ends after a short pause
+    let wheel = 0, locked = false, idle;
+    st.addEventListener("wheel", (e) => {
+      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;   // vertical scrolling still scrolls the page
+      e.preventDefault();
+      clearTimeout(idle);
+      idle = setTimeout(() => { locked = false; wheel = 0; }, 160);
+      if (locked) return;
+      wheel += e.deltaX;
+      if (Math.abs(wheel) > 40) { flip(wheel > 0 ? 1 : -1); locked = true; }
+    }, { passive: false });
     st.addEventListener("keydown", (e) => {
       if (e.key === "ArrowLeft" || e.key === "ArrowRight") { e.preventDefault(); flip(e.key === "ArrowRight" ? 1 : -1); }
     });
@@ -431,7 +444,7 @@
     });
     const cur = FOLLOW.covers[FOLLOW.focus];
     document.querySelectorAll(".follow-chart .b").forEach((b) => b.classList.toggle("recent", Number(b.dataset.fday) === cur?.di));
-    document.querySelectorAll('.issues [data-car]').forEach((b) => {
+    document.querySelectorAll('.issue-nav [data-car]').forEach((b) => {
       b.disabled = b.dataset.car === "1" ? FOLLOW.focus >= FOLLOW.covers.length - 1 : FOLLOW.focus <= 0;
     });
   }
