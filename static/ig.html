@@ -152,7 +152,8 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
   document.getElementById("slides").innerHTML = story(a, 1, "var(--sky)") + (b ? story(b, 2, "var(--butter)") : "") + (weekend ? "" : markets());
   // captions for the poster: plain text, since Instagram links aren't clickable
   // caption: hashtags for each story's key words (Instagram search reads captions) rather than repeating the headlines
-  const tags = [a, b].filter(Boolean).flatMap((st) => st.terms.filter((t) => /^\p{Lu}/u.test(t))
+  const NOT_TAGS = new Set("One Two Three Four Five Six Seven Eight Nine Ten Dozens Hundreds Thousands Millions How Why What When Who Where Here After Before New Live Watch".split(" "));
+  const tags = [a, b].filter(Boolean).flatMap((st) => st.terms.filter((t) => /^\p{Lu}/u.test(t) && !NOT_TAGS.has(t))
     .sort((x, y) => st.headline.indexOf(x) - st.headline.indexOf(y)).slice(0, 3));
   window.CAPTION = [
     `${day}: what everyone is covering${weekend ? "" : ", plus markets"}.`, "",
