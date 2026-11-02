@@ -100,7 +100,11 @@
     </div>`;
   }
 
-  const leadLink = (s) => (s.angles.find((x) => x.title === s.headline) || s.angles[0] || {}).link;
+  // the big headline is one outlet's own (the one closest to everyone's coverage): credit it, and leave it out of the list below
+  const leadAngle = (s) => s.angles.find((x) => x.title === s.headline);
+  const leadLink = (s) => (leadAngle(s) || s.angles[0] || {}).link;
+  const credit = (s) => { const a = leadAngle(s); return a ? `<div class="hl-credit">${logo(a.pub)}<span>Headline from ${esc(SRC[a.pub]?.name || a.pub)}</span></div>` : ""; };
+  const others = (s) => s.angles.filter((x) => x !== leadAngle(s));
   const storyEyebrow = (s, n) => `<div class="eyebrow"><span class="${n === 1 ? "acc" : "num"}">${n === 1 ? "Top story" : n}</span> · ${s.pub_count} publications</div>`;
   const meta = (s) => `<div class="story-meta">${stack(s.angles.map((a) => a.pub))}</div>`;
 
@@ -113,19 +117,21 @@
       ${lead.image ? `<a class="lead-img" ${ext(leadLink(lead))}>${image(lead.image)}</a>` : ""}
       ${storyEyebrow(lead, 1)}
       <h3><a class="hl" ${ext(leadLink(lead))}>${esc(lead.headline)}</a></h3>
+      ${credit(lead)}
       ${lead.summary ? `<p class="summary">${esc(lead.summary)}</p><button type="button" class="read-more" data-read-more hidden>Read more</button>` : ""}
       ${meta(lead)}
-      ${coverage(lead.angles, lead.angles.length, 5)}
+      ${coverage(others(lead), others(lead).length, 5)}
     </article>
     <div class="story-grid">${top.map((s, i) => `
       <article class="story card ${i >= 2 ? "extra" : ""}">
         <div class="card-top ${s.image ? "" : "no-thumb"}">
           <div>
             <h3><a class="hl" ${ext(leadLink(s))}>${esc(s.headline)}</a></h3>
+            ${credit(s)}
           </div>
           ${s.image ? `<a class="thumb" ${ext(leadLink(s))}>${image(s.image)}</a>` : ""}
         </div>
-        ${coverage(s.angles, 3)}
+        ${coverage(others(s), 3)}
       </article>`).join("")}
     </div>
     ${top.length > 2 ? `<button class="show-more" data-show-more>Show ${plural(top.length - 2, "more story")}</button>` : ""}`;
