@@ -614,6 +614,27 @@ def record_history(items):
                 os.remove(os.path.join(HIST, f))
 
 
+TOP_STORIES_FILE = os.path.join(RUNTIME, "top_stories.json")
+
+
+def record_top_story(stories):
+    """Each day's cover story (the most widely covered one seen that day, Eastern time), kept 2 weeks,
+    for the Sunday Instagram recap."""
+    if not stories:
+        return
+    try:
+        from zoneinfo import ZoneInfo
+        day = datetime.now(ZoneInfo("America/New_York")).strftime("%Y-%m-%d")
+    except Exception:
+        day = datetime.now().strftime("%Y-%m-%d")
+    top = stories[0]
+    days = load_json(TOP_STORIES_FILE, {})
+    if top["pub_count"] >= days.get(day, {}).get("pub_count", 0):
+        days[day] = {"headline": top["headline"], "pub_count": top["pub_count"],
+                     "pubs": [a["pub"] for a in top["angles"][:6]]}
+    save_json(TOP_STORIES_FILE, {d: days[d] for d in sorted(days)[-14:]})
+
+
 def archive(days=28):
     """Every saved headline from the last 4 weeks, compact, for topic search on the page
     (searched in the browser). Rows are [day index, publication index, title, link, image]."""
@@ -919,6 +940,7 @@ def refresh():
             state["finance_items"] = [i for items in by_pub.values() for i in items]
         movers_cache["at"] = 0
         record_history([i for items in by_pub.values() for i in items])
+        record_top_story(stories)
         rising = rising_topics()
 
         payload = {
@@ -982,6 +1004,9 @@ class Handler(SimpleHTTPRequestHandler):
             with state_lock:
                 self.send_json({"refreshing": state["refreshing"], "error": state["error"],
                                 "data": state["payload"]})
+            return
+        if path.path == "/api/top_stories":
+            self.send_json(load_json(TOP_STORIES_FILE, {}))
             return
         if path.path == "/api/archive":
             self.send_json(archive())

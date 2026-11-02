@@ -37,6 +37,8 @@ def main():
         json.dump(payload, f)
     with open(os.path.join(SITE, "data", "markets.json"), "w") as f:
         json.dump(markets, f)
+    if os.path.exists(server.TOP_STORIES_FILE):   # each day's cover story, for the Sunday Instagram recap
+        shutil.copy(server.TOP_STORIES_FILE, os.path.join(SITE, "data", "top_stories.json"))
     with open(os.path.join(SITE, "data", "archive.json"), "w") as f:   # topic search
         json.dump(server.archive(), f, separators=(",", ":"))
 

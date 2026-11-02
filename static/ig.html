@@ -23,7 +23,7 @@ body { margin: 0; background: #ccc; font-family: var(--sans); color: var(--ink);
 .peek { position: absolute; z-index: 0; pointer-events: none; -webkit-mask-image: linear-gradient(#000 45%, transparent 72%); mask-image: linear-gradient(#000 45%, transparent 72%); }
 
 /* the site header's cyanotype poppy, hung from the top right edge and faded out like on the site */
-.poppy { position: absolute; z-index: 0; top: -14px; left: 330px; width: 985px; aspect-ratio: 2240 / 1041; pointer-events: none;
+.poppy { position: absolute; z-index: 0; top: -44px; left: 330px; width: 985px; aspect-ratio: 2240 / 1041; pointer-events: none;
   background: url("header-poppy.jpg") center / cover no-repeat; mix-blend-mode: multiply; opacity: .75;
   -webkit-mask-image: linear-gradient(#000 60%, transparent 70%), linear-gradient(90deg, transparent 21%, #000 28%, #000 74%, transparent 82%);
   -webkit-mask-composite: source-in; mask-image: linear-gradient(#000 60%, transparent 70%), linear-gradient(90deg, transparent 21%, #000 28%, #000 74%, transparent 82%); mask-composite: intersect; }
@@ -70,51 +70,112 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
 .mv-sym { font-family: var(--mono); font-weight: 500; width: 82px; flex: none; }
 .mv-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink-2); }
 .mv-pct { font-family: var(--mono); font-size: 21px; }
+
+/* hook: the same story in each outlet's words */
+.hook-title { margin: 0 0 30px; font-family: var(--serif); font-weight: 400; font-size: 88px; line-height: 1; letter-spacing: -.015em; }
+.quotes, .days { margin-top: auto; }
+.quote { padding: 22px 0; border-top: 1.5px solid var(--rule); }
+.quote .pub { margin-bottom: 10px; }
+.quote p { margin: 0; font-family: var(--serif); font-size: 40px; line-height: 1.15; }
+/* sunday recap */
+.day-row { display: grid; grid-template-columns: 74px 1fr auto; gap: 20px; align-items: baseline; padding: 18px 0; border-top: 1.5px solid var(--rule); }
+.dow { font-size: 19px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent-soft); }
+.dh { font-size: 30px; font-weight: 600; line-height: 1.2; letter-spacing: -.01em; }
+.dn { font-size: 19px; color: var(--muted); }
+.dn::after { content: " outlets"; }
 </style></head>
 <body><main id="slides"></main>
 <script>
+// URL options (set by tools/instagram.py): ?mode=week for the Sunday recap; ?skip=a,b|c,d lists stories already
+// posted today (each as its key words) so the evening post doesn't repeat the midday one.
 (async () => {
+  const opt = new URLSearchParams(location.search);
   const get = async (paths) => { for (const p of paths) { try { const r = await fetch(p); if (r.ok) return r.json(); } catch {} } return null; };
   const news = await get(["data/news.json", "api/news"]).then((j) => j?.data || j);
   const mkt = await get(["data/markets.json", "api/markets"]);
+  const tops = (await get(["data/top_stories.json", "api/top_stories"])) || {};
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const SRC = Object.fromEntries(news.sources.map((s) => [s.id, s]));
+  const name = (p) => SRC[p]?.name || p;
   const logo = (p) => `<img class="logo" src="${esc(SRC[p]?.icon || `logo/${p}.png`)}" alt="">`;
   const now = new Date();
   const day = now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: "America/New_York" });
   const time = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" });
-  const [a, b] = news.trending;
-  let TOTAL = 0;   // set below, once we know whether markets are included
-  const top = `<div class="top"><span class="brand">Wallflower</span><span class="date">${esc(day)}</span></div>`;
-  // markets wording: live during the session, otherwise the last close
   const etParts = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", hour: "numeric", hour12: false })
     .formatToParts(now).map((x) => [x.type, x.value]));
   const weekend = etParts.weekday === "Sat" || etParts.weekday === "Sun", hr = Number(etParts.hour);
   const asOf = weekend ? "at Friday’s close" : hr >= 16 ? "at the close" : hr < 10 ? "at yesterday’s close" : `as of ${time} ET`;
-  const foot = (n) => `<div class="foot"><span>Every angle, side by side · <b>wallflower.news</b></span><span>${n} / ${TOTAL}</span></div>`;
-  const FLOWERS = [
-    `<div class="poppy" aria-hidden="true"></div>`,   // the cover gets the header poppy, our signature
+
+  // ---- which stories: skip anything already posted today (2+ shared key words = same story)
+  const key = (st) => st.terms.map((t) => t.toLowerCase());
+  const skipped = (opt.get("skip") || "").split("|").filter(Boolean).map((k) => k.split(","));
+  const fresh = news.trending.filter((st) => !skipped.some((k) => key(st).filter((t) => k.includes(t)).length >= 2));
+  const pool = fresh.length >= 2 ? fresh : news.trending;
+  const [a, b] = pool;
+  // the hook: of the top three, the story whose outlets worded it most differently
+  const words = (t) => new Set(t.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter((w) => w.length > 3));
+  const spread = (st) => {
+    const ws = st.angles.slice(0, 4).map((x) => words(x.title));
+    let sim = 0, n = 0;
+    for (let i = 0; i < ws.length; i++) for (let j = i + 1; j < ws.length; j++) {
+      const inter = [...ws[i]].filter((w) => ws[j].has(w)).length;
+      sim += inter / (new Set([...ws[i], ...ws[j]]).size || 1); n++;
+    }
+    return 1 - sim / (n || 1);
+  };
+  const hookStory = pool.slice(0, 3).filter((st) => st.angles.length >= 3).sort((x, y) => spread(y) - spread(x))[0];
+  const hookPubs = new Set((hookStory?.angles || []).slice(0, 4).map((x) => x.pub));
+
+  // ---- shared pieces
+  let TOTAL = 0, n = 0;
+  const top = `<div class="top"><span class="brand">Wallflower</span><span class="date">${esc(day)}</span></div>`;
+  const foot = () => `<div class="foot"><span>Every angle, side by side · <b>wallflower.news</b></span><span>${++n} / <i class="total"></i></span></div>`;
+  const POPPY = `<div class="poppy" aria-hidden="true"></div>`;   // the first slide gets the header poppy, our signature
+  const STEMS = [
     `<img class="peek" src="stem.png" style="height:600px; right:-160px; top:-140px; transform:rotate(-14deg)">`,
     `<img class="peek" src="stem-c.png" style="height:640px; right:-200px; top:-170px; transform:rotate(18deg) scaleX(-1)">`,
+    `<img class="peek" src="stem-b.png" style="height:600px; right:-140px; top:-150px; transform:rotate(-22deg)">`,
   ];
+  const ALTS = [];
+  const num = () => String(n + 1).padStart(2, "0");
 
-  const story = (s, i, tint) => `
-    <section class="slide" id="s${i}">
-      ${FLOWERS[i - 1]}
-      ${top}
-      <div class="eyebrow"><span class="num">0${i}</span>${i === 1 ? "Top story" : "Also trending"}</div>
-      <h1>${esc(s.headline)}</h1>
-      ${s.summary ? `<p class="summary">${esc(s.summary)}</p>` : ""}
-      <div class="meta"><span class="stack">${s.angles.slice(0, 7).map((a) => logo(a.pub)).join("")}</span>Covered by ${s.pub_count} publications</div>
-      <div class="coverage" style="background:${tint}">
-        <div class="cov-label">How it’s covered</div>
-        ${s.angles.slice(0, 4).map((a) => `
-          <div class="angle"><span class="pub">${logo(a.pub)}${esc(SRC[a.pub]?.name || a.pub)}</span><span class="angle-title">${esc(a.title)}</span></div>`).join("")}
+  // the hook slide: one story, its outlets' own headlines side by side
+  const hook = (st) => {
+    const angles = st.angles.slice(0, 4);
+    ALTS.push(`${angles.length} headlines for one story: ${angles.map((x) => `${name(x.pub)}: “${x.title}”`).join("; ")}`);
+    return `
+    <section class="slide hook">
+      ${POPPY}${top}
+      <div class="eyebrow"><span class="num">${num()}</span>Same story, ${st.pub_count} publications</div>
+      <h2 class="hook-title">One story.<br>${["", "", "Two", "Three", "Four"][angles.length]} headlines.</h2>
+      <div class="quotes">${angles.map((x) => `
+        <div class="quote"><span class="pub">${logo(x.pub)}${esc(name(x.pub))}</span><p>“${esc(x.title)}”</p></div>`).join("")}
       </div>
-      ${foot(i)}
+      ${foot()}
     </section>`;
+  };
 
-  const fmt = (n) => (n == null ? "—" : n.toLocaleString("en-US", { minimumFractionDigits: n >= 1000 ? 0 : 2, maximumFractionDigits: n >= 1000 ? 0 : 2 }));
+  const story = (st, label, tint, flower) => {
+    const rest = st === hookStory ? st.angles.filter((x) => !hookPubs.has(x.pub)) : st.angles;   // don't repeat the hook's headlines
+    ALTS.push(`${label}: ${st.headline}. Covered by ${st.pub_count} publications.`);
+    return `
+    <section class="slide">
+      ${flower}${top}
+      <div class="eyebrow"><span class="num">${num()}</span>${label}</div>
+      <h1>${esc(st.headline)}</h1>
+      ${st.summary ? `<p class="summary">${esc(st.summary)}</p>` : ""}
+      <div class="meta"><span class="stack">${st.angles.slice(0, 7).map((x) => logo(x.pub)).join("")}</span>Covered by ${st.pub_count} publications</div>
+      ${rest.length >= 2 ? `
+      <div class="coverage" style="background:${tint}">
+        <div class="cov-label">${st === hookStory ? "More coverage" : "How it’s covered"}</div>
+        ${rest.slice(0, 4).map((x) => `
+          <div class="angle"><span class="pub">${logo(x.pub)}${esc(name(x.pub))}</span><span class="angle-title">${esc(x.title)}</span></div>`).join("")}
+      </div>` : ""}
+      ${foot()}
+    </section>`;
+  };
+
+  const fmt = (v) => (v == null ? "—" : v.toLocaleString("en-US", { minimumFractionDigits: v >= 1000 ? 0 : 2, maximumFractionDigits: v >= 1000 ? 0 : 2 }));
   const pct = (p) => (p == null ? "" : `${p >= 0 ? "▲" : "▼"} ${Math.abs(p).toFixed(2)}%`);
   const dir = (p) => ((p ?? 0) >= 0 ? "up" : "down");
   function spark(vals, prev, cls) {
@@ -126,16 +187,17 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
     return `<svg viewBox="0 0 400 58" preserveAspectRatio="none">${base}<polyline points="${pts}" fill="none" stroke="var(--${cls})" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>`;
   }
   const q = Object.fromEntries((mkt?.quotes || []).map((m) => [m.name, m]));
-  const tiles = ["S&P 500", "Dow", "Nasdaq", "Bitcoin"].map((n) => q[n]).filter(Boolean);
+  const tiles = ["S&P 500", "Dow", "Nasdaq", "Bitcoin"].map((k) => q[k]).filter(Boolean);
   const sp = q["S&P 500"]?.pct ?? 0;
   const mood = sp <= -1.5 ? "A rough day for stocks" : sp <= -.3 ? "Stocks slip" : sp < .3 ? "Stocks hold steady" : sp < 1.5 ? "Stocks edge up" : "Stocks rally";
-  const movers = (list, n = 3) => (list || []).slice(0, n).map((m) => `
+  const movers = (list, k = 3) => (list || []).slice(0, k).map((m) => `
     <div class="mv-row"><span class="mv-sym">${esc(m.symbol)}</span><span class="mv-name">${esc(m.name)}</span><span class="mv-pct ${dir(m.pct)}">${pct(m.pct)}</span></div>`).join("");
-  const markets = () => `
-    <section class="slide" id="s3">
-      ${FLOWERS[2]}
-      ${top}
-      <div class="eyebrow"><span class="num">03</span>Markets & money</div>
+  const markets = () => {
+    ALTS.push(`Markets: ${mood}. ${tiles.map((m) => `${m.name} ${fmt(m.price)}, ${m.pct >= 0 ? "up" : "down"} ${Math.abs(m.pct).toFixed(2)}%`).join("; ")}.`);
+    return `
+    <section class="slide">
+      ${STEMS[1]}${top}
+      <div class="eyebrow"><span class="num">${num()}</span>Markets & money</div>
       <h2 class="m-title">${mood}</h2>
       <p class="m-dek">S&P 500 <span class="${dir(sp)}">${pct(sp)}</span> ${esc(asOf)}</p>
       <div class="tiles">${tiles.map((m) => `
@@ -149,39 +211,80 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
         <div class="mv" style="background:var(--pistachio)"><h3>Biggest gainers</h3>${movers(mkt?.movers?.day_gainers)}</div>
         <div class="mv" style="background:var(--blush, #f6e2da)"><h3>Biggest decliners</h3>${movers(mkt?.movers?.day_losers)}</div>
       </div>
-      ${foot(3)}
+      ${foot()}
     </section>`;
+  };
 
+  // Sunday: the week's cover stories, one per day (data/top_stories.json, kept by server.py)
+  const etDate = (d) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(d);
+  const week = [...Array(7)].map((_, i) => etDate(new Date(now - (6 - i) * 864e5))).map((d) => ({ d, ...tops[d] })).filter((x) => x.headline);
+  const recap = () => {
+    ALTS.push(`The week in cover stories: ${week.map((x) => `${new Date(`${x.d}T12:00`).toLocaleDateString("en-US", { weekday: "long" })}: ${x.headline}`).join("; ")}`);
+    return `
+    <section class="slide week">
+      ${POPPY}${top}
+      <div class="eyebrow"><span class="num">${num()}</span>Back Issues</div>
+      <h2 class="hook-title">The week in<br>cover stories</h2>
+      <div class="days">${week.map((x) => `
+        <div class="day-row"><span class="dow">${new Date(`${x.d}T12:00`).toLocaleDateString("en-US", { weekday: "short" })}</span>
+          <span class="dh">${esc(x.headline)}</span><span class="dn">${x.pub_count}</span></div>`).join("")}
+      </div>
+      ${foot()}
+    </section>`;
+  };
 
-  TOTAL = (b ? 2 : 1) + (weekend ? 0 : 1);
-  document.getElementById("slides").innerHTML = story(a, 1, "var(--sky)") + (b ? story(b, 2, "var(--butter)") : "") + (weekend ? "" : markets());
-  // captions for the poster: plain text, since Instagram links aren't clickable
+  // ---- assemble
+  const mode = opt.get("mode") === "week" && week.length >= 4 ? "week" : "day";
+  let html, used;
+  if (mode === "week") {
+    html = recap() + story(a, "Top story today", "var(--sky)", STEMS[0]);
+    used = [a];
+  } else {
+    // the hook, then that story's details, then the other top story, then markets
+    const order = [...new Set([hookStory, a, b].filter(Boolean))].slice(0, hookStory && hookStory !== a && hookStory !== b ? 3 : 2);
+    html = (hookStory ? hook(hookStory) : "") + order.map((st, i) =>
+      story(st, st === hookStory ? "The story" : st === a ? "Top story" : "Also trending", i ? "var(--butter)" : "var(--sky)", i ? STEMS[2] : STEMS[0])).join("")
+      + (weekend ? "" : markets());
+    used = order;
+  }
+  document.getElementById("slides").innerHTML = html;
+  TOTAL = n;
+  document.querySelectorAll(".total").forEach((t) => (t.outerHTML = String(TOTAL)));
+
   // caption: hashtags for each story's key words (Instagram search reads captions) rather than repeating the headlines
   const NOT_TAGS = new Set("One Two Three Four Five Six Seven Eight Nine Ten Dozens Hundreds Thousands Millions How Why What When Who Where Here After Before New Live Watch".split(" "));
-  const tags = [a, b].filter(Boolean).flatMap((st) => st.terms.filter((t) => /^\p{Lu}/u.test(t) && !NOT_TAGS.has(t))
+  const tags = used.flatMap((st) => st.terms.filter((t) => /^\p{Lu}/u.test(t) && !NOT_TAGS.has(t))
     .sort((x, y) => st.headline.indexOf(x) - st.headline.indexOf(y)).slice(0, 3));
-  window.CAPTION = [
-    `${day}: what everyone is covering${weekend ? "" : ", plus markets"}.`, "",
-    "Every angle, side by side, from 24 newsrooms. Read more at wallflower.news (link in bio).", "",
-    [...new Set(tags.map((t) => "#" + t.replace(/[^\p{L}\p{N}]/gu, "")))].concat(["#news", "#headlines"]).join(" "),
-  ].join("\n");
+  const lead = mode === "week" ? "The week in cover stories: the headline most outlets ran with, every day."
+    : `${day}: what everyone is covering${weekend ? "" : ", plus markets"}.`;
+  window.IG = {
+    mode, alts: ALTS, keys: used.map((st) => key(st).join(",")),
+    caption: [lead, "", "Every angle, side by side, from 24 newsrooms. Read more at wallflower.news (link in bio).", "",
+      [...new Set(tags.map((t) => "#" + t.replace(/[^\p{L}\p{N}]/gu, "")))].concat(["#news", "#headlines"]).join(" ")].join("\n"),
+  };
+  window.CAPTION = window.IG.caption;
+
   await document.fonts.ready;
   // headlines shrink until they fit 4 lines; summaries lose words until they fit 3
   const lines = (el) => Math.round(el.scrollHeight / parseFloat(getComputedStyle(el).lineHeight));
   document.querySelectorAll("h1").forEach((h) => { let f = 74; while (lines(h) > 4 && f > 48) h.style.fontSize = `${(f -= 2)}px`; });
   document.querySelectorAll(".summary").forEach((p) => {
-    const words = p.textContent.split(" ");
-    while (lines(p) > 3 && words.length > 5) { words.pop(); p.textContent = words.join(" ").replace(/[,;:.]?$/, "…"); }
+    const w = p.textContent.split(" ");
+    while (lines(p) > 3 && w.length > 5) { w.pop(); p.textContent = w.join(" ").replace(/[,;:.]?$/, "…"); }
   });
-  // then make each slide fit: drop extra outlets (keep 2), shrink the headline, then trim the summary
+  // then make each slide fit: drop extra rows (keep 2), shrink the type, then trim the summary
   const over = (sl) => sl.scrollHeight > sl.clientHeight + 1;
   document.querySelectorAll(".slide").forEach((sl) => {
     const h = sl.querySelector("h1"), p = sl.querySelector(".summary");
-    let rows = [...sl.querySelectorAll(".angle")];
-    while (over(sl) && rows.length > 2) rows.pop().remove();
+    const rows = [...sl.querySelectorAll(".angle, .quote, .day-row")];
+    const type = [...sl.querySelectorAll(".quote p, .dh")];
+    let t = type.length ? parseFloat(getComputedStyle(type[0]).fontSize) : 0;
+    while (type.length && over(sl) && t > 28) { t -= 1; type.forEach((x) => (x.style.fontSize = `${t}px`)); }
+    const isWeek = sl.classList.contains("week");   // the recap drops its oldest days; others drop their last rows
+    while (over(sl) && rows.length > (isWeek ? 4 : 2)) (isWeek ? rows.shift() : rows.pop()).remove();
     let f = parseFloat(h?.style.fontSize) || 74;
     while (h && over(sl) && f > 52) h.style.fontSize = `${(f -= 2)}px`;
-    if (p) { const words = p.textContent.split(" "); while (over(sl) && words.length > 5) { words.pop(); p.textContent = words.join(" ").replace(/[,;:.…]?$/, "…"); } }
+    if (p) { const w = p.textContent.split(" "); while (over(sl) && w.length > 5) { w.pop(); p.textContent = w.join(" ").replace(/[,;:.…]?$/, "…"); } }
   });
   await Promise.all([...document.images].map((im) => im.complete ? 0 : new Promise((r) => { im.onload = im.onerror = r; })));
   document.body.dataset.ready = "1";
