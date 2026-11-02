@@ -33,7 +33,7 @@ SITE = os.path.join(ROOT, "site")
 STATE = os.path.join(ROOT, "data", "instagram.json")
 PENDING = os.path.join(ROOT, ".ig-pending.json")
 PUBLIC = "https://wallflower.news"
-API = "https://%s/v21.0" % (os.environ.get("IG_API_HOST") or "graph.instagram.com")
+API = "https://%s/v26.0" % (os.environ.get("IG_API_HOST") or "graph.instagram.com")
 
 
 def load(path, default):
