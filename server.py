@@ -23,7 +23,7 @@ from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
-from sources import FINANCE_PUBS, GA_ID, INSTAGRAM_URL, MARKETS, NEGATIVE, POSITIVE, REPO_URL, SECTIONS, SITE_TITLE, SOURCES, SUPPORT_URL, THEMES
+from sources import FINANCE_PUBS, GA_ID, INSTAGRAM_URL, MARKETS, REPORT_EMAIL, NEGATIVE, POSITIVE, REPO_URL, SECTIONS, SITE_TITLE, SOURCES, SUPPORT_URL, THEMES
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 STATIC = os.path.join(ROOT, "static")
@@ -962,6 +962,7 @@ def refresh():
             "repo_url": REPO_URL,
             "support_url": SUPPORT_URL,
             "instagram_url": INSTAGRAM_URL,
+            "report_email": REPORT_EMAIL,
             "sections": SECTIONS,
             "sources": [source_info(s) for s in SOURCES],
             "headlines": tops,

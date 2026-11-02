@@ -607,6 +607,21 @@
     </section>`;
   }
 
+  // ------------------------------------------------------------ about
+  const reportHref = (email) => `mailto:${email}?subject=${encodeURIComponent("Wallflower: problem report")}&body=${encodeURIComponent("What looks wrong (a headline, a link, two stories grouped together, a market number)?\n\n")}`;
+  function renderAbout(data) {
+    return `<section id="about" class="sec about">
+      ${sectionHead("", "About", "How Wallflower works")}
+      <div class="about-grid">
+        <div><h4>An independent news page</h4><p>${esc(data.title)} doesn’t write or edit the news, and isn’t affiliated with any of the publications. It reads the public feeds of ${data.sources.length} newsrooms every half hour.</p></div>
+        <div><h4>Ranked by coverage</h4><p>Stories are grouped automatically by matching headlines across outlets, and ranked by how many newsrooms are covering them. No one picks them by hand, so now and then a grouping can be off.</p></div>
+        <div><h4>Their words, their links</h4><p>Every headline appears exactly as the outlet wrote it, credited, and links to the original article. Read the full story at the source.</p></div>
+        <div><h4>Markets</h4><p>Prices come from Yahoo Finance and may be delayed. The date shows which trading session they’re from.</p></div>
+      </div>
+      ${data.report_email ? `<p class="about-report">Spot a wrong grouping, a broken link or a headline that looks off? <a href="${esc(reportHref(data.report_email))}">Report a problem</a></p>` : ""}
+    </section>`;
+  }
+
   // ------------------------------------------------------------ page
   function render(data) {
     DATA = data;
@@ -655,7 +670,11 @@
         ${renderRising(data.rising)}
       </section>
 
-      ${renderSupport(data)}`;
+      ${renderSupport(data)}
+      ${renderAbout(data)}`;
+    const rep = $("#foot-report");
+    rep.hidden = !data.report_email;
+    if (data.report_email) rep.querySelector("a").href = reportHref(data.report_email);
     applyFront();
     renderMarkets();
     paintFollow();
