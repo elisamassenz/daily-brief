@@ -476,6 +476,9 @@ a:hover .img-wrap img { transform: scale(1.03); }
   transition: transform .45s cubic-bezier(.2, .8, .2, 1), opacity .35s, box-shadow .35s; transform-origin: 50% 60%;
 }
 .cover:not(.on) { cursor: pointer; }
+.issues.live .cover { transition: none; }   /* follows the drag or trackpad directly */
+.issues { cursor: grab; }
+.issues.live { cursor: grabbing; }
 .cover:not(.on)::after { content: ""; position: absolute; inset: 0; background: rgba(244, 239, 231, .35); }   /* back issues sit a little faded */
 .cover.on { box-shadow: 0 4px 8px rgba(30, 27, 24, .08), 0 30px 54px -22px rgba(30, 27, 24, .55); }
 .cover-body { padding: 22px 22px 20px; min-height: 190px; display: flex; flex-direction: column; }

@@ -386,25 +386,44 @@
       </div>`;
     stackCovers();
     const st = el.querySelector(".issues");
-    let x0 = null;   // swipe to flip
-    st.addEventListener("pointerdown", (e) => { x0 = e.clientX; });
-    st.addEventListener("pointerup", (e) => {
-      if (x0 !== null && Math.abs(e.clientX - x0) > 40) { flip(e.clientX < x0 ? 1 : -1); st.dataset.swiped = "1"; }
-      x0 = null;
+    // drag (mouse or finger) and sideways trackpad scrolling move the stack continuously; letting go settles on the nearest issue
+    const px = () => (window.innerWidth < 620 ? 60 : 130);   // pointer travel per issue
+    let drag = null, settle;
+    const live = (on) => st.classList.toggle("live", on);   // no easing while following the pointer
+    st.addEventListener("pointerdown", (e) => {
+      if (e.button) return;
+      drag = { x: e.clientX, pos: FOLLOW.focus, moved: false, id: e.pointerId, t: e.timeStamp, v: 0, lx: e.clientX };
     });
-    st.addEventListener("click", (e) => {   // a swipe that ends on a cover shouldn't open it
+    st.addEventListener("pointermove", (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      const dx = e.clientX - drag.x;
+      if (!drag.moved && Math.abs(dx) < 6) return;
+      if (!drag.moved) { drag.moved = true; st.setPointerCapture(e.pointerId); live(true); }
+      const dt = Math.max(1, e.timeStamp - drag.t);
+      drag.v = (e.clientX - drag.lx) / dt; drag.lx = e.clientX; drag.t = e.timeStamp;
+      flip(0, drag.pos - dx / px(), true);
+    });
+    const end = () => {
+      if (!drag) return;
+      if (drag.moved) {
+        st.dataset.swiped = "1";
+        live(false);
+        flip(0, Math.round(FOLLOW.focus - Math.max(-3, Math.min(3, drag.v * 2.5))));   // a quick flick carries up to 3 issues further
+      }
+      drag = null;
+    };
+    st.addEventListener("pointerup", end);
+    st.addEventListener("pointercancel", end);
+    st.addEventListener("click", (e) => {   // a drag that ends on a cover shouldn't open it
       if (st.dataset.swiped) { e.preventDefault(); e.stopPropagation(); delete st.dataset.swiped; }
     }, true);
-    // trackpad: a sideways two-finger swipe flips one issue; the gesture (and its momentum) ends after a short pause
-    let wheel = 0, locked = false, idle;
     st.addEventListener("wheel", (e) => {
       if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;   // vertical scrolling still scrolls the page
       e.preventDefault();
-      clearTimeout(idle);
-      idle = setTimeout(() => { locked = false; wheel = 0; }, 160);
-      if (locked) return;
-      wheel += e.deltaX;
-      if (Math.abs(wheel) > 40) { flip(wheel > 0 ? 1 : -1); locked = true; }
+      live(true);
+      flip(0, FOLLOW.focus + e.deltaX / px(), true);
+      clearTimeout(settle);
+      settle = setTimeout(() => { live(false); flip(0, Math.round(FOLLOW.focus)); }, 140);
     }, { passive: false });
     st.addEventListener("keydown", (e) => {
       if (e.key === "ArrowLeft" || e.key === "ArrowRight") { e.preventDefault(); flip(e.key === "ArrowRight" ? 1 : -1); }
@@ -430,27 +449,31 @@
     });
   }
 
-  // the stack: the issue in focus sits on top, full size; older and newer ones tuck in behind it
+  // the stack: the issue in focus sits on top, full size; older and newer ones tuck in behind it.
+  // FOLLOW.focus can sit between two issues while dragging, so every value here changes smoothly with it.
   function stackCovers() {
     const narrow = window.innerWidth < 620;
-    const step = narrow ? 34 : 120;
+    const step = narrow ? 34 : 120, gap = narrow ? 26 : 70, far = narrow ? 3 : 4;
+    const near = Math.round(FOLLOW.focus);
     document.querySelectorAll(".cover").forEach((c) => {
       const d = Number(c.dataset.ci) - FOLLOW.focus, a = Math.abs(d);
-      c.style.transform = `translateX(calc(-50% + ${d * step + Math.sign(d) * (narrow ? 26 : 70)}px)) scale(${a ? Math.max(.6, .84 - (a - 1) * .08) : 1})`;
-      c.style.zIndex = 100 - a;
-      c.style.opacity = a > (narrow ? 3 : 4) ? 0 : a ? 1 - a * .12 : 1;
-      c.classList.toggle("on", !a);
-      c.tabIndex = a ? -1 : 0;
+      const scale = a < 1 ? 1 - a * .16 : Math.max(.6, .84 - (a - 1) * .08);
+      c.style.transform = `translateX(calc(-50% + ${d * step + Math.max(-1, Math.min(1, d)) * gap}px)) scale(${scale})`;
+      c.style.zIndex = 1000 - Math.round(a * 10);
+      c.style.opacity = Math.max(0, Math.min(1 - a * .12, far + 1 - a));
+      c.classList.toggle("on", Number(c.dataset.ci) === near);
+      c.tabIndex = Number(c.dataset.ci) === near ? 0 : -1;
     });
-    const cur = FOLLOW.covers[FOLLOW.focus];
+    const cur = FOLLOW.covers[near];
     document.querySelectorAll(".follow-chart .b").forEach((b) => b.classList.toggle("recent", Number(b.dataset.fday) === cur?.di));
     document.querySelectorAll('.issue-nav [data-car]').forEach((b) => {
-      b.disabled = b.dataset.car === "1" ? FOLLOW.focus >= FOLLOW.covers.length - 1 : FOLLOW.focus <= 0;
+      b.disabled = b.dataset.car === "1" ? near >= FOLLOW.covers.length - 1 : near <= 0;
     });
   }
-  function flip(by, to) {
+  function flip(by, to, free = false) {
     const n = FOLLOW.covers.length;
-    FOLLOW.focus = Math.max(0, Math.min(n - 1, to ?? FOLLOW.focus + by));
+    const pos = to ?? Math.round(FOLLOW.focus) + by;
+    FOLLOW.focus = free ? Math.max(-.4, Math.min(n - .6, pos)) : Math.max(0, Math.min(n - 1, pos));
     stackCovers();
   }
   window.addEventListener("resize", () => { if (FOLLOW.covers.length) stackCovers(); });
