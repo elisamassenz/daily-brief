@@ -201,14 +201,14 @@ body[data-mode="week"] .angle-title { display: block; overflow: visible; }
 
   // The big headline is one outlet's own words, not ours: the one closest to everyone's coverage (server.py picks the
   // most central article), credited underneath. The panel below shows how the others framed it.
-  // No flowers on a story where people were killed (crashes, shootings, attacks, disasters): decoration reads as
+  // No corner flowers on a story where people were killed (crashes, shootings, attacks, disasters): decoration reads as
   // tone-deaf there. Needs 2+ of the outlets' headlines to say so, so one stray "killed the bill" doesn't count;
   // an obituary ("dies at 86") keeps its flowers.
   const DEATH = /\b(killed|killing|kills|dead|deaths?|death toll|died|dies|massacre|shooting|gunman|stabb(ed|ing)|bomb(ed|ing)|victims?|bodies|fatal(ly)?)\b/i;
   const OBIT = /\b(dies|died|dead) at \d+/i;
   const somber = (st) => [st.headline, ...st.angles.map((x) => x.title)].filter((t) => DEATH.test(t) && !OBIT.test(t)).length >= 2;
   const story = (st, label, tint, flower, next = "") => {
-    if (somber(st)) flower = "";
+    if (somber(st) && flower !== POPPY) flower = "";   // the blue poppy on a carousel's first slide always stays
     const lead = st.angles.find((x) => x.title.trim() === st.headline.trim());
     const rest = st.angles.filter((x) => x !== lead);   // the headline itself is already big above
     ALTS.push(`${label}: ${st.headline}. Covered by ${st.pub_count} publications.`);
