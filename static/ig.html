@@ -112,7 +112,7 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
   const fresh = news.trending.filter((st) => !skipped.some((k) => key(st).filter((t) => k.includes(t)).length >= 2));
   const pool = fresh.length >= 2 ? fresh : news.trending;
   const [a, b] = pool;
-  // the hook: of the top three, the story whose outlets worded it most differently
+  // the cover story: of the top three, the one whose outlets worded it most differently (usually the most gripping)
   const words = (t) => new Set(t.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter((w) => w.length > 3));
   const spread = (st) => {
     const ws = st.angles.slice(0, 4).map((x) => words(x.title));
@@ -156,7 +156,7 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
   };
 
   const story = (st, label, tint, flower) => {
-    const rest = st === hookStory ? st.angles.filter((x) => !hookPubs.has(x.pub)) : st.angles;   // don't repeat the hook's headlines
+    const rest = st.angles.filter((x) => x.title.trim() !== st.headline.trim());   // the headline itself is already big above
     ALTS.push(`${label}: ${st.headline}. Covered by ${st.pub_count} publications.`);
     return `
     <section class="slide">
@@ -167,7 +167,7 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
       <div class="meta"><span class="stack">${st.angles.slice(0, 7).map((x) => logo(x.pub)).join("")}</span>Covered by ${st.pub_count} publications</div>
       ${rest.length >= 2 ? `
       <div class="coverage" style="background:${tint}">
-        <div class="cov-label">${st === hookStory ? "More coverage" : "How it’s covered"}</div>
+        <div class="cov-label">How it’s covered</div>
         ${rest.slice(0, 4).map((x) => `
           <div class="angle"><span class="pub">${logo(x.pub)}${esc(name(x.pub))}</span><span class="angle-title">${esc(x.title)}</span></div>`).join("")}
       </div>` : ""}
@@ -240,10 +240,10 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
     html = recap() + story(a, "Top story today", "var(--sky)", STEMS[0]);
     used = [a];
   } else {
-    // the hook, then that story's details, then the other top story, then markets
-    const order = [...new Set([hookStory, a, b].filter(Boolean))].slice(0, hookStory && hookStory !== a && hookStory !== b ? 3 : 2);
-    html = (hookStory ? hook(hookStory) : "") + order.map((st, i) =>
-      story(st, st === hookStory ? "The story" : st === a ? "Top story" : "Also trending", i ? "var(--butter)" : "var(--sky)", i ? STEMS[2] : STEMS[0])).join("")
+    // lead with the hook story as the cover (poppy), then the other top story, then markets
+    const order = [...new Set([hookStory, a, b].filter(Boolean))].slice(0, 2);
+    html = order.map((st, i) =>
+      story(st, i ? "Also trending" : "Top story", i ? "var(--butter)" : "var(--sky)", i ? STEMS[2] : POPPY)).join("")
       + (weekend ? "" : markets());
     used = order;
   }
