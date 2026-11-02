@@ -612,3 +612,4 @@ a:hover .img-wrap img { transform: scale(1.03); }
 
 .show-more.lv-more { margin-bottom: 40px; }   /* room before the support card */
 @media (max-width: 620px) { #howto .sec-title, #howto .sec-dek { max-width: none; } }   /* no flowers in this section */
+@media (max-width: 620px) { #today .sec-title { max-width: none; white-space: nowrap; font-size: min(36px, 7.6vw); } }   /* "What everyone is covering" on one line */
