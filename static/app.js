@@ -38,7 +38,7 @@
     return `<div class="art ${cls}" aria-hidden="true" style="--a:${a};--b:${b};--x1:${x1}%;--y1:${y1}%;--x2:${x2}%;--y2:${y2}%"></div>`;
   }
   const stack = (pids, max = 8) => `<span class="logo-stack">${pids.slice(0, max).map((p) => logo(p)).join("")}</span>`;
-  const plural = (n, w) => `${n} ${n === 1 ? w : w.endsWith("y") ? w.slice(0, -1) + "ies" : w + "s"}`;
+  const plural = (n, w) => `${n} ${n === 1 ? w : /[^aeiou]y$/.test(w) ? w.slice(0, -1) + "ies" : w + "s"}`;
 
   function sectionHead(num, eyebrow, title, dek, aside = "") {
     return `<header class="sec-head">
@@ -84,14 +84,16 @@
   });
 
   // ------------------------------------------------------------ 01 trending today
-  function coverage(angles, show) {
+  // show: outlets listed up front; phoneShow: fewer on phones (the lead story lists all of them on bigger screens)
+  function coverage(angles, show, phoneShow = show) {
     const items = angles.map((a, i) => `
-      <li class="angle" ${i >= show ? "hidden data-more" : ""}>
+      <li class="angle ${i >= phoneShow && i < show ? "m-extra" : ""}" ${i >= show ? "hidden data-more" : ""}>
         ${pubtag(a.pub)}
         <a class="t" ${ext(a.link)}>${esc(a.title)}</a>
       </li>`).join("");
     const more = angles.length > show
-      ? `<button class="more-btn" data-expand>+ ${plural(angles.length - show, "more outlet")}</button>` : "";
+      ? `<button class="more-btn" data-expand>+ ${plural(angles.length - show, "more outlet")}</button>`
+      : angles.length > phoneShow ? `<button class="more-btn m-only" data-expand>+ ${plural(angles.length - phoneShow, "more outlet")}</button>` : "";
     return `<div class="coverage">
       <div class="coverage-label">How it’s covered</div>
       <ul class="angles">${items}</ul>${more}
@@ -112,9 +114,9 @@
       ${lead.image ? `<a class="lead-img" ${ext(leadLink(lead))}>${image(lead.image)}</a>` : ""}
       ${storyEyebrow(lead, 1)}
       <h3><a class="hl" ${ext(leadLink(lead))}>${esc(lead.headline)}</a></h3>
-      ${lead.summary ? `<p class="summary">${esc(lead.summary)}</p>` : ""}
+      ${lead.summary ? `<p class="summary">${esc(lead.summary)}</p><button type="button" class="read-more" data-read-more hidden>Read more</button>` : ""}
       ${meta(lead)}
-      ${coverage(lead.angles, lead.angles.length)}
+      ${coverage(lead.angles, lead.angles.length, 5)}
     </article>
     <div class="story-grid">${top.map((s, i) => `
       <article class="story card ${i >= 2 ? "extra" : ""}">
@@ -189,6 +191,16 @@
     return "";
   }
 
+  // which trading session the numbers are from, e.g. "Closed · as of Friday, Oct 30 close"
+  function sessionLabel() {
+    const st = marketStateLabel();
+    const t = quote("^GSPC")?.time;
+    if (!t) return st;
+    const day = new Date(t * 1000).toLocaleDateString("en-US", { timeZone: "America/New_York", weekday: "long", month: "short", day: "numeric" });
+    if (st === "Open") return `Open · ${day} session`;
+    return `${st || "Closed"} · as of ${day} close`;
+  }
+
   function moverList(title, rows) {
     if (!rows || !rows.length) return "";
     return `<div class="movers-col">
@@ -212,7 +224,7 @@
     const v = marketVerdict();
     if (v) {
       $("#markets .sec-title").textContent = v.head;
-      $("#markets .sec-dek").innerHTML = `${v.dek}${marketStateLabel() ? ` &nbsp;·&nbsp; <span class="muted">${esc(marketStateLabel())}</span>` : ""}`;
+      $("#markets .sec-dek").innerHTML = `${v.dek}${sessionLabel() ? `<span class="session">${esc(sessionLabel())}</span>` : ""}`;
       $("#markets").dataset.level = v.level;
     }
     const cards = (MKT.quotes || []).filter((m) => m.group === "index");
@@ -227,6 +239,7 @@
           <div class="ic-price">${fmt(m.price, m.symbol)}</div>
           <div class="ic-ch ${dir(m.pct)}">${pct(m.pct)}</div>
           ${lineChart(m)}
+          ${m.spark?.length > 1 ? `<div class="ic-range" title="Dashed line: the previous close">${marketStateLabel() === "Open" ? "Today" : "Last session"}</div>` : ""}
         </div>`).join("")}
       </div>
       <div class="watch">
@@ -268,10 +281,15 @@
   // one grid of stories that keep coming back: rising names and phrases across the saved headlines
   // (needs a week of history); until then, the most widely covered this month
   function renderRising(rising) {
-    const cards = rising.topics.length ? rising.topics.map((t) => {
-      const recentFrom = t.series.length - Math.min(7, Math.max(1, Math.floor(t.series.length / 3)));
+    const cards = rising.topics.length ? rising.topics.map((t, i) => {
+      const recent = Math.min(7, Math.max(1, Math.floor(t.series.length / 3)));
+      const recentFrom = t.series.length - recent;
+      // growth (server.rising_topics): its share of all saved headlines in the recent days ÷ its share in the days before
+      const why = `Over the last ${plural(recent, "day")}, “${esc(t.label)}” turned up in ${t.growth}× as large a share of all the headlines we save as it did in the days before that (the lighter bars). A share, not a count, so a busy news day doesn’t inflate it.`;
       return { label: t.label, pubs: t.pubs, examples: t.examples,
-        stat: `<span class="up">▲ ${t.growth}× earlier share</span>`,
+        stat: `<span class="up">▲ ${t.growth}× earlier share</span>
+          <button type="button" class="info-btn" data-info aria-expanded="false" aria-controls="why-${i}" aria-label="What does ${t.growth}× earlier share mean?">i</button>`,
+        why: `<p class="info-pop" id="why-${i}" hidden>${why}</p>`,
         chart: bars(t.series, [t.days[0].slice(5), "today"], recentFrom, (v, i) => `${t.days[i]}: ${plural(v, "article")}`) };
     }) : (rising.leaders || []).map((t) => ({ label: t.label, pubs: t.pubs, examples: t.examples, stat: `${t.pubs.length} publications`, chart: "" }));
     if (!cards.length) return `<div class="collecting">Fills in after a week of saved headlines.</div>`;
@@ -280,6 +298,7 @@
         <div>
           <h4>${esc(c.label)}</h4>
           <div class="stat">${stack(c.pubs, 8)} ${c.stat}</div>
+          ${c.why || ""}
         </div>
         <div>${c.chart}</div>
         <ul class="ex">${c.examples.slice(0, 4).map((e) => `
@@ -492,6 +511,21 @@
   }
 
   // ------------------------------------------------------------ 05 front pages
+  const FRONT_KEY = "wallflower.front";
+  const FRONT_TABS = { "Ideas & Analysis": "Ideas", "Business & Markets": "Business", "Technology": "Tech" };
+  let FRONT = (() => { try { return localStorage.getItem(FRONT_KEY); } catch { return null; } })();
+  function frontTabs(sections) {
+    if (FRONT !== "all" && !sections.includes(FRONT)) FRONT = sections[0];
+    return `<div class="front-tabs" role="tablist" aria-label="Front pages by category">${[...sections, "all"].map((sec) => `
+      <button type="button" role="tab" data-front="${esc(sec)}">${esc(sec === "all" ? "All" : FRONT_TABS[sec] || sec)}</button>`).join("")}
+    </div>`;
+  }
+  function applyFront() {
+    $("#fronts").dataset.front = FRONT;
+    document.querySelectorAll("[data-front]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.front === FRONT)));
+    document.querySelectorAll(".pub-section").forEach((s) => s.classList.toggle("off", FRONT !== "all" && s.dataset.sec !== FRONT));
+  }
+
   function pubHead(src) {
     const mark = src.wordmark
       ? `<img class="wm" src="logos/${esc(src.id)}.svg" alt="${esc(src.name)}">`
@@ -591,8 +625,9 @@
       <section id="fronts" class="sec">
         <img class="peek peek-1" src="stem-b.png" alt="" aria-hidden="true">
         ${sectionHead("02", "Front pages", "Every publication’s top two")}
+        ${frontTabs(data.sections)}
         ${data.sections.map((sec) => `
-          <div class="pub-section">
+          <div class="pub-section" data-sec="${esc(sec)}">
             ${subHead(esc(sec))}
             <div class="pubs">${data.sources.filter((s) => s.section === sec).map((s) => renderPub(s, data.headlines[s.id])).join("")}</div>
           </div>`).join("")}
@@ -607,12 +642,13 @@
 
       <section id="weeks" class="sec">
         <img class="peek peek-3" src="stem.png" alt="" aria-hidden="true">
-        ${sectionHead("04", "Trending over the weeks", "Back Issues", "Pick any topic and get its cover story for each day: the headline the most outlets ran with. Flip back through them like a stack of old magazines.")}
+        ${sectionHead("04", "Trending over the weeks", "Back Issues", "Pick a topic and flip through four weeks of its cover stories.")}
         ${renderFollow()}
         ${renderRising(data.rising)}
       </section>
 
       ${renderSupport(data)}`;
+    applyFront();
     renderMarkets();
     paintFollow();
     updateStamp();
@@ -622,6 +658,10 @@
 
   function fitFills() {
     document.querySelectorAll(".pad-tile").forEach((t) => t.remove());
+    document.querySelectorAll(".summary:not(.open)").forEach((p) => {
+      const btn = p.nextElementSibling;
+      if (btn?.matches("[data-read-more]")) btn.hidden = p.scrollHeight <= p.clientHeight + 1;
+    });
   }
   let fitTimer;
   const queueFit = () => { clearTimeout(fitTimer); fitTimer = setTimeout(fitFills, 120); };
@@ -660,6 +700,22 @@
       $("#howto")?.remove();
       return;
     }
+    const rm = e.target.closest("[data-read-more]");
+    if (rm) { rm.previousElementSibling.classList.add("open"); rm.remove(); return; }
+    const ft = e.target.closest("[data-front]");
+    if (ft) {
+      FRONT = ft.dataset.front;
+      try { localStorage.setItem(FRONT_KEY, FRONT); } catch { /* private mode */ }
+      applyFront();
+      return;
+    }
+    const ib = e.target.closest("[data-info]");
+    if (ib) {
+      const pop = document.getElementById(ib.getAttribute("aria-controls"));
+      pop.hidden = !pop.hidden;
+      ib.setAttribute("aria-expanded", String(!pop.hidden));
+      return;
+    }
     const fq = e.target.closest("[data-follow]");
     if (fq) { follow(fq.dataset.follow); return; }
     if (e.target.closest("[data-fpub-all]")) {   // all on → all off; otherwise all back on
@@ -687,7 +743,7 @@
     if (cv) { e.preventDefault(); flip(0, Number(cv.dataset.ci)); return; }   // tap a tucked-in issue to bring it up
     const ex = e.target.closest("[data-expand]");
     if (ex) {
-      ex.previousElementSibling.querySelectorAll("[data-more]").forEach((li) => (li.hidden = false));
+      ex.previousElementSibling.querySelectorAll("[data-more], .m-extra").forEach((li) => { li.hidden = false; li.classList.remove("m-extra"); });
       ex.remove();
       return;
     }

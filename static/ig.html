@@ -167,7 +167,7 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
     <section class="slide hook">
       ${POPPY}${top}
       <div class="eyebrow"><span class="num">${num()}</span>Same story, ${st.pub_count} publications</div>
-      <h2 class="hook-title">One story.<br>${["", "", "Two", "Three", "Four"][angles.length]} headlines.</h2>
+      <h2 class="hook-title">One story.<br>Many headlines.</h2>
       <div class="quotes">${angles.map((x) => `
         <div class="quote"><span class="pub">${logo(x.pub)}${esc(name(x.pub))}</span><p>“${esc(x.title)}”</p></div>`).join("")}
       </div>
@@ -289,8 +289,8 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
       <h2 class="hook-title">Posted twice a day,<br>plus a Sunday recap</h2>
       <div class="days">
         <div class="day-row sched"><span class="dow">11:30 AM ET</span><span class="dh">The top stories, how each outlet covered them, and the markets</span></div>
-        <div class="day-row sched"><span class="dow">5:30 PM ET</span><span class="dh">The evening update: what’s new since lunch</span></div>
-        <div class="day-row sched"><span class="dow">Sundays</span><span class="dh">The week in cover stories, one headline a day</span></div>
+        <div class="day-row sched"><span class="dow">5:30 PM ET</span><span class="dh">The evening update: what’s new<br>since lunch</span></div>
+        <div class="day-row sched"><span class="dow">Sundays</span><span class="dh">The week in cover stories</span></div>
       </div>
       ${foot()}
     </section>
@@ -326,7 +326,7 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
         <h2 class="hook-title">Twice a day,<br>plus Sundays</h2>
         <div class="days">
           <div class="day-row sched"><span class="dow">11:30 AM ET</span><span class="dh">The top stories, how each outlet covered them, and the markets</span></div>
-          <div class="day-row sched"><span class="dow">5:30 PM ET</span><span class="dh">The evening update: what’s new since lunch</span></div>
+          <div class="day-row sched"><span class="dow">5:30 PM ET</span><span class="dh">The evening update: what’s new<br>since lunch</span></div>
           <div class="day-row sched"><span class="dow">Sundays</span><span class="dh">The week in cover stories</span></div>
         </div>
         <p class="lede" style="margin-top:56px">Read every angle at <b>wallflower.news</b></p>

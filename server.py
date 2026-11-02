@@ -794,7 +794,8 @@ def markets():
             by_sym[r["symbol"]] = {"symbol": r["symbol"], "name": name, "group": group,
                                    "price": price, "change": change,
                                    "pct": (change / prev * 100) if change is not None else None,
-                                   "spark": closes[::2][-80:], "prev": prev}
+                                   "spark": closes[::2][-80:], "prev": prev,
+                                   "time": meta.get("regularMarketTime")}   # unix seconds of the last trade: which session this is
         data = [by_sym[s] for s, _, _ in MARKETS if s in by_sym]
         if data:
             market_cache.update(at=time.time(), data=data)
