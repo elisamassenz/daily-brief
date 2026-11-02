@@ -78,13 +78,15 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
   const now = new Date();
   const day = now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: "America/New_York" });
   const time = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" });
+  const [a, b] = news.trending;
+  let TOTAL = 0;   // set below, once we know whether markets are included
   const top = `<div class="top"><span class="brand">Wallflower</span><span class="date">${esc(day)}</span></div>`;
   // markets wording: live during the session, otherwise the last close
   const etParts = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", hour: "numeric", hour12: false })
     .formatToParts(now).map((x) => [x.type, x.value]));
   const weekend = etParts.weekday === "Sat" || etParts.weekday === "Sun", hr = Number(etParts.hour);
   const asOf = weekend ? "at Friday’s close" : hr >= 16 ? "at the close" : hr < 10 ? "at yesterday’s close" : `as of ${time} ET`;
-  const foot = (n) => `<div class="foot"><span>Every angle, side by side · <b>wallflower.news</b></span><span>${n} / 3</span></div>`;
+  const foot = (n) => `<div class="foot"><span>Every angle, side by side · <b>wallflower.news</b></span><span>${n} / ${TOTAL}</span></div>`;
   const FLOWERS = [
     `<img class="peek" src="stem-b.png" style="height:600px; right:-140px; top:-150px; transform:rotate(-22deg)">`,
     `<img class="peek" src="stem.png" style="height:600px; right:-160px; top:-140px; transform:rotate(-14deg)">`,
@@ -124,7 +126,7 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
   const mood = sp <= -1.5 ? "A rough day for stocks" : sp <= -.3 ? "Stocks slip" : sp < .3 ? "Stocks hold steady" : sp < 1.5 ? "Stocks edge up" : "Stocks rally";
   const movers = (list, n = 3) => (list || []).slice(0, n).map((m) => `
     <div class="mv-row"><span class="mv-sym">${esc(m.symbol)}</span><span class="mv-name">${esc(m.name)}</span><span class="mv-pct ${dir(m.pct)}">${pct(m.pct)}</span></div>`).join("");
-  const markets = `
+  const markets = () => `
     <section class="slide" id="s3">
       ${FLOWERS[2]}
       ${top}
@@ -145,14 +147,16 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
       ${foot(3)}
     </section>`;
 
-  const [a, b] = news.trending;
-  document.getElementById("slides").innerHTML = story(a, 1, "var(--sky)") + (b ? story(b, 2, "var(--butter)") : "") + markets;
+
+  TOTAL = (b ? 2 : 1) + (weekend ? 0 : 1);
+  document.getElementById("slides").innerHTML = story(a, 1, "var(--sky)") + (b ? story(b, 2, "var(--butter)") : "") + (weekend ? "" : markets());
   // captions for the poster: plain text, since Instagram links aren't clickable
+  // caption: a short line of topic keywords (Instagram search reads captions) rather than repeating the headlines
+  const topics = [a, b].filter(Boolean).map((s) => s.terms.slice(0, 3).join(" ")).concat(weekend ? [] : ["markets"]);
   window.CAPTION = [
-    `${day}: what everyone is covering.`, "",
-    `1. ${a.headline}`, b ? `2. ${b.headline}` : "", `3. Markets: ${mood.toLowerCase()} (S&P 500 ${pct(sp)})`, "",
+    `${day}: ${topics.join(" · ")}`, "",
     "Every angle, side by side, from 24 newsrooms. Read more at wallflower.news (link in bio).",
-  ].filter((l, i, arr) => l || arr[i - 1]).join("\n");
+  ].join("\n");
   await document.fonts.ready;
   // headlines shrink until they fit 4 lines; summaries lose words until they fit 3
   const lines = (el) => Math.round(el.scrollHeight / parseFloat(getComputedStyle(el).lineHeight));
