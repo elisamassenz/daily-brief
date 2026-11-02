@@ -633,3 +633,12 @@ a:hover .img-wrap img { transform: scale(1.03); }
 @media (max-width: 620px) { .about-grid { grid-template-columns: 1fr; gap: 12px; } #about .sec-title, #about .sec-dek { max-width: none; } }
 .chip-lead { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
 .chip-lead .kicker { margin-right: 4px; }
+
+/* ------------------------------------------------------------ dark mode touch-ups */
+@media (prefers-color-scheme: dark) {
+  .masthead-title { color: #dfe6f8; }   /* the light-mode navy disappears on the dark page */
+  /* the poppy photo has a white background: inverted (and hue-turned back to blue) it sits on black, which "screen" drops out */
+  .stems { display: block; }
+  .bloom { filter: invert(1) hue-rotate(180deg) brightness(1.5); mix-blend-mode: screen; opacity: .6; }
+  .cover:not(.on)::after { background: rgba(28, 25, 22, .45); }   /* tucked-in back issues dim instead of fogging */
+}
