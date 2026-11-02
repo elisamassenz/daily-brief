@@ -151,11 +151,13 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
   TOTAL = (b ? 2 : 1) + (weekend ? 0 : 1);
   document.getElementById("slides").innerHTML = story(a, 1, "var(--sky)") + (b ? story(b, 2, "var(--butter)") : "") + (weekend ? "" : markets());
   // captions for the poster: plain text, since Instagram links aren't clickable
-  // caption: a short line of topic keywords (Instagram search reads captions) rather than repeating the headlines
-  const topics = [a, b].filter(Boolean).map((s) => s.terms.slice(0, 3).join(" ")).concat(weekend ? [] : ["markets"]);
+  // caption: hashtags for each story's key words (Instagram search reads captions) rather than repeating the headlines
+  const tags = [a, b].filter(Boolean).flatMap((st) => st.terms.filter((t) => /^\p{Lu}/u.test(t))
+    .sort((x, y) => st.headline.indexOf(x) - st.headline.indexOf(y)).slice(0, 3));
   window.CAPTION = [
-    `${day}: ${topics.join(" · ")}`, "",
-    "Every angle, side by side, from 24 newsrooms. Read more at wallflower.news (link in bio).",
+    `${day}: what everyone is covering${weekend ? "" : ", plus markets"}.`, "",
+    "Every angle, side by side, from 24 newsrooms. Read more at wallflower.news (link in bio).", "",
+    [...new Set(tags.map((t) => "#" + t.replace(/[^\p{L}\p{N}]/gu, "")))].concat(["#news", "#headlines"]).join(" "),
   ].join("\n");
   await document.fonts.ready;
   // headlines shrink until they fit 4 lines; summaries lose words until they fit 3
