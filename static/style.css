@@ -616,3 +616,14 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .show-more.lv-more { margin-bottom: 40px; }   /* room before the support card */
 @media (max-width: 620px) { #howto .sec-title, #howto .sec-dek { max-width: none; } }   /* no flowers in this section */
 @media (max-width: 620px) { #today .sec-title { max-width: none; white-space: nowrap; font-size: min(36px, 7.6vw); } }   /* "What everyone is covering" on one line */
+
+/* the date and "Updated" line sits at the very top, over the poppy; the poppy moves down to make room */
+.masthead-date { display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding-top: 20px; font-size: 13px; color: var(--ink-2); }
+.masthead-date + .masthead-title { margin-top: 60px; }
+.bloom { top: -170px; }
+@media (max-width: 900px) { .bloom { top: -122px; } .masthead-date + .masthead-title { margin-top: 60px; } }
+@media (max-width: 520px) { .bloom { top: -71px; } .masthead-date + .masthead-title { margin-top: 42px; } }
+.masthead-date ~ .masthead-bar { padding-top: 160px; }   /* the buttons keep their old place below the poppy */
+@media (max-width: 900px) { .masthead-date ~ .masthead-bar { padding-top: 127px; } }
+@media (max-width: 520px) { .masthead-date ~ .masthead-bar { padding-top: 110px; } }
