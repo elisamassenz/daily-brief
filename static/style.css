@@ -256,7 +256,7 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .story.card { padding: 24px 26px 22px; }
 .card-top.no-thumb { grid-template-columns: 1fr; }
 .card-top { display: grid; grid-template-columns: minmax(0, 1fr) 132px; gap: 22px; align-items: start; }
-.story.card h3 { font-family: var(--sans); font-weight: 600; font-size: 21px; line-height: 1.25; letter-spacing: -.01em; margin: 6px 0 0; }
+.story.card h3 { font-family: var(--sans); font-weight: 600; font-size: 21px; line-height: 1.25; letter-spacing: -.01em; margin: 0; }
 .thumb .img-wrap { aspect-ratio: 1; }
 .story-grid .angle .t { font-size: 14.5px; }
 .more-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 18px; }
@@ -609,3 +609,6 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .pill-btn { font: inherit; font-size: 13px; font-weight: 600; padding: 7px 16px; border-radius: 999px; cursor: pointer;
   border: 1px solid var(--accent); background: none; color: var(--accent); }
 .pill-btn:hover { background: var(--accent); color: var(--bg); }
+
+.show-more.lv-more { margin-bottom: 40px; }   /* room before the support card */
+@media (max-width: 620px) { #howto .sec-title, #howto .sec-dek { max-width: none; } }   /* no flowers in this section */

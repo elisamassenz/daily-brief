@@ -108,7 +108,6 @@
     if (!stories.length) return `<p class="collecting">No single story is being covered by three or more publications right now.</p>`;
     const [lead, ...rest] = stories;
     const top = rest.slice(0, 6);
-    let n = 1;
     return `
     <article class="story story-lead">
       ${lead.image ? `<a class="lead-img" ${ext(leadLink(lead))}>${image(lead.image)}</a>` : ""}
@@ -122,7 +121,6 @@
       <article class="story card ${i >= 2 ? "extra" : ""}">
         <div class="card-top ${s.image ? "" : "no-thumb"}">
           <div>
-            ${storyEyebrow(s, ++n)}
             <h3><a class="hl" ${ext(leadLink(s))}>${esc(s.headline)}</a></h3>
           </div>
           ${s.image ? `<a class="thumb" ${ext(leadLink(s))}>${image(s.image)}</a>` : ""}
@@ -332,9 +330,10 @@
 
   function renderFollow() {
     const tries = (DATA?.rising?.topics || DATA?.rising?.leaders || []).slice(0, 4).map((t) => t.label);
+    if (!FOLLOW.query && tries.length) FOLLOW.query = tries[0];   // land on an example stack, so the section shows what it does
     const chips = FOLLOW.list.length
       ? FOLLOW.list.map((q) => `<button type="button" class="chip ${q === FOLLOW.query ? "on" : ""}" data-follow="${esc(q)}">${esc(q)}</button>`).join("")
-      : tries.map((q) => `<button type="button" class="chip" data-follow="${esc(q)}">${esc(q)}</button>`).join("");
+      : tries.map((q) => `<button type="button" class="chip ${q === FOLLOW.query ? "on" : ""}" data-follow="${esc(q)}">${esc(q)}</button>`).join("");
     return `<div class="follow">
       <form class="follow-search" id="follow-form" role="search">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
