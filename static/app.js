@@ -624,7 +624,7 @@
 
       <section id="fronts" class="sec">
         <img class="peek peek-1" src="stem-b.png" alt="" aria-hidden="true">
-        ${sectionHead("02", "Front pages", "Every publication’s top two")}
+        ${sectionHead("02", "Front pages", `<span class="line">Every publication’s</span> top two`)}
         ${frontTabs(data.sections)}
         ${data.sections.map((sec) => `
           <div class="pub-section" data-sec="${esc(sec)}">
