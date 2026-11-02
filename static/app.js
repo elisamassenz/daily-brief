@@ -234,7 +234,13 @@
     const cards = (MKT.quotes || []).filter((m) => m.group === "index");
     const other = (MKT.quotes || []).filter((m) => m.group === "other");
     const watch = (MKT.quotes || []).filter((m) => m.group === "watch");
-    const chips = (list) => list.map((m) => `<span class="chip">${esc(m.name)} <b class="${dir(m.pct)}">${pct(m.pct)}</b></span>`).join("");
+    const chip = (m) => `<span class="chip">${esc(m.name)} <b class="${dir(m.pct)}">${pct(m.pct)}</b></span>`;
+    // each label stays on a line with its first pill (the shortest one, so it fits beside it)
+    const chips = (label, list, style = "", shortestFirst = false) => {
+      const first = shortestFirst ? list.reduce((a, b) => (b.name.length < a.name.length ? b : a), list[0]) : list[0];
+      const more = list.filter((m) => m !== first);
+      return first ? `<span class="chip-lead"${style}><span class="kicker">${label}</span>${chip(first)}</span>${more.map(chip).join("")}` : "";
+    };
     const mv = MKT.movers || {};
     el.innerHTML = `
       <div class="index-cards">${cards.map((m) => `
@@ -247,8 +253,8 @@
         </div>`).join("")}
       </div>
       <div class="watch">
-        <span class="kicker">Big tech</span>${chips(watch)}
-        <span class="kicker" style="margin-left:14px">Other</span>${chips(other)}
+        ${chips("Big tech", watch)}
+        ${chips("Other", other, ' style="margin-left:14px"', true)}
       </div>
       <div class="money-grid">
         <div>
