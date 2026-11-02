@@ -2,6 +2,7 @@
 
 feed:  an RSS/Atom URL, or None to use Google News (site: search) for outlets
        that no longer publish public RSS feeds.
+exclude: optional regex; headlines matching it are dropped (e.g. press releases hosted on a wire's site)
 mark:  wordmark style used next to the logo — serif | italic | black | sans | mono
 color: brand accent for the block's top rule.
 """
@@ -28,20 +29,23 @@ SOURCES = [
     dict(id="wapo", name="The Washington Post", domain="washingtonpost.com", section="News", feed="https://feeds.washingtonpost.com/rss/national", mark="black", color="#121212"),
     dict(id="guardian", name="The Guardian", domain="theguardian.com", section="News", feed="https://www.theguardian.com/international/rss", mark="serif", color="#052962"),
     dict(id="npr", name="NPR", domain="npr.org", section="News", feed="https://feeds.npr.org/1001/rss.xml", mark="sans", color="#D62021"),
+    dict(id="afp", name="Agence France-Presse", domain="afp.com", section="News", feed=None, mark="sans", color="#0A3D91",
+         icon_url="https://www.afp.com/themes/custom/afp9/assets/images/favicon_afp.com_201120.ico",
+         # afp.com also hosts companies' press releases (Title Case "Announces", trademarks, earnings): keep the news
+         sentence_case=True, exclude=r"^\W|^(Fact Check|Inside AFP)$|AFP Fakty|Checamos|™|®|\b(Announces|Introduces|Launches|Unveils|Completes|Appoints|Expands|Partners|Reports|Declares|Celebrates|Recognized|Selected|Webinar|Phase [1-3]|Quarter|Fiscal|Dividend|Earnings)\b"),
+    dict(id="dw", name="Deutsche Welle", domain="dw.com", section="News", feed="https://rss.dw.com/xml/rss-en-top", mark="sans", color="#05B2FC"),
+    dict(id="abcau", name="ABC News Australia", domain="abc.net.au", section="News", feed="https://www.abc.net.au/news/feed/51120/rss.xml", mark="sans", color="#000000"),
+    dict(id="cbc", name="CBC News", domain="cbc.ca", section="News", feed="https://www.cbc.ca/webfeed/rss/rss-topstories", mark="sans", color="#E60505"),
     dict(id="propublica", name="ProPublica", domain="propublica.org", section="News", feed="https://www.propublica.org/feeds/propublica/main", mark="serif", color="#000000"),
     # Ideas & Analysis
     dict(id="economist", name="The Economist", domain="economist.com", section="Ideas & Analysis", feed="https://www.economist.com/latest/rss.xml", mark="serif", color="#E3120B"),
     dict(id="atlantic", name="The Atlantic", domain="theatlantic.com", section="Ideas & Analysis", feed="https://www.theatlantic.com/feed/all/", mark="italic", color="#E7131A"),
-    dict(id="newyorker", name="The New Yorker", domain="newyorker.com", section="Ideas & Analysis", feed="https://www.newyorker.com/feed/everything", mark="serif", color="#000000"),
-    dict(id="foreignaffairs", name="Foreign Affairs", domain="foreignaffairs.com", section="Ideas & Analysis", feed="https://www.foreignaffairs.com/rss.xml", mark="serif", color="#8A1C1C"),
     dict(id="axios", name="Axios", domain="axios.com", section="Ideas & Analysis", feed="https://api.axios.com/feed/", mark="sans", color="#1E5BF2"),
     # Business & Markets
     dict(id="wsj", name="The Wall Street Journal", domain="wsj.com", section="Business & Markets", feed="https://feeds.a.dj.com/rss/RSSWorldNews.xml", mark="serif", color="#111111"),
     dict(id="ft", name="Financial Times", domain="ft.com", section="Business & Markets", feed="https://www.ft.com/rss/home", mark="serif", color="#F2A0A0"),
     dict(id="bloomberg", name="Bloomberg", domain="bloomberg.com", section="Business & Markets", feed="https://feeds.bloomberg.com/markets/news.rss", mark="sans", color="#2800D7"),
-    dict(id="barrons", name="Barron's", domain="barrons.com", section="Business & Markets", feed=None, mark="serif", color="#0A4A7A"),
     dict(id="nikkei", name="Nikkei Asia", domain="asia.nikkei.com", section="Business & Markets", feed="https://asia.nikkei.com/rss/feed/nar", mark="sans", color="#C8102E"),
-    dict(id="quartz", name="Quartz", domain="qz.com", section="Business & Markets", feed="https://qz.com/rss", mark="sans", color="#111111"),
     # Technology
     dict(id="techcrunch", name="TechCrunch", domain="techcrunch.com", section="Technology", feed="https://techcrunch.com/feed/", mark="sans", color="#0A9E01"),
     dict(id="verge", name="The Verge", domain="theverge.com", section="Technology", feed="https://www.theverge.com/rss/index.xml", mark="sans", color="#5200FF"),
@@ -87,4 +91,4 @@ MARKETS = [
 ]
 
 # Publications whose whole feed counts as finance news in Markets & Money.
-FINANCE_PUBS = ["wsj", "ft", "bloomberg", "barrons", "nikkei", "quartz"]
+FINANCE_PUBS = ["wsj", "ft", "bloomberg", "nikkei"]

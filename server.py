@@ -316,16 +316,26 @@ def fetch_source(src):
             log("feed failed", src["id"], e)
             return src["id"], [], str(e)
         items = [i for i in items if not i["source_url"] or src["domain"].split(".")[-2] in i["source_url"]]
+    if src.get("exclude"):   # e.g. press releases hosted on a news agency's site
+        items = [i for i in items if not re.search(src["exclude"], i["title"])]
+    if src.get("sentence_case"):   # its news headlines are sentence case; Title Case ones are press releases
+        items = [i for i in items if not title_case(i["title"])]
     for i in items:
         i["pub"] = src["id"]
     return src["id"], items[:40], None
+
+
+def title_case(title):
+    """Most longer words capitalized, as in a press-release headline."""
+    words = [w for w in re.findall(r"[A-Za-z][\w'’-]*", title) if len(w) > 3]
+    return len(words) >= 5 and sum(w[0].isupper() for w in words) / len(words) >= 0.75
 
 
 def ensure_logo(src):
     path = os.path.join(LOGOS, src["id"] + ".png")
     if os.path.exists(path) and os.path.getsize(path) > 200:
         return
-    candidates = [
+    candidates = ([src["icon_url"]] if src.get("icon_url") else []) + [
         "https://%s/apple-touch-icon.png" % ("www." + src["domain"] if src["domain"].count(".") == 1 else src["domain"]),
         "https://www.google.com/s2/favicons?domain=%s&sz=128" % src.get("icon_domain", src["domain"]),
         "https://icons.duckduckgo.com/ip3/%s.ico" % src["domain"],
@@ -667,7 +677,8 @@ def rising_topics(window=28, recent=7):
     today = datetime.now().date()
     days = [(today - timedelta(days=k)).strftime("%Y-%m-%d") for k in range(window - 1, -1, -1)]
     with hist_lock:
-        loaded = {d: load_json(history_path(d), {}) for d in days}
+        # history can hold outlets that have since been dropped from SOURCES: skip those
+        loaded = {d: {k: a for k, a in load_json(history_path(d), {}).items() if a.get("pub") in SRC} for d in days}
     days_with_data = [d for d in days if len(loaded[d]) >= 20]
     all_articles = [a for d in days for a in loaded[d].values()]
     total = len(all_articles)
