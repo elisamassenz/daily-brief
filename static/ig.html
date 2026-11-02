@@ -56,7 +56,7 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
 .foot { display: flex; justify-content: space-between; align-items: center; margin-top: 34px; font-size: 24px; color: var(--muted); letter-spacing: .02em; }
 .foot b { color: var(--ink); font-weight: 600; }
 .via { margin-top: 14px; font-size: 22px; color: var(--muted); }
-.next { margin-top: 18px; align-self: flex-end; font-size: 26px; font-weight: 600; color: var(--accent); }
+.foot .next { font-size: 24px; font-weight: 600; color: var(--accent); letter-spacing: 0; }
 
 /* markets */
 .m-title { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 96px; line-height: 1; letter-spacing: -.015em; }
@@ -158,7 +158,10 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
   let TOTAL = 0, n = 0;
   const evergreen = ["intro", "about"].includes(opt.get("mode"));   // pinned posts and highlights carry no date
   const top = `<div class="top"><span class="brand">Wallflower</span>${evergreen ? "" : `<span class="date">${esc(day)}</span>`}</div>`;
-  const foot = () => `<div class="foot"><span>Every angle, side by side · <b>wallflower.news</b></span><span>${++n} / <i class="total"></i></span></div>`;
+  // right side: the page count, or a swipe cue in its place on a carousel's first slide
+  const foot = (next = "") => `<div class="foot"><span>Every angle, side by side · <b>wallflower.news</b></span>${(++n, next
+    ? `<span class="next">${next} <span aria-hidden="true">→</span></span>`
+    : `<span>${n} / <i class="total"></i></span>`)}</div>`;
   const POPPY = `<div class="poppy" aria-hidden="true"></div>`;   // the first slide gets the header poppy, our signature
   // flower placements set in Figma ("Wallflower – flower stem art" → Instagram flower placement)
   const STORY_FLOWER = (src) => `<img class="peek" src="${src}" style="height:620px; right:-84px; top:-46px; transform:rotate(-17deg) scaleX(-1)">`;
@@ -205,8 +208,7 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
         ${rest.slice(0, 4).map((x) => `
           <div class="angle"><span class="pub">${logo(x.pub)}${esc(name(x.pub))}</span><span class="angle-title">${esc(x.title)}</span></div>`).join("")}
       </div>` : ""}
-      ${next ? `<div class="next">${next} <span aria-hidden="true">→</span></div>` : ""}
-      ${foot()}
+      ${foot(next)}
     </section>`;
   };
 
