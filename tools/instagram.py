@@ -5,6 +5,8 @@
   python3 tools/instagram.py due [--force am|pm|week]                 exit 0 if a post is due now (Eastern time)
   python3 tools/instagram.py prepare [--force …]                      render into site/ig/ before the Pages deploy
   python3 tools/instagram.py post                                     after the deploy: publish the carousel + a Story
+                                                                      (+ a Reel of the same slides, midday only)
+  python3 tools/instagram.py reel DIR                                 build reel.mp4 from DIR's slides (preview)
 
 Slots: 11:30–12:29 ET ("am") and 17:30–18:29 ET ("pm"); Sunday's pm post is the week recap. One-offs: run the
 workflow by hand with ig_slot "intro" (the pinned intro post); `render … --mode about` makes the About highlight Stories. The workflow runs at
@@ -15,6 +17,7 @@ Needs repo secrets IG_USER_ID and IG_TOKEN (and IG_API_HOST if the token is a Fa
 graph.facebook.com; default graph.instagram.com). Rendering needs Playwright + Chromium."""
 import json
 import os
+import subprocess
 import sys
 import threading
 import time
@@ -101,6 +104,28 @@ def render(base, out, query=""):
     return info
 
 
+REEL_HOLD, REEL_FADE = 4.0, 0.5   # seconds each slide holds, crossfade between slides
+
+
+def make_reel(out, files):
+    """The carousel as a short vertical video (Reels reach people who don't follow yet): each 4:5 slide centered
+    on a 9:16 page in the site's paper color, crossfading. Silent. Needs ffmpeg."""
+    n = len(files)
+    args = ["ffmpeg", "-y", "-loglevel", "error"]
+    for f in files:
+        args += ["-loop", "1", "-t", str(REEL_HOLD + REEL_FADE), "-i", os.path.join(out, f)]
+    args += ["-f", "lavfi", "-t", str(n * REEL_HOLD + REEL_FADE), "-i", "anullsrc=r=44100:cl=stereo"]
+    chain = [f"[{i}:v]scale=1080:1350,pad=1080:1920:0:285:color=0xf4efe7,fps=30,format=yuv420p,setsar=1[v{i}]" for i in range(n)]
+    last = "v0"
+    for i in range(1, n):
+        chain.append(f"[{last}][v{i}]xfade=transition=fade:duration={REEL_FADE}:offset={i * REEL_HOLD:.2f}[x{i}]")
+        last = f"x{i}"
+    args += ["-filter_complex", ";".join(chain), "-map", f"[{last}]", "-map", f"{n}:a",
+             "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p",
+             "-c:a", "aac", "-shortest", "-movflags", "+faststart", os.path.join(out, "reel.mp4")]
+    subprocess.run(args, check=True)
+
+
 def prepare(force=None):
     s = due(force)
     if not s:
@@ -119,6 +144,12 @@ def prepare(force=None):
     finally:
         srv.shutdown()
     info.update(slot=s, stamp=stamp)
+    if s == "am":   # one Reel a day, from the midday carousel
+        try:
+            make_reel(os.path.join(SITE, "ig", stamp), info["files"])
+            info["reel"] = True
+        except Exception as e:
+            print("instagram: reel skipped:", e)
     save(PENDING, info)
     print("instagram: rendered %s (%d slides)" % (stamp, len(info["files"])))
 
@@ -139,8 +170,8 @@ def status(container):
         return json.load(r).get("status_code")
 
 
-def wait_ready(container):
-    for _ in range(30):
+def wait_ready(container, tries=30):
+    for _ in range(tries):
         code = status(container)
         if code == "FINISHED":
             return
@@ -187,6 +218,15 @@ def post():
         api("/%s/media_publish" % user, creation_id=story)
     except Exception as e:
         print("instagram: story skipped:", e)
+    if info.get("reel"):   # the same slides as a Reel, kept off the grid so it doesn't repeat the carousel there
+        try:
+            reel = api("/%s/media" % user, media_type="REELS", video_url="%s/ig/%s/reel.mp4" % (PUBLIC, info["stamp"]),
+                       caption=info["caption"], share_to_feed="false")["id"]
+            wait_ready(reel, tries=90)   # video processing takes a few minutes
+            api("/%s/media_publish" % user, creation_id=reel)
+            print("instagram: reel posted")
+        except Exception as e:
+            print("instagram: reel skipped:", e)
     state = load(STATE, {})
     posted = state.setdefault("posted", {})
     posted[info["stamp"]] = {"id": media, "keys": info.get("keys", []), "slides": len(urls)}
@@ -202,6 +242,8 @@ if __name__ == "__main__":
     if cmd == "render":
         mode = args[args.index("--mode") + 1] if "--mode" in args else ""
         print(json.dumps(render(args[1], args[2], "mode=" + mode if mode else ""), indent=1))
+    elif cmd == "reel":
+        make_reel(args[1], sorted(f for f in os.listdir(args[1]) if f.startswith("slide-")))
     elif cmd == "due":
         sys.exit(0 if due(force) else 1)
     elif cmd == "prepare":

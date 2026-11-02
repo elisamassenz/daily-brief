@@ -46,6 +46,7 @@ jobs:
         run: |
           if python3 tools/instagram.py due; then
             pip install -q playwright && python3 -m playwright install --with-deps chromium
+            command -v ffmpeg >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)   # for the daily Reel
             python3 tools/instagram.py prepare
           fi
 

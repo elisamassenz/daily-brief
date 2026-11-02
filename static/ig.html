@@ -415,9 +415,17 @@ body[data-mode="week"] .angle-title { display: block; overflow: visible; }
   const lead = mode === "intro" ? "Meet Wallflower: the day’s biggest stories from 24 newsrooms, side by side, so you can see how each one tells it.\n\nWe post twice a day (11:30 AM and 5:30 PM ET), plus a Sunday recap of the week’s cover stories. Follow along so you don’t miss one."
     : mode === "week" ? "The week in cover stories: the headline most outlets ran with, every day."
     : `${day}: what everyone is covering${weekend ? "" : ", plus markets"}.`;
+  // one nudge per post, rotating so it doesn't read canned: sends and comments are what spread a post
+  const NUDGES = ["Send this to the friend who only reads one outlet.", "Which headline gets it right? Tell us below.",
+    "Share with someone who’d read it differently.", "Which framing would you have picked? Comments are open.",
+    "Know someone who’d argue about this? Send it their way."];
+  const slotN = Math.floor(now / 864e5) * 2 + (Number(etParts.hour) >= 15 ? 1 : 0);
+  const nudge = mode === "week" ? "Save this to catch up on the week, and send it to someone who missed it."
+    : mode === "intro" ? "Know someone who reads the news from every side? Send them this."
+    : NUDGES[slotN % NUDGES.length];
   window.IG = {
     mode, alts: ALTS, keys: used.map((st) => key(st).join(",")),
-    caption: [lead, "", "Every angle, side by side, from 24 newsrooms. The full picture is at wallflower.news (link in bio). Follow for the next update at 11:30 AM or 5:30 PM ET.", "",
+    caption: [lead, "", nudge, "", "Every angle, side by side, from 24 newsrooms. The full picture is at wallflower.news (link in bio). Follow for the next update at 11:30 AM or 5:30 PM ET.", "",
       [...new Set(tags.map((t) => "#" + t.replace(/[^\p{L}\p{N}]/gu, "")))].concat(["#news", "#headlines"]).join(" ")].join("\n"),
   };
   window.CAPTION = window.IG.caption;

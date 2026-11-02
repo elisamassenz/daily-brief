@@ -606,6 +606,9 @@
   function render(data) {
     DATA = data;
     if (data.title) { document.title = data.title; $(".masthead-title").textContent = data.title; }
+    const ig = $("#follow-ig");
+    ig.hidden = !data.instagram_url;
+    if (data.instagram_url) ig.href = data.instagram_url;
     const navSupport = $("#nav-support");
     navSupport.hidden = !data.support_url;
     navSupport.lastChild.textContent = `Support ${data.title || ""}`.trim();
@@ -785,6 +788,16 @@
 
   $("#today-date").textContent = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
   $("#refresh").addEventListener("click", () => (STATIC ? checkForUpdate() : loadNews(true)));
+  // "Share Wallflower": the phone's share sheet where there is one, otherwise copy the link
+  $("#share").addEventListener("click", async (e) => {
+    const url = "https://wallflower.news/";
+    try {
+      if (navigator.share) { await navigator.share({ title: "Wallflower", text: "The day’s biggest stories from 24 newsrooms, side by side.", url }); return; }
+      await navigator.clipboard.writeText(url);
+      e.target.textContent = "✓ Link copied";
+      setTimeout(() => (e.target.textContent = "Share Wallflower"), 2200);
+    } catch { /* share sheet dismissed */ }
+  });
 
   // Public site: there's no server to rebuild on demand, so Refresh fetches the newest published edition.
   async function checkForUpdate() {

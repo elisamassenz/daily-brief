@@ -602,3 +602,10 @@ a:hover .img-wrap img { transform: scale(1.03); }
 /* markets: the big tech / other quotes sit in a card like everything else */
 .watch { background: var(--card); border-radius: var(--radius); padding: 16px 18px; }
 .watch .chip { background: var(--tint); border-color: transparent; }
+
+/* masthead: share + follow */
+.masthead-bar { flex-direction: column; align-items: center; gap: 14px; }
+.masthead-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.pill-btn { font: inherit; font-size: 13px; font-weight: 600; padding: 7px 16px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--accent); background: none; color: var(--accent); }
+.pill-btn:hover { background: var(--accent); color: var(--bg); }

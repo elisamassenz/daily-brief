@@ -14,6 +14,8 @@ REPO_URL = ""   # set to your repo URL to show a "Make your own" card
 SUPPORT_URL = "https://buymeacoffee.com/wallflowernews"
 # Google Analytics 4 measurement ID ("G-XXXXXXXXXX"); empty = no analytics. Only the public site gets it.
 GA_ID = ""
+# Instagram profile; empty hides the "Follow on Instagram" button. Set it once the intro post is live.
+INSTAGRAM_URL = ""
 
 SECTIONS = ["News", "Ideas & Analysis", "Business & Markets", "Technology"]
 
