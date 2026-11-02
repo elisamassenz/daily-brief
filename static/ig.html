@@ -90,6 +90,16 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
 .dh { font-size: 34px; font-weight: 600; line-height: 1.2; letter-spacing: -.01em; }
 .dn { font-size: 22px; color: var(--muted); }
 .dn::after { content: " outlets"; }
+.week-sub { margin: -14px 0 0; font-size: 30px; color: var(--ink-2); }
+.week .hook-title { font-size: 80px; margin-bottom: 22px; }
+.week .days { margin-top: 30px; }
+.week .day-row { padding: 14px 0; }
+.week .dh { font-size: 30px; }
+.day-head { display: flex; justify-content: space-between; padding: 0 0 12px; font-size: 18px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.day-row.top .dh, .day-row.top .dow { color: var(--accent); }
+.day-row.top .dn { color: var(--accent); font-weight: 600; }
+/* Sunday: headlines run in full, never cut mid-sentence (rows drop instead if a slide runs long) */
+body[data-mode="week"] .angle-title { display: block; overflow: visible; }
 /* intro post + About highlight */
 .hero-title { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 140px; line-height: .95; letter-spacing: -.02em; }
 .lede { margin: 38px 0 0; font-size: 42px; line-height: 1.38; color: var(--ink-2); max-width: 860px; }
@@ -255,15 +265,19 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
   // Sunday: the week's cover stories, one per day (data/top_stories.json, kept by server.py)
   const etDate = (d) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(d);
   const week = [...Array(7)].map((_, i) => etDate(new Date(now - (6 - i) * 864e5))).map((d) => ({ d, ...tops[d] })).filter((x) => x.headline);
+  const biggest = week.reduce((m, x) => (!m || x.pub_count > m.pub_count ? x : m), null);
   const recap = () => {
     ALTS.push(`The week in cover stories: ${week.map((x) => `${new Date(`${x.d}T12:00`).toLocaleDateString("en-US", { weekday: "long" })}: ${x.headline}`).join("; ")}`);
+    const WORDS = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven"];
     return `
     <section class="slide week">
       ${POPPY}${top}
-      <div class="eyebrow"><span class="num">${num()}</span>Back Issues</div>
+      <div class="eyebrow"><span class="num">${num()}</span>The week in review</div>
       <h2 class="hook-title">The week in<br>cover stories</h2>
-      <div class="days">${week.map((x) => `
-        <div class="day-row"><span class="dow">${new Date(`${x.d}T12:00`).toLocaleDateString("en-US", { weekday: "short" })}</span>
+      <p class="week-sub" data-words="${WORDS.join(",")}">${WORDS[week.length]} days. ${WORDS[week.length]} stories. 24 newsrooms.</p>
+      <div class="days">
+        <div class="day-head"><span>Each day’s most-covered story</span><span>Coverage</span></div>${week.map((x) => `
+        <div class="day-row ${x === biggest ? "top" : ""}"><span class="dow">${new Date(`${x.d}T12:00`).toLocaleDateString("en-US", { weekday: "short" })}</span>
           <span class="dh">${esc(x.headline)}</span><span class="dn">${x.pub_count}</span></div>`).join("")}
       </div>
       ${foot()}
@@ -324,15 +338,15 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
     return html;
   };
   const about = () => {
-    ALTS.push("Wallflower: every angle, side by side. The day's biggest stories from 24 newsrooms, next to each other.",
+    ALTS.push("Wallflower. One story. 24 newsrooms. Every angle. The day's biggest stories, side by side, so you can see how each outlet tells it.",
       "Posted twice a day at 11:30 AM and 5:30 PM Eastern, plus a Sunday recap. Read every angle at wallflower.news.");
     return `
     <section class="slide tall">
       ${POPPY}
       <div class="tall-body">
         <div class="brand big">Wallflower</div>
-        <h2 class="hero-title">Every angle,<br>side by side</h2>
-        <p class="lede">The day’s biggest stories from 24 newsrooms, next to each other, so you can see how each one tells it.</p>
+        <h2 class="hero-title">One story.<br>24 newsrooms.<br>Every angle.</h2>
+        <p class="lede">The day’s biggest stories, side by side,<br>so you can see how each outlet tells it.</p>
         <div class="meta intro-meta"><span class="stack">${news.sources.slice(0, 10).map((x) => logo(x.id)).join("")}</span></div>
       </div>
       <div class="foot"><span><b>wallflower.news</b></span><span>About</span></div>
@@ -364,7 +378,11 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
     html = about();
     used = [];
   } else if (mode === "week") {
-    html = recap() + story(a, "Top story today", "var(--sky)", STEMS[0]) + (b ? story(b, "Also trending", "var(--butter)", STEMS[2]) : "");
+    // 1 the week's cover stories · 2 how outlets framed the week's most-covered one · 3 today's top story · 4 also trending
+    const hasWk = biggest?.angles?.length >= 3 && biggest.headline !== a?.headline;
+    html = recap()
+      + (hasWk ? story(biggest, "The week’s most-covered story", "var(--periwinkle)", STEMS[1]) : "")
+      + story(a, "Top story today", "var(--sky)", STEMS[0]) + (b ? story(b, "Also trending", "var(--butter)", STEMS[2]) : "");
     used = [a, b].filter(Boolean);
   } else {
     // lead with the hook story as the cover (poppy), then the other top story, then markets
@@ -375,6 +393,7 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
       + (weekend ? "" : markets());
     used = order;
   }
+  document.body.dataset.mode = mode;
   document.getElementById("slides").innerHTML = html;
   // every carousel ends pointing to the site (the intro and About already close on a call to action)
   const lastFoot = [...document.querySelectorAll(".slide .foot")].pop();
@@ -409,7 +428,11 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
     let t = type.length ? parseFloat(getComputedStyle(type[0]).fontSize) : 0;
     while (type.length && over(sl) && t > 28) { t -= 1; type.forEach((x) => (x.style.fontSize = `${t}px`)); }
     const isWeek = sl.classList.contains("week");   // the recap drops its oldest days; others drop their last rows
+    // Sunday story slides: a smaller headline before fewer outlets, so the comparison keeps four rows when it can
+    if (mode === "week" && h) { let g = 74; while (over(sl) && g > 60) h.style.fontSize = `${(g -= 2)}px`; }
     while (over(sl) && rows.length > (isWeek ? 4 : 2)) (isWeek ? rows.shift() : rows.pop()).remove();
+    const sub = sl.querySelector(".week-sub");   // keep "Seven days. Seven stories." true if a day was dropped
+    if (sub) { const w = sub.dataset.words.split(",")[sl.querySelectorAll(".day-row").length]; sub.textContent = `${w} days. ${w} stories. 24 newsrooms.`; }
     let f = parseFloat(h?.style.fontSize) || 74;
     while (h && over(sl) && f > 52) h.style.fontSize = `${(f -= 2)}px`;
   });

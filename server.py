@@ -631,7 +631,9 @@ def record_top_story(stories):
     days = load_json(TOP_STORIES_FILE, {})
     if top["pub_count"] >= days.get(day, {}).get("pub_count", 0):
         days[day] = {"headline": top["headline"], "pub_count": top["pub_count"],
-                     "pubs": [a["pub"] for a in top["angles"][:6]]}
+                     "pubs": [a["pub"] for a in top["angles"][:6]],
+                     # each outlet's own headline, for the Sunday "week's most-covered story" slide
+                     "angles": [{"pub": a["pub"], "title": a["title"], "link": a["link"]} for a in top["angles"][:8]]}
     save_json(TOP_STORIES_FILE, {d: days[d] for d in sorted(days)[-14:]})
 
 
@@ -925,13 +927,12 @@ def refresh():
                     og_cache.pop(k)
             save_json(OG_CACHE_FILE, og_cache)
 
-        # analysis corpus: up to 25 items per pub from the last 36h
+        # analysis corpus: up to 25 items per pub from the last 36h. A headline needs a publication date to count
+        # toward a trending story (and so reach Instagram): no undated or stale items standing in for a quiet feed.
         recent_cut = datetime.now(timezone.utc) - timedelta(hours=36)
         corpus = []
         for pid, items in by_pub.items():
             fresh = [i for i in items if i["date"] and parse_date(i["date"]) >= recent_cut]
-            if not fresh:
-                fresh = items[:10]
             corpus.extend(fresh[:25])
         docs, _ = build_docs(corpus)
         stories = trending_stories(docs)
