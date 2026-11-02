@@ -83,7 +83,7 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
 .quotes, .days { margin-top: auto; }
 .quote { padding: 26px 0; border-top: 1.5px solid var(--rule); }
 .quote .pub { margin-bottom: 10px; }
-.quote p { margin: 0; font-family: var(--serif); font-size: 48px; line-height: 1.15; }
+.quote p { margin: 0; font-size: 40px; font-weight: 500; line-height: 1.2; letter-spacing: -.015em; text-wrap: pretty; }
 /* sunday recap */
 .day-row { display: grid; grid-template-columns: 74px 1fr auto; gap: 20px; align-items: baseline; padding: 18px 0; border-top: 1.5px solid var(--rule); }
 .dow { font-size: 22px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent-soft); }
@@ -94,6 +94,8 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
 .hero-title { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 140px; line-height: .95; letter-spacing: -.02em; }
 .lede { margin: 38px 0 0; font-size: 42px; line-height: 1.38; color: var(--ink-2); max-width: 860px; }
 .lede b { color: var(--ink); font-weight: 600; }
+.lede.paras p { margin: 0; }
+.lede.paras p + p { margin-top: 22px; }
 .intro-meta { margin-top: auto; padding-top: 40px; }
 .logo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: auto; }
 .lg-tile { display: flex; align-items: center; gap: 12px; background: var(--card); border-radius: 18px; padding: 12px 16px; font-size: 23px; font-weight: 600; color: var(--ink-2); line-height: 1.15; min-height: 76px; }
@@ -279,13 +281,13 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
     ALTS.push("One story. 24 newsrooms. Every angle. Meet Wallflower: the day's biggest stories, side by side.",
       `24 newsrooms: ${srcs.map((x) => x.name).join(", ")}.`,
       "Posted twice a day, at 11:30 AM and 5:30 PM Eastern, plus a Sunday recap of the week's cover stories.",
-      "Follow Wallflower for the day's biggest stories, twice a day. Read every angle at wallflower.news. Free and no ads.");
+      "Follow Wallflower for the day's biggest stories, twice a day. Read every angle at wallflower.news. Free, no ads.");
     const html = `
     <section class="slide">
       ${POPPY}${top}
       <div class="eyebrow"><span class="num">${num()}</span>Meet Wallflower</div>
       <h2 class="hero-title">One story.<br>24 newsrooms.<br>Every angle.</h2>
-      <p class="lede">The day’s biggest stories, side by side, so you can see how each outlet tells it.</p>
+      <p class="lede">The day’s biggest stories, side by side,<br>so you can see how each outlet tells it.</p>
       <div class="meta intro-meta"><span class="stack">${srcs.slice(0, 8).map((x) => logo(x.id)).join("")}</span>Swipe to see how it works →</div>
       ${foot()}
     </section>
@@ -302,7 +304,7 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
       <div class="eyebrow"><span class="num">${num()}</span>On your feed</div>
       <h2 class="hook-title">Posted twice a day,<br>plus a Sunday recap</h2>
       <div class="days">
-        <div class="day-row sched"><span class="dow">11:30 AM ET</span><span class="dh">The top stories, how each outlet covered them, and the markets</span></div>
+        <div class="day-row sched"><span class="dow">11:30 AM ET</span><span class="dh">The top stories, how each outlet covered them,<br>and the markets</span></div>
         <div class="day-row sched"><span class="dow">5:30 PM ET</span><span class="dh">The evening update:<br>what’s new since lunch</span></div>
         <div class="day-row sched"><span class="dow">Sundays</span><span class="dh">The week in cover stories</span></div>
       </div>
@@ -312,7 +314,7 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
       ${POPPY}${top}
       <div class="eyebrow"><span class="num">${num()}</span>Follow along</div>
       <h2 class="hero-title">Every angle,<br>in your feed</h2>
-      <p class="lede"><b>Follow Wallflower</b> for the day’s biggest stories, twice a day. Read every angle at <b>wallflower.news</b>.<br>Free and no ads. Link in bio.</p>
+      <div class="lede paras"><p><b>Follow Wallflower</b> for the day’s<br>biggest stories, twice a day.</p><p>Read every<br>angle at <b>wallflower.news</b>.</p><p>Free, no ads. Link in bio.</p></div>
       <div class="ctas"><div class="cta">Follow</div><div class="cta ghost">wallflower.news <span aria-hidden="true">→</span></div></div>
       ${foot()}
     </section>`;
@@ -339,7 +341,7 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
         <div class="eyebrow">What you’ll find here</div>
         <h2 class="hook-title">Twice a day,<br>plus Sundays</h2>
         <div class="days">
-          <div class="day-row sched"><span class="dow">11:30 AM ET</span><span class="dh">The top stories, how each outlet covered them, and the markets</span></div>
+          <div class="day-row sched"><span class="dow">11:30 AM ET</span><span class="dh">The top stories, how each outlet covered them,<br>and the markets</span></div>
           <div class="day-row sched"><span class="dow">5:30 PM ET</span><span class="dh">The evening update:<br>what’s new since lunch</span></div>
           <div class="day-row sched"><span class="dow">Sundays</span><span class="dh">The week in cover stories</span></div>
         </div>
