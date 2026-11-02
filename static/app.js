@@ -671,8 +671,12 @@
   window.addEventListener("resize", queueFit);
   document.addEventListener("error", (e) => { if (e.target.tagName === "IMG") queueFit(); }, true);
 
+  // a manual Refresh that finds nothing newer still counts as "updated": the page is as current as it can be
+  let checkedAt = null;
   function updateStamp() {
-    if (DATA) $("#updated").textContent = `Updated ${ago(DATA.generated)}`;
+    if (!DATA) return;
+    const t = checkedAt && checkedAt > new Date(DATA.generated) ? checkedAt.toISOString() : DATA.generated;
+    $("#updated").textContent = `Updated ${ago(t)}`;
   }
 
   // section nav: highlight the section in view
@@ -806,6 +810,8 @@
     await Promise.all([loadNews(), loadMarkets()]);
     btn.classList.remove("busy");
     btn.textContent = lastGenerated !== before ? "✓ Updated" : "✓ Up to date";
+    checkedAt = new Date();
+    updateStamp();
     setTimeout(() => (btn.textContent = "↻ Refresh"), 2500);
   }
   if (STATIC) document.body.classList.add("static");
