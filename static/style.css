@@ -536,6 +536,7 @@ a:hover .img-wrap img { transform: scale(1.03); }
   .howto-install .steps { grid-template-columns: 1fr 1fr; gap: 14px; }
   .howto-install .steps li { flex-direction: column; align-items: flex-start; gap: 8px; }
 }
+@media (max-width: 620px) { .sec-dek { max-width: 68%; } }   /* phones: clear of the flowers on the right */
 @media (max-width: 620px) {
   /* phones: each publication shows its top two as compact text, no photos */
   .pubs { grid-template-columns: 1fr; gap: 12px; }
