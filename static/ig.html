@@ -35,7 +35,6 @@ body { margin: 0; background: #ccc; font-family: var(--sans); color: var(--ink);
 .num { font-size: 21px; letter-spacing: .04em; color: var(--accent); background: var(--sage); border-radius: 999px; padding: 6px 18px; }
 
 h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spacing: -.025em; }   /* shrunk to fit 4 lines by the script */
-.summary { margin: 24px 0 0; font-size: 30px; line-height: 1.42; color: var(--ink-2); }   /* trimmed to 3 lines by the script */
 .meta { display: flex; align-items: center; gap: 18px; margin-top: 30px; font-size: 23px; color: var(--ink-2); }
 .stack { display: inline-flex; }
 .logo { width: 46px; height: 46px; border-radius: 50%; padding: 6px; background: #fff; object-fit: contain; box-shadow: 0 0 0 3px var(--bg); margin-left: -12px; }
@@ -84,6 +83,22 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
 .dh { font-size: 30px; font-weight: 600; line-height: 1.2; letter-spacing: -.01em; }
 .dn { font-size: 19px; color: var(--muted); }
 .dn::after { content: " outlets"; }
+/* intro post + About highlight */
+.hero-title { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 132px; line-height: .95; letter-spacing: -.02em; }
+.lede { margin: 34px 0 0; font-size: 36px; line-height: 1.38; color: var(--ink-2); max-width: 860px; }
+.lede b { color: var(--ink); font-weight: 600; }
+.intro-meta { margin-top: auto; padding-top: 40px; }
+.logo-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: auto; }
+.lg-tile { display: flex; align-items: center; gap: 12px; background: var(--card); border-radius: 16px; padding: 12px 14px; font-size: 17px; font-weight: 600; color: var(--ink-2); line-height: 1.15; min-height: 72px; }
+.lg-tile .logo { width: 40px; height: 40px; padding: 5px; margin: 0; box-shadow: none; flex: none; background: var(--bg); }
+.sched { grid-template-columns: 210px 1fr; }
+.sched { padding: 30px 0; }
+.sched .dow { font-size: 22px; }
+.sched .dh { font-size: 38px; }
+.cta { margin-top: auto; align-self: flex-start; background: var(--accent); color: #fff; border-radius: 999px; padding: 22px 38px; font-size: 32px; font-weight: 600; }
+.slide.tall { height: 1920px; padding: 150px 84px 140px; }
+.tall-body { margin: auto 0; }
+.brand.big { font-size: 64px; margin-bottom: 40px; }
 </style></head>
 <body><main id="slides"></main>
 <script>
@@ -129,13 +144,16 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
 
   // ---- shared pieces
   let TOTAL = 0, n = 0;
-  const top = `<div class="top"><span class="brand">Wallflower</span><span class="date">${esc(day)}</span></div>`;
+  const evergreen = ["intro", "about"].includes(opt.get("mode"));   // pinned posts and highlights carry no date
+  const top = `<div class="top"><span class="brand">Wallflower</span>${evergreen ? "" : `<span class="date">${esc(day)}</span>`}</div>`;
   const foot = () => `<div class="foot"><span>Every angle, side by side · <b>wallflower.news</b></span><span>${++n} / <i class="total"></i></span></div>`;
   const POPPY = `<div class="poppy" aria-hidden="true"></div>`;   // the first slide gets the header poppy, our signature
+  // flower placements set in Figma ("Wallflower – flower stem art" → Instagram flower placement)
+  const STORY_FLOWER = (src) => `<img class="peek" src="${src}" style="height:620px; right:-84px; top:-46px; transform:rotate(-17deg) scaleX(-1)">`;
   const STEMS = [
-    `<img class="peek" src="stem.png" style="height:600px; right:-160px; top:-140px; transform:rotate(-14deg)">`,
-    `<img class="peek" src="stem-c.png" style="height:640px; right:-200px; top:-170px; transform:rotate(18deg) scaleX(-1)">`,
-    `<img class="peek" src="stem-b.png" style="height:600px; right:-140px; top:-150px; transform:rotate(-22deg)">`,
+    STORY_FLOWER("stem.png"),
+    `<img class="peek" src="stem-c.png" style="height:546px; right:-26px; top:-24px; transform:rotate(-18deg)">`,   // markets
+    STORY_FLOWER("stem-b.png"),
   ];
   const ALTS = [];
   const num = () => String(n + 1).padStart(2, "0");
@@ -164,7 +182,6 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
       ${flower}${top}
       <div class="eyebrow"><span class="num">${num()}</span>${label}</div>
       <h1>${esc(st.headline)}</h1>
-      ${st.summary ? `<p class="summary">${esc(st.summary)}</p>` : ""}
       <div class="meta"><span class="stack">${st.angles.slice(0, 7).map((x) => logo(x.pub)).join("")}</span>Covered by ${st.pub_count} publications</div>
       ${rest.length >= 2 ? `
       <div class="coverage" style="background:${tint}">
@@ -234,10 +251,93 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
     </section>`;
   };
 
+  // one-off intro post (pinned) and the About highlight Stories (1080×1920)
+  const intro = () => {
+    const ex = news.trending[0];
+    const srcs = news.sources;
+    ALTS.push("Meet Wallflower: the day's biggest stories from 24 newsrooms, side by side.",
+      `24 newsrooms: ${srcs.map((x) => x.name).join(", ")}.`,
+      `How it works: one story, ${Math.min(4, ex.angles.length)} headlines. ${ex.angles.slice(0, 4).map((x) => `${name(x.pub)}: “${x.title}”`).join("; ")}`,
+      "Posted twice a day, at 11:30 AM and 5:30 PM Eastern, plus a Sunday recap of the week's cover stories.",
+      "Read every angle at wallflower.news. Free, no ads, no paywall.");
+    return `
+    <section class="slide">
+      ${POPPY}${top}
+      <div class="eyebrow"><span class="num">${num()}</span>Hello</div>
+      <h2 class="hero-title">Meet<br>Wallflower</h2>
+      <p class="lede">The day’s biggest stories from 24 newsrooms, side by side, so you can see how each one tells it.</p>
+      <div class="meta intro-meta"><span class="stack">${srcs.slice(0, 8).map((x) => logo(x.id)).join("")}</span>Swipe to see how it works →</div>
+      ${foot()}
+    </section>
+    <section class="slide">
+      ${STEMS[2]}${top}
+      <div class="eyebrow"><span class="num">${num()}</span>Who we read</div>
+      <h2 class="hook-title">24 newsrooms,<br>side by side</h2>
+      <div class="logo-grid">${srcs.map((x) => `<div class="lg-tile">${logo(x.id)}<span>${esc(x.name)}</span></div>`).join("")}</div>
+      ${foot()}
+    </section>
+    ${hook(ex).replace(POPPY, STEMS[0]).replace(/Same story, \d+ publications/, "How it works")}
+    <section class="slide">
+      ${STEMS[1]}${top}
+      <div class="eyebrow"><span class="num">${num()}</span>On your feed</div>
+      <h2 class="hook-title">Posted twice a day,<br>plus a Sunday recap</h2>
+      <div class="days">
+        <div class="day-row sched"><span class="dow">11:30 AM ET</span><span class="dh">The top stories, how each outlet covered them, and the markets</span></div>
+        <div class="day-row sched"><span class="dow">5:30 PM ET</span><span class="dh">The evening update: what’s new since lunch</span></div>
+        <div class="day-row sched"><span class="dow">Sundays</span><span class="dh">The week in cover stories, one headline a day</span></div>
+      </div>
+      ${foot()}
+    </section>
+    <section class="slide">
+      ${POPPY}${top}
+      <div class="eyebrow"><span class="num">${num()}</span>Read more</div>
+      <h2 class="hero-title">Every angle,<br>side by side</h2>
+      <p class="lede">Read the full page at <b>wallflower.news</b>. Free, no ads, no paywall. Link in bio.</p>
+      <div class="cta">wallflower.news <span aria-hidden="true">→</span></div>
+      ${foot()}
+    </section>`;
+  };
+  const about = () => {
+    ALTS.push("Wallflower: every angle, side by side. The day's biggest stories from 24 newsrooms, next to each other.",
+      "Posted twice a day at 11:30 AM and 5:30 PM Eastern, plus a Sunday recap. Read every angle at wallflower.news.");
+    return `
+    <section class="slide tall">
+      ${POPPY}
+      <div class="tall-body">
+        <div class="brand big">Wallflower</div>
+        <h2 class="hero-title">Every angle,<br>side by side</h2>
+        <p class="lede">The day’s biggest stories from 24 newsrooms, next to each other, so you can see how each one tells it.</p>
+        <div class="meta intro-meta"><span class="stack">${news.sources.slice(0, 10).map((x) => logo(x.id)).join("")}</span></div>
+      </div>
+      <div class="foot"><span><b>wallflower.news</b></span><span>About</span></div>
+    </section>
+    <section class="slide tall">
+      ${STEMS[2]}
+      <div class="tall-body">
+        <div class="eyebrow">What you’ll find here</div>
+        <h2 class="hook-title">Twice a day,<br>plus Sundays</h2>
+        <div class="days">
+          <div class="day-row sched"><span class="dow">11:30 AM ET</span><span class="dh">The top stories, how each outlet covered them, and the markets</span></div>
+          <div class="day-row sched"><span class="dow">5:30 PM ET</span><span class="dh">The evening update: what’s new since lunch</span></div>
+          <div class="day-row sched"><span class="dow">Sundays</span><span class="dh">The week in cover stories</span></div>
+        </div>
+        <p class="lede" style="margin-top:56px">Read every angle at <b>wallflower.news</b></p>
+      </div>
+      <div class="foot"><span>Free · no ads · no paywall</span><span>About</span></div>
+    </section>`;
+  };
+
   // ---- assemble
-  const mode = opt.get("mode") === "week" && week.length >= 4 ? "week" : "day";
+  const want = opt.get("mode");
+  const mode = want === "intro" || want === "about" ? want : want === "week" && week.length >= 4 ? "week" : "day";
   let html, used;
-  if (mode === "week") {
+  if (mode === "intro") {
+    html = intro();
+    used = [];
+  } else if (mode === "about") {
+    html = about();
+    used = [];
+  } else if (mode === "week") {
     html = recap() + story(a, "Top story today", "var(--sky)", STEMS[0]) + (b ? story(b, "Also trending", "var(--butter)", STEMS[2]) : "");
     used = [a, b].filter(Boolean);
   } else {
@@ -256,7 +356,8 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
   const NOT_TAGS = new Set("One Two Three Four Five Six Seven Eight Nine Ten Dozens Hundreds Thousands Millions How Why What When Who Where Here After Before New Live Watch".split(" "));
   const tags = used.flatMap((st) => st.terms.filter((t) => /^\p{Lu}/u.test(t) && !NOT_TAGS.has(t))
     .sort((x, y) => st.headline.indexOf(x) - st.headline.indexOf(y)).slice(0, 3));
-  const lead = mode === "week" ? "The week in cover stories: the headline most outlets ran with, every day."
+  const lead = mode === "intro" ? "Meet Wallflower: the day’s biggest stories from 24 newsrooms, side by side, so you can see how each one tells it.\n\nWe post twice a day (11:30 AM and 5:30 PM ET), plus a Sunday recap of the week’s cover stories."
+    : mode === "week" ? "The week in cover stories: the headline most outlets ran with, every day."
     : `${day}: what everyone is covering${weekend ? "" : ", plus markets"}.`;
   window.IG = {
     mode, alts: ALTS, keys: used.map((st) => key(st).join(",")),
@@ -266,17 +367,13 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
   window.CAPTION = window.IG.caption;
 
   await document.fonts.ready;
-  // headlines shrink until they fit 4 lines; summaries lose words until they fit 3
+  // headlines shrink until they fit 4 lines
   const lines = (el) => Math.round(el.scrollHeight / parseFloat(getComputedStyle(el).lineHeight));
   document.querySelectorAll("h1").forEach((h) => { let f = 74; while (lines(h) > 4 && f > 48) h.style.fontSize = `${(f -= 2)}px`; });
-  document.querySelectorAll(".summary").forEach((p) => {
-    const w = p.textContent.split(" ");
-    while (lines(p) > 3 && w.length > 5) { w.pop(); p.textContent = w.join(" ").replace(/[,;:.]?$/, "…"); }
-  });
-  // then make each slide fit: drop extra rows (keep 2), shrink the type, then trim the summary
+  // then make each slide fit: shrink quote type, drop extra rows (keep 2), then shrink the headline
   const over = (sl) => sl.scrollHeight > sl.clientHeight + 1;
   document.querySelectorAll(".slide").forEach((sl) => {
-    const h = sl.querySelector("h1"), p = sl.querySelector(".summary");
+    const h = sl.querySelector("h1");
     const rows = [...sl.querySelectorAll(".angle, .quote, .day-row")];
     const type = [...sl.querySelectorAll(".quote p, .dh")];
     let t = type.length ? parseFloat(getComputedStyle(type[0]).fontSize) : 0;
@@ -285,7 +382,6 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
     while (over(sl) && rows.length > (isWeek ? 4 : 2)) (isWeek ? rows.shift() : rows.pop()).remove();
     let f = parseFloat(h?.style.fontSize) || 74;
     while (h && over(sl) && f > 52) h.style.fontSize = `${(f -= 2)}px`;
-    if (p) { const w = p.textContent.split(" "); while (over(sl) && w.length > 5) { w.pop(); p.textContent = w.join(" ").replace(/[,;:.…]?$/, "…"); } }
   });
   await Promise.all([...document.images].map((im) => im.complete ? 0 : new Promise((r) => { im.onload = im.onerror = r; })));
   document.body.dataset.ready = "1";

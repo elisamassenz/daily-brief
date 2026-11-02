@@ -6,7 +6,8 @@
   python3 tools/instagram.py prepare [--force …]                      render into site/ig/ before the Pages deploy
   python3 tools/instagram.py post                                     after the deploy: publish the carousel + a Story
 
-Slots: 11:30–12:29 ET ("am") and 17:30–18:29 ET ("pm"); Sunday's pm post is the week recap. The workflow runs at
+Slots: 11:30–12:29 ET ("am") and 17:30–18:29 ET ("pm"); Sunday's pm post is the week recap. One-offs: run the
+workflow by hand with ig_slot "intro" (the pinned intro post); `render … --mode about` makes the About highlight Stories. The workflow runs at
 :11 and :41, so each slot is hit once (data/instagram.json records what was posted, which also stops the evening
 post repeating the midday stories).
 
@@ -76,7 +77,7 @@ def render(base, out, query=""):
     os.makedirs(out, exist_ok=True)
     with sync_playwright() as p:
         browser = p.chromium.launch()
-        page = browser.new_page(viewport={"width": 1080, "height": 1350}, device_scale_factor=1)
+        page = browser.new_page(viewport={"width": 1080, "height": 1920}, device_scale_factor=1)
         page.goto(base.rstrip("/") + "/ig.html" + (("?" + query) if query else ""), wait_until="networkidle")
         page.wait_for_selector("body[data-ready]", timeout=30000)
         files = []
@@ -101,7 +102,7 @@ def prepare(force=None):
     today = now_et().strftime("%Y-%m-%d")
     posted = load(STATE, {}).get("posted", {})
     skip = "|".join(k for name, p in posted.items() if name.startswith(today) for k in p.get("keys", []))
-    query = urllib.parse.urlencode({k: v for k, v in (("mode", "week" if s == "week" else ""), ("skip", skip)) if v})
+    query = urllib.parse.urlencode({k: v for k, v in (("mode", s if s in ("week", "intro") else ""), ("skip", skip)) if v})
     # serve the freshly built site locally (the fonts kit allows localhost)
     srv = ThreadingHTTPServer(("127.0.0.1", 8790), partial(SimpleHTTPRequestHandler, directory=SITE))
     threading.Thread(target=srv.serve_forever, daemon=True).start()
