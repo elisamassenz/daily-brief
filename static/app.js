@@ -621,7 +621,6 @@
         <div><h4>An independent news page</h4><p>${esc(data.title)} doesn’t write or edit the news, and isn’t affiliated with any of the publications. It reads the public feeds of ${data.sources.length} newsrooms every half hour.</p></div>
         <div><h4>Ranked by coverage</h4><p>Stories are grouped automatically by matching headlines across outlets, and ranked by how many newsrooms are covering them. No one picks them by hand, so now and then a grouping can be off.</p></div>
         <div><h4>Their words, their links</h4><p>Every headline appears exactly as the outlet wrote it, credited, and links to the original article. Read the full story at the source.</p></div>
-        <div><h4>Markets</h4><p>Prices come from Yahoo Finance and may be delayed. The date shows which trading session they’re from.</p></div>
       </div>
       ${data.report_url ? `<p class="about-report">Spot a wrong grouping, a broken link or a headline that looks off? <a ${ext(data.report_url)}>Report a problem</a></p>` : ""}
     </section>`;
@@ -677,9 +676,6 @@
 
       ${renderSupport(data)}
       ${renderAbout(data)}`;
-    const rep = $("#foot-report");
-    rep.hidden = !data.report_url;
-    if (data.report_url) Object.assign(rep.querySelector("a"), { href: data.report_url, target: "_blank", rel: "noopener" });
     applyFront();
     renderMarkets();
     paintFollow();
