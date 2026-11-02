@@ -238,8 +238,8 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
   const mode = opt.get("mode") === "week" && week.length >= 4 ? "week" : "day";
   let html, used;
   if (mode === "week") {
-    html = recap() + story(a, "Top story today", "var(--sky)", STEMS[0]);
-    used = [a];
+    html = recap() + story(a, "Top story today", "var(--sky)", STEMS[0]) + (b ? story(b, "Also trending", "var(--butter)", STEMS[2]) : "");
+    used = [a, b].filter(Boolean);
   } else {
     // lead with the hook story as the cover (poppy), then the other top story, then markets
     const order = [...new Set([hookStory, a, b].filter(Boolean))].slice(0, 2);
