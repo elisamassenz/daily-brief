@@ -253,12 +253,20 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
   };
 
   // one-off intro post (pinned) and the About highlight Stories (1080×1920)
+  // the intro's example: a light, widely covered story (real headlines, Oct 2026), so it stays evergreen
+  const SAMPLE = { pub_count: 9, angles: [
+    { pub: "bbc", title: "Mission blasts off for Mars to grab a piece of its moon" },
+    { pub: "ars", title: "Japan launches mission to bring home a piece of the Martian moon Phobos" },
+    { pub: "economist", title: "Japan’s mission to Mars’s moons takes off" },
+    { pub: "verge", title: "Japan is launching a Mars moon probe later today." },
+  ] };
   const intro = () => {
     const srcs = news.sources;
     ALTS.push("Meet Wallflower: the day's biggest stories from 24 newsrooms, side by side.",
       `24 newsrooms: ${srcs.map((x) => x.name).join(", ")}.`,
+      "Posted twice a day, at 11:30 AM and 5:30 PM Eastern, plus a Sunday recap of the week's cover stories.",
       "Read every angle at wallflower.news. Free and no ads.");
-    return `
+    const html = `
     <section class="slide">
       ${POPPY}${top}
       <div class="eyebrow"><span class="num">${num()}</span>Hello</div>
@@ -274,6 +282,18 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
       <div class="logo-grid">${srcs.map((x) => `<div class="lg-tile">${logo(x.id)}<span>${esc(x.name)}</span></div>`).join("")}</div>
       ${foot()}
     </section>
+    ${hook(SAMPLE).replace(POPPY, STEMS[0]).replace(/Same story, \d+ publications/, "How it works")}
+    <section class="slide">
+      ${STEMS[1]}${top}
+      <div class="eyebrow"><span class="num">${num()}</span>On your feed</div>
+      <h2 class="hook-title">Posted twice a day,<br>plus a Sunday recap</h2>
+      <div class="days">
+        <div class="day-row sched"><span class="dow">11:30 AM ET</span><span class="dh">The top stories, how each outlet covered them, and the markets</span></div>
+        <div class="day-row sched"><span class="dow">5:30 PM ET</span><span class="dh">The evening update: what’s new since lunch</span></div>
+        <div class="day-row sched"><span class="dow">Sundays</span><span class="dh">The week in cover stories, one headline a day</span></div>
+      </div>
+      ${foot()}
+    </section>
     <section class="slide">
       ${POPPY}${top}
       <div class="eyebrow"><span class="num">${num()}</span>Read more</div>
@@ -282,6 +302,8 @@ h1 { margin: 0; font-weight: 600; font-size: 74px; line-height: 1.1; letter-spac
       <div class="cta">wallflower.news <span aria-hidden="true">→</span></div>
       ${foot()}
     </section>`;
+    ALTS.splice(2, 0, ALTS.pop());   // the example slide's alt text was added last; it belongs third
+    return html;
   };
   const about = () => {
     ALTS.push("Wallflower: every angle, side by side. The day's biggest stories from 24 newsrooms, next to each other.",
