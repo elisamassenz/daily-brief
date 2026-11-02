@@ -23,7 +23,8 @@ body { margin: 0; background: #ccc; font-family: var(--sans); color: var(--ink);
 .peek { position: absolute; z-index: 0; pointer-events: none; -webkit-mask-image: linear-gradient(#000 45%, transparent 72%); mask-image: linear-gradient(#000 45%, transparent 72%); }
 
 /* the site header's cyanotype poppy, hung from the top right edge and faded out like on the site */
-.poppy { position: absolute; z-index: 0; top: -44px; left: 330px; width: 985px; aspect-ratio: 2240 / 1041; pointer-events: none;
+.poppy { position: absolute; z-index: 2;   /* over the masthead rule, so the line tucks behind the petals */
+   top: -44px; left: 330px; width: 985px; aspect-ratio: 2240 / 1041; pointer-events: none;
   background: url("header-poppy.jpg") center / cover no-repeat; mix-blend-mode: multiply; opacity: .75;
   -webkit-mask-image: linear-gradient(#000 60%, transparent 70%), linear-gradient(90deg, transparent 21%, #000 28%, #000 74%, transparent 82%);
   -webkit-mask-composite: source-in; mask-image: linear-gradient(#000 60%, transparent 70%), linear-gradient(90deg, transparent 21%, #000 28%, #000 74%, transparent 82%); mask-composite: intersect; }
