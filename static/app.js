@@ -316,10 +316,6 @@
       ? FOLLOW.list.map((q) => `<button type="button" class="chip ${q === FOLLOW.query ? "on" : ""}" data-follow="${esc(q)}">${esc(q)}</button>`).join("")
       : tries.map((q) => `<button type="button" class="chip" data-follow="${esc(q)}">${esc(q)}</button>`).join("");
     return `<div class="follow">
-      <div class="follow-intro">
-        <h3>Back Issues</h3>
-        <p>Pick any topic and get its cover story for each day: the headline the most outlets ran with. Flip back through the stack the way you'd leaf through old magazines.</p>
-      </div>
       <form class="follow-search" id="follow-form" role="search">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
         <input name="q" placeholder="Pick a topic, e.g. Pope Leo" maxlength="80" autocomplete="off" value="${esc(FOLLOW.query)}" aria-label="Pick a topic">
@@ -357,7 +353,6 @@
     const first = counts.findIndex((c) => c > 0);
     const from = Math.max(0, Math.min(first < 0 ? 0 : first, arc.days.length - 14));  // at least two weeks of bars
     const max = Math.max(1, ...counts);
-    const mast = Math.min(19, 150 / Math.max(5, FOLLOW.query.length));   // masthead fills the cover width
     el.innerHTML = `
       <div class="follow-head">
         <div>
@@ -370,16 +365,13 @@
       </div>
       <div class="issues" tabindex="0" aria-label="Back issues: use the arrow keys to flip">
         <button type="button" class="car-btn" data-car="-1" aria-label="Older issue">←</button>
-        <div class="issue-stack" style="--mast:${mast.toFixed(1)}">${covers.map((c, i) => `
+        <div class="issue-stack">${covers.map((c, i) => `
           <a class="cover" data-ci="${i}" draggable="false" ${ext(c.link)}>
-            ${c.img ? `<img class="cover-img" draggable="false" src="${safeUrl(c.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ""}${art(c.title, "cover-art")}
-            <div class="cover-top">
-              <div class="cover-mast">${esc(FOLLOW.query)}</div>
-              <div class="cover-issue">${esc(dayLabel(arc.days[c.di], { weekday: "long", month: "long", day: "numeric" }))}</div>
-            </div>
-            <div class="cover-bottom">
+            <div class="cover-pic">${art(c.title, "cover-art")}${c.img ? `<img class="cover-img" draggable="false" src="${safeUrl(c.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ""}</div>
+            <div class="cover-body">
               <h4>${esc(c.title)}</h4>
               <div class="cover-credit">${logo(c.pub)}<span>${esc(SRC[c.pub]?.name || c.pub)}${c.n > 1 ? ` · 1 of ${c.n} headlines that day` : ""}</span></div>
+              <div class="cover-issue">${esc(dayLabel(arc.days[c.di], { weekday: "long", month: "long", day: "numeric" }))}</div>
             </div>
           </a>`).join("")}
         </div>
@@ -564,7 +556,7 @@
 
       <section id="weeks" class="sec">
         <img class="peek peek-3" src="stem.png" alt="" aria-hidden="true">
-        ${sectionHead("04", "Trending over the weeks", "Stories that keep coming back")}
+        ${sectionHead("04", "Trending over the weeks", "Back Issues", "Pick any topic and get its cover story for each day: the headline the most outlets ran with. Flip back through them like a stack of old magazines.")}
         ${renderFollow()}
         ${renderRising(data.rising)}
       </section>
