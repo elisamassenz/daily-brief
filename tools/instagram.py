@@ -85,9 +85,16 @@ def render(base, out, query=""):
             path = os.path.join(out, "slide-%d.jpg" % i)
             el.screenshot(path=path, type="jpeg", quality=92)
             files.append(os.path.basename(path))
+        # the Story repeats slide 1, minus its swipe cue and page count (nothing to swipe to in a Story)
+        first = page.query_selector(".slide")
+        if first:
+            page.evaluate("""() => { const f = document.querySelector('.slide .foot');
+              if (f && f.lastElementChild) f.lastElementChild.textContent = ''; }""")
+            first.screenshot(path=os.path.join(out, "story.jpg"), type="jpeg", quality=92)
         info = page.evaluate("window.IG")
         browser.close()
     info["files"] = files
+    info["story"] = os.path.exists(os.path.join(out, "story.jpg"))
     save(os.path.join(out, "post.json"), info)
     with open(os.path.join(out, "caption.txt"), "w") as f:
         f.write(info["caption"])
@@ -174,7 +181,8 @@ def post():
     media = api("/%s/media_publish" % user, creation_id=carousel)["id"]
     print("instagram: posted", media)
     try:   # also share the first slide to the Story
-        story = api("/%s/media" % user, media_type="STORIES", image_url=urls[0])["id"]
+        story_url = "%s/ig/%s/story.jpg" % (PUBLIC, info["stamp"]) if info.get("story") else urls[0]
+        story = api("/%s/media" % user, media_type="STORIES", image_url=story_url)["id"]
         wait_ready(story)
         api("/%s/media_publish" % user, creation_id=story)
     except Exception as e:
