@@ -603,12 +603,15 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .watch { background: var(--card); border-radius: var(--radius); padding: 16px 18px; }
 .watch .chip { background: var(--tint); border-color: transparent; }
 
-/* masthead: share + follow */
-.masthead-bar { flex-direction: column; align-items: center; gap: 14px; }
-.masthead-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
-.pill-btn { font: inherit; font-size: 13px; font-weight: 600; padding: 7px 16px; border-radius: 999px; cursor: pointer;
-  border: 1px solid var(--accent); background: none; color: var(--accent); }
-.pill-btn:hover { background: var(--accent); color: var(--bg); }
+/* masthead: share + follow, the same size as Refresh, outlined in blue */
+.masthead-btns { display: inline-flex; gap: 6px; }
+.masthead-btns .refresh { margin-left: 0; }
+.refresh.pill-btn { border-color: var(--accent); color: var(--accent); }
+@media (max-width: 620px) {   /* phones: the three buttons share their own line under the date */
+  .masthead-btns { flex-basis: 100%; justify-content: center; }
+  .masthead-btns .refresh { padding: 4px 10px; font-size: 12px; white-space: nowrap; }
+}
+.refresh.pill-btn:hover { background: var(--accent); color: var(--bg); }
 
 .show-more.lv-more { margin-bottom: 40px; }   /* room before the support card */
 @media (max-width: 620px) { #howto .sec-title, #howto .sec-dek { max-width: none; } }   /* no flowers in this section */

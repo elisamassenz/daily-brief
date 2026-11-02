@@ -147,7 +147,8 @@ def prepare(force=None):
     info.update(slot=s, stamp=stamp)
     if s == "am":   # one Reel a day, from the midday carousel
         try:
-            make_reel(os.path.join(SITE, "ig", stamp), info["files"])
+            out = os.path.join(SITE, "ig", stamp)   # opens on the Story copy of slide 1: no swipe cue in a video
+            make_reel(out, (["story.jpg"] if info.get("story") else info["files"][:1]) + info["files"][1:])
             info["reel"] = True
         except Exception as e:
             print("instagram: reel skipped:", e)

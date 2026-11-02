@@ -52,7 +52,10 @@ def main():
     html = html.replace("<head>", '<head>\n<meta name="static-build" content="1">', 1)
     if server.GA_ID:   # Google Analytics, public site only
         html = html.replace("</head>", ('<script async src="https://www.googletagmanager.com/gtag/js?id={0}"></script>\n'
-            '<script>window.dataLayer=window.dataLayer||[];function gtag(){{dataLayer.push(arguments)}}'
+            # visiting wallflower.news/?me once stops counting that device (the owner's own visits)
+            '<script>try{{if(/[?&]me\\b/.test(location.search))localStorage.setItem("wallflower.notrack","1");'
+            'if(localStorage.getItem("wallflower.notrack"))window["ga-disable-{0}"]=true}}catch(e){{}}'
+            'window.dataLayer=window.dataLayer||[];function gtag(){{dataLayer.push(arguments)}}'
             'gtag("js",new Date());gtag("config","{0}");</script>\n</head>').format(server.GA_ID), 1)
     # version the stylesheet and script so browsers fetch the new copy after every change
     for name in ("style.css", "app.js"):
