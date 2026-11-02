@@ -8,7 +8,7 @@
                                                                       (+ a Reel of the same slides, midday only)
   python3 tools/instagram.py reel DIR                                 build reel.mp4 from DIR's slides (preview)
 
-Slots: 11:30–12:29 ET ("am") and 17:30–18:29 ET ("pm"); Sunday's pm post is the week recap. One-offs: run the
+Slots: 11:30–14:29 ET ("am") and 17:30–20:29 ET ("pm"), posting at the first run inside each; Sunday's pm post is the week recap. One-offs: run the
 workflow by hand with ig_slot "intro" (the pinned intro post); `render … --mode about` makes the About highlight Stories. The workflow runs at
 :11 and :41, so each slot is hit once (data/instagram.json records what was posted, which also stops the evening
 post repeating the midday stories).
@@ -59,9 +59,10 @@ def slot(force=None):
         return force
     t = now_et()
     mins = t.hour * 60 + t.minute
-    if 11 * 60 + 30 <= mins < 12 * 60 + 30:
+    # 3-hour windows: GitHub's scheduler often runs hours late, so a late run still catches its slot (once)
+    if 11 * 60 + 30 <= mins < 14 * 60 + 30:
         return "am"
-    if 17 * 60 + 30 <= mins < 18 * 60 + 30:
+    if 17 * 60 + 30 <= mins < 20 * 60 + 30:
         return "week" if t.weekday() == 6 else "pm"
     return None
 
