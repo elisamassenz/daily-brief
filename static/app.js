@@ -42,7 +42,7 @@
 
   function sectionHead(num, eyebrow, title, dek, aside = "") {
     return `<header class="sec-head">
-      <div class="sec-num">${num}</div>
+      ${num ? `<div class="sec-num">${num}</div>` : ""}
       <div class="sec-text">
         <div class="sec-eyebrow">${esc(eyebrow)}</div>
         <h2 class="sec-title">${title}</h2>
@@ -530,6 +530,14 @@
   };
   const step = (icon, html) => `<li><span class="step-icon">${ICON[icon]}</span><span>${html}</span></li>`;
 
+  // Home Screen how-to: hidden once someone says they've added it, or after they open the Home Screen app.
+  // (On Android the app shares this site's storage, so opening it once is remembered in the browser too;
+  // on iPhone the Home Screen app keeps separate storage, so the "already have it" button covers that.)
+  const INSTALLED_KEY = "wallflower.installed";
+  const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  const installed = () => { try { return standalone || localStorage.getItem(INSTALLED_KEY) === "1"; } catch { return standalone; } };
+  if (standalone) try { localStorage.setItem(INSTALLED_KEY, "1"); } catch { /* private mode */ }
+
   function renderHowTo() {
     const LOGO = {
       apple: '<svg viewBox="0 0 24 24"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg>',
@@ -573,6 +581,12 @@
         ${sectionHead("01", "Trending today", "What everyone is covering")}
         ${renderTrending(data.trending)}
       </section>
+      ${installed() ? "" : `
+      <section id="howto" class="sec">
+        ${sectionHead("", "How to", `Add ${esc(data.title || "it")} to your Home Screen`)}
+        ${renderHowTo()}
+        <button type="button" class="howto-done" data-howto-done>I already have it on my Home Screen</button>
+      </section>`}
 
       <section id="fronts" class="sec">
         <img class="peek peek-1" src="stem-b.png" alt="" aria-hidden="true">
@@ -598,10 +612,6 @@
         ${renderRising(data.rising)}
       </section>
 
-      <section id="howto" class="sec">
-        ${sectionHead("05", "How to", `Add ${esc(data.title || "it")} to your Home Screen`)}
-        ${renderHowTo()}
-      </section>
       ${renderSupport(data)}`;
     renderMarkets();
     paintFollow();
@@ -643,6 +653,11 @@
     if (sm) {
       sm.previousElementSibling.classList.add("expanded");
       sm.remove();
+      return;
+    }
+    if (e.target.closest("[data-howto-done]")) {
+      try { localStorage.setItem(INSTALLED_KEY, "1"); } catch { /* private mode */ }
+      $("#howto")?.remove();
       return;
     }
     const fq = e.target.closest("[data-follow]");

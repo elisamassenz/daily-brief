@@ -392,6 +392,9 @@ a:hover .img-wrap img { transform: scale(1.03); }
   .support-bloom { height: 470px; right: -10px; top: 6px; }
   .support-card::after { background: linear-gradient(180deg, rgba(22, 34, 63, 0) 40%, rgba(22, 34, 63, .8) 56%, #16223f 64%); }
 }
+.howto-done { display: block; margin: 16px auto 0; font: inherit; font-size: 13px; color: var(--muted); background: none; border: none; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.howto-done:hover { color: var(--ink); }
+@media (hover: hover) and (pointer: fine) { #howto { display: none; } }   /* computers: nothing to add to a Home Screen */
 .howto-card { background: var(--card); border-radius: var(--radius); padding: 24px 26px; display: flex; flex-direction: column; gap: 10px; }
 .howto-head { display: flex; align-items: center; gap: 12px; }
 .howto-head h3 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 28px; line-height: 1.1; }
