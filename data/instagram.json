@@ -20,6 +20,14 @@
     "ballot,california,court,supreme"
    ],
    "slides": 3
+  },
+  "2026-11-03-am": {
+   "id": "18112497935273624",
+   "keys": [
+    "race,election,midterm,senate",
+    "ballots,california,court,administration"
+   ],
+   "slides": 3
   }
  }
 }
