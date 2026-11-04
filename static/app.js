@@ -7,6 +7,7 @@
   let lastGenerated = null;
   // The public site (built by build.py) is plain files: no refresh endpoint, no topic editing.
   const STATIC = !!document.querySelector('meta[name="static-build"]');
+  const APP_VERSION = (document.currentScript?.src.match(/[?&]v=(\w+)/) || [])[1];
 
   // ------------------------------------------------------------ helpers
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -792,10 +793,14 @@
       const r = await fetch(STATIC ? `data/news.json?t=${Date.now()}` : `api/news${refresh ? "?refresh=1" : ""}`);
       const j = STATIC ? { data: await r.json(), refreshing: false } : await r.json();
       $("#refresh").classList.toggle("busy", j.refreshing || refresh);
+      // A tab restored from memory (common in iPhone browsers) can still be running an older app.js
+      // that can't read today's data: load the page fresh, at most once per version.
+      const stale = STATIC && APP_VERSION && j.data?.app_version && j.data.app_version !== APP_VERSION;
+      if (stale && reloadOnce(j.data.app_version)) return;
       if (j.data && j.data.generated !== lastGenerated) {
-        lastGenerated = j.data.generated;
         const y = window.scrollY;
-        render(j.data);
+        try { render(j.data); } catch (err) { if (reloadOnce("render-" + j.data.generated)) return; throw err; }
+        lastGenerated = j.data.generated;
         window.scrollTo(0, y);
       }
       if (!STATIC && (j.refreshing || !j.data || refresh)) setTimeout(() => loadNews(), 3000);
@@ -803,6 +808,15 @@
       $("#updated").textContent = "Can’t reach the Wallflower server — is it running?";
       setTimeout(() => loadNews(), 10000);
     }
+  }
+
+  function reloadOnce(key) {
+    try {
+      if (sessionStorage.getItem("wallflower.reloaded") === key) return false;
+      sessionStorage.setItem("wallflower.reloaded", key);
+    } catch { return false; }   // no storage: never risk a reload loop
+    location.reload();
+    return true;
   }
 
   async function loadMarkets() {

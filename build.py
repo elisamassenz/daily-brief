@@ -33,6 +33,8 @@ def main():
     shutil.copytree(server.STATIC, SITE)
     shutil.copytree(server.LOGOS, os.path.join(SITE, "logo"))
     os.makedirs(os.path.join(SITE, "data"))
+    with open(os.path.join(SITE, "app.js"), "rb") as f:   # a page left open on an older app.js reloads itself
+        payload = dict(payload, app_version=hashlib.sha1(f.read()).hexdigest()[:10])
     with open(os.path.join(SITE, "data", "news.json"), "w") as f:
         json.dump(payload, f)
     with open(os.path.join(SITE, "data", "markets.json"), "w") as f:
