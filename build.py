@@ -14,7 +14,11 @@ from datetime import datetime, timedelta, timezone
 
 import server
 
+sys.path.insert(0, os.path.join(server.ROOT, "tools"))
+import focal
+
 SITE = os.path.join(server.ROOT, "site")
+FOCAL_CACHE = os.path.join(server.RUNTIME, "focal_cache.json")
 LAST_MARKETS = os.path.join(server.RUNTIME, "markets_last.json")  # data/ on GitHub, .local/ on your Mac
 
 
@@ -33,6 +37,14 @@ def main():
     shutil.copytree(server.STATIC, SITE)
     shutil.copytree(server.LOGOS, os.path.join(SITE, "logo"))
     os.makedirs(os.path.join(SITE, "data"))
+    # crop photos to the faces in them (see tools/focal.py)
+    images = [s.get("image") for s in payload["trending"]] + [i.get("image") for h in payload["headlines"].values() for i in h]
+    focal_cache = server.load_json(FOCAL_CACHE, {})
+    if focal.update(images, focal_cache):
+        for url in list(focal_cache)[:max(0, len(focal_cache) - 3000)]:
+            focal_cache.pop(url)
+        server.save_json(FOCAL_CACHE, focal_cache)
+    payload = dict(payload, focal={u: focal_cache[u] for u in images if focal_cache.get(u)})
     with open(os.path.join(SITE, "app.js"), "rb") as f:   # a page left open on an older app.js reloads itself
         payload = dict(payload, app_version=hashlib.sha1(f.read()).hexdigest()[:10])
     with open(os.path.join(SITE, "data", "news.json"), "w") as f:

@@ -25,8 +25,9 @@
   }
   const logo = (pid, cls = "") => `<img class="logo ${cls}" src="${esc(SRC[pid]?.icon || `logo/${pid}.png`)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`;
   const pubtag = (pid) => `<span class="pubtag">${logo(pid)}<span class="pn">${esc(SRC[pid]?.name || pid)}</span></span>`;
+  // DATA.focal keeps faces in frame when a photo is cropped (made by tools/focal.py at build time)
   const image = (src, alt = "") => src
-    ? `<div class="img-wrap"><img src="${safeUrl(src)}" alt="${esc(alt)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.closest('.img-wrap').remove()"></div>`
+    ? `<div class="img-wrap"><img src="${safeUrl(src)}" alt="${esc(alt)}"${DATA?.focal?.[src] ? ` style="object-position:${esc(DATA.focal[src])}"` : ""} loading="lazy" referrerpolicy="no-referrer" onerror="this.closest('.img-wrap').remove()"></div>`
     : "";
   // soft abstract gradients stand in for missing photos and fill empty space
   const PALETTES = [["#F4BE94", "#DCCFF0"], ["#C4BEF0", "#F5CDB6"], ["#B9CDA4", "#F3DF9C"], ["#F2D97E", "#F1B9A4"],
