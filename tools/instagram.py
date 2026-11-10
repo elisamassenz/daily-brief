@@ -208,6 +208,9 @@ def post():
         if not any(b in str(e) for b in BLOCKED):
             raise
         state = load(STATE, {})
+        if "media_publish" in str(e):   # Instagram sometimes posts it anyway despite the error: never post it twice
+            info = load(PENDING, {})
+            state.setdefault("posted", {})[info.get("stamp", "")] = {"id": None, "keys": info.get("keys", []), "blocked": True}
         state["paused_until"] = (now_et() + timedelta(hours=PAUSE_HOURS)).isoformat()
         save(STATE, state)
         os.remove(PENDING)
