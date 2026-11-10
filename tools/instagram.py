@@ -23,7 +23,7 @@ import threading
 import time
 import urllib.parse
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from zoneinfo import ZoneInfo
@@ -72,7 +72,10 @@ def due(force=None):
     s = slot(force)
     if not s or not os.environ.get("IG_TOKEN"):
         return None
-    posted = load(STATE, {}).get("posted", {})
+    state = load(STATE, {})
+    if not force and state.get("paused_until", "") > now_et().isoformat():   # Instagram blocked us: wait it out
+        return None
+    posted = state.get("posted", {})
     return None if (now_et().strftime("%Y-%m-%d") + "-" + s) in posted and not force else s
 
 
@@ -192,7 +195,26 @@ def image_item(user, url, alt, **extra):
         return api("/%s/media" % user, image_url=url, **extra)["id"]
 
 
+BLOCKED = ("2207051", "action is blocked", "Application request limit reached")
+PAUSE_HOURS = 24
+
+
 def post():
+    """Post the pending carousel. If Instagram flags the account, pause posting for a day instead of retrying
+    every half hour (repeated attempts can make a block last longer) and end without a failed run."""
+    try:
+        publish()
+    except RuntimeError as e:
+        if not any(b in str(e) for b in BLOCKED):
+            raise
+        state = load(STATE, {})
+        state["paused_until"] = (now_et() + timedelta(hours=PAUSE_HOURS)).isoformat()
+        save(STATE, state)
+        os.remove(PENDING)
+        print("instagram: blocked by Instagram, paused until", state["paused_until"], "-", e)
+
+
+def publish():
     info = load(PENDING, None)
     if not info:
         print("instagram: nothing to post")
