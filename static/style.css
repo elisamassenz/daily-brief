@@ -688,3 +688,5 @@ a:hover .img-wrap img { transform: scale(1.03); }
   .picks-count { flex-basis: 100%; }
   .picks-done { margin-left: auto; }
 }
+.secnav a span.nav-new { align-self: center; margin-left: -1px; padding: 2px 7px; border-radius: 999px; background: var(--poppy); color: #fff;
+  font-family: var(--mono); font-size: 9.5px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; line-height: 1.4; }

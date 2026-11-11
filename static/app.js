@@ -813,6 +813,8 @@
   }, { rootMargin: "-30% 0px -65% 0px" });
 
   // expand / remove / add (delegated)
+  // "New" tags on recent features take themselves down on their date
+  document.querySelectorAll("[data-until]").forEach((el) => { if (new Date() >= new Date(el.dataset.until + "T00:00")) el.remove(); });
   document.addEventListener("click", (e) => {
     if (!e.target.closest("[data-open-picks]") || !DATA) return;
     e.preventDefault();
