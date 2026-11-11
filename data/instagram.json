@@ -132,7 +132,15 @@
     "hegseth,pete,secretary,thomas"
    ],
    "slides": 3
+  },
+  "2026-11-11-am": {
+   "id": null,
+   "keys": [
+    "huang,jensen,nvidia,affair",
+    "talks,ukraine,russia,abu"
+   ],
+   "blocked": true
   }
  },
- "paused_until": "2026-11-11T12:02:18.022150-05:00"
+ "paused_until": "2026-11-12T12:31:50.540932-05:00"
 }
