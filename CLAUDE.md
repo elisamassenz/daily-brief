@@ -4,6 +4,7 @@ The running site uses no LLM; tokens are only spent on edits. Keep changes small
 
 ## Map
 - `sources.py`: SITE_TITLE, REPO_URL, SUPPORT_URL (coffee card; empty = hidden), the 24 publications (feed, wordmark style, color), mood THEMES, MARKETS tickers, FINANCE_PUBS.
+- Extra newsrooms: sources with `optional=True` are off by default; readers switch them on in "Choose newsrooms" (app.js `PICKS`, saved in localStorage `wallflower.pubs`, or `?pubs=a,b` links). `trending` = core outlets only (default page, Instagram, Sunday recap); `trending_all` = all outlets, recounted in the browser for the reader's picks. Rising topics and finance headlines stay core-only.
 - `server.py`: everything that fetches and analyzes (stdlib only, Python 3.9-compatible). It runs as the local app (http://localhost:8787) and as a library for `build.py`.
   - feeds: `fetch_source` (stale or missing feed falls back to Google News), `parse_feed`, `og_image`
   - trending: `build_docs` → `trending_stories` (pairs need 2+ shared terms) → `prune` → `merge_related`

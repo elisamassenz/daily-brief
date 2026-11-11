@@ -5,6 +5,8 @@ feed:  an RSS/Atom URL, or None to use Google News (site: search) for outlets
 exclude: optional regex; headlines matching it are dropped (e.g. press releases hosted on a wire's site)
 mark:  wordmark style used next to the logo — serif | italic | black | sans | mono
 color: brand accent for the block's top rule.
+optional: True = an extra newsroom readers can switch on in "Choose newsrooms" (off by default). The default page,
+       Instagram, Rising topics and the Sunday recap use only the core outlets.
 """
 
 # The name shown at the top of the page and in the browser tab.
@@ -39,15 +41,28 @@ SOURCES = [
     dict(id="abcau", name="ABC News Australia", domain="abc.net.au", section="News", feed="https://www.abc.net.au/news/feed/51120/rss.xml", mark="sans", color="#000000"),
     dict(id="cbc", name="CBC News", domain="cbc.ca", section="News", feed="https://www.cbc.ca/webfeed/rss/rss-topstories", mark="sans", color="#E60505"),
     dict(id="propublica", name="ProPublica", domain="propublica.org", section="News", feed="https://www.propublica.org/feeds/propublica/main", mark="serif", color="#000000"),
+    # News: extra newsrooms, off by default (center-right and international range)
+    dict(id="telegraph", name="The Telegraph", domain="telegraph.co.uk", section="News", feed=None, mark="black", color="#1A1A1A", optional=True),
+    dict(id="times", name="The Times", domain="thetimes.com", section="News", feed=None, mark="black", color="#1A1A1A", optional=True),
+    dict(id="natpost", name="National Post", domain="nationalpost.com", section="News", feed=None, mark="serif", color="#D0021B", optional=True),
+    dict(id="japannews", name="The Japan News", domain="japannews.yomiuri.co.jp", section="News", feed=None, mark="sans", color="#1C3F94", optional=True),
     # Ideas & Analysis
     dict(id="economist", name="The Economist", domain="economist.com", section="Ideas & Analysis", feed="https://www.economist.com/latest/rss.xml", mark="serif", color="#E3120B"),
     dict(id="atlantic", name="The Atlantic", domain="theatlantic.com", section="Ideas & Analysis", feed="https://www.theatlantic.com/feed/all/", mark="italic", color="#E7131A"),
     dict(id="axios", name="Axios", domain="axios.com", section="Ideas & Analysis", feed="https://api.axios.com/feed/", mark="sans", color="#1E5BF2"),
+    # Ideas & Analysis: extra newsrooms, off by default
+    dict(id="dispatch", name="The Dispatch", domain="thedispatch.com", section="Ideas & Analysis", feed="https://thedispatch.com/feed/", mark="serif", color="#1B2A4A", optional=True),
+    dict(id="natreview", name="National Review", domain="nationalreview.com", section="Ideas & Analysis", feed="https://www.nationalreview.com/feed/", mark="serif", color="#C8102E", optional=True),
+    dict(id="reason", name="Reason", domain="reason.com", section="Ideas & Analysis", feed="https://reason.com/feed/", mark="sans", color="#E8571F", optional=True,
+         exclude=r"^\S+$|^Open Thread$|^Today in Supreme Court History"),   # its feed also lists bare image names
+    dict(id="vox", name="Vox", domain="vox.com", section="Ideas & Analysis", feed="https://www.vox.com/rss/index.xml", mark="black", color="#E5D80F", optional=True),
+    dict(id="nation", name="The Nation", domain="thenation.com", section="Ideas & Analysis", feed=None, mark="serif", color="#C8102E", optional=True),
     # Business & Markets
     dict(id="wsj", name="The Wall Street Journal", domain="wsj.com", section="Business & Markets", feed="https://feeds.a.dj.com/rss/RSSWorldNews.xml", mark="serif", color="#111111"),
     dict(id="ft", name="Financial Times", domain="ft.com", section="Business & Markets", feed="https://www.ft.com/rss/home", mark="serif", color="#F2A0A0"),
     dict(id="bloomberg", name="Bloomberg", domain="bloomberg.com", section="Business & Markets", feed="https://feeds.bloomberg.com/markets/news.rss", mark="sans", color="#2800D7"),
     dict(id="nikkei", name="Nikkei Asia", domain="asia.nikkei.com", section="Business & Markets", feed="https://asia.nikkei.com/rss/feed/nar", mark="sans", color="#C8102E"),
+    dict(id="afr", name="Australian Financial Review", domain="afr.com", section="Business & Markets", feed="https://www.afr.com/rss/feed.xml", mark="serif", color="#0B3C5D", optional=True),
     # Technology
     dict(id="techcrunch", name="TechCrunch", domain="techcrunch.com", section="Technology", feed="https://techcrunch.com/feed/", mark="sans", color="#0A9E01"),
     dict(id="verge", name="The Verge", domain="theverge.com", section="Technology", feed="https://www.theverge.com/rss/index.xml", mark="sans", color="#5200FF"),

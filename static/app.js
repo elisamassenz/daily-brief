@@ -102,6 +102,95 @@
     </div>`;
   }
 
+  // ------------------------------------------------------------ choose newsrooms
+  // Readers pick their outlets on the page; the choice is saved in this browser only (no accounts).
+  // No saved choice = the core newsrooms. ?pubs=a,b,c (from "Copy link to this setup") brings a setup to another device.
+  const PICKS_KEY = "wallflower.pubs";
+  let PICKS = null;
+  try {
+    const q = new URLSearchParams(location.search).get("pubs");
+    if (q) localStorage.setItem(PICKS_KEY, q);
+    PICKS = (localStorage.getItem(PICKS_KEY) || "").split(",").filter(Boolean);
+    if (!PICKS.length) PICKS = null;
+  } catch { /* private mode: the default set */ }
+  const picked = (id) => (PICKS ? PICKS.includes(id) : !SRC[id]?.optional);
+  const corePubs = () => (DATA?.sources || []).filter((x) => !x.optional).map((x) => x.id);
+  const defaultPicks = () => !PICKS || (PICKS.length === corePubs().length && corePubs().every((id) => PICKS.includes(id)));
+  function savePicks(ids) {
+    PICKS = ids;
+    try { defaultPicks() ? localStorage.removeItem(PICKS_KEY) : localStorage.setItem(PICKS_KEY, ids.join(",")); } catch { /* this visit only */ }
+    if (defaultPicks()) PICKS = null;
+  }
+
+  // Trending for the reader's own outlets: recount every story using only their picks (3+ outlets to count).
+  function trendingFor(data) {
+    if (defaultPicks() || !data.trending_all) return data.trending;
+    return data.trending_all.map((s) => {
+      const angles = s.angles.filter((a) => picked(a.pub));
+      if (angles.length < 3) return null;
+      const lead = angles.find((a) => a.title === s.headline) || angles[0];
+      return { ...s, angles, pub_count: angles.length, headline: lead.title,
+               summary: lead.title === s.headline ? s.summary : lead.desc, score: angles.length * 3 + angles.length };
+    }).filter(Boolean).sort((a, b) => b.score - a.score).slice(0, 7);
+  }
+
+  function renderPicks() {
+    const n = DATA.sources.filter((x) => picked(x.id)).length;
+    return `<form method="dialog" class="picks-inner">
+      <div class="picks-head">
+        <h2>Choose your newsrooms</h2>
+        <p>${esc(DATA.title)} starts with ${corePubs().length} newsrooms. Add more for a wider range of views, or switch off any you don’t want. Your choice is saved on this device only. No account needed.</p>
+      </div>
+      ${DATA.sections.map((sec) => `
+        <h3 class="picks-sec">${esc(sec)}</h3>
+        <div class="picks-list">${DATA.sources.filter((x) => x.section === sec).map((x) => `
+          <button type="button" class="pick ${picked(x.id) ? "on" : ""}" data-pick="${esc(x.id)}" aria-pressed="${picked(x.id)}">
+            ${logo(x.id)}<span class="pn">${esc(x.name)}</span>${x.optional ? `<span class="pick-tag">Added</span>` : ""}
+            <svg class="pick-check" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
+          </button>`).join("")}
+        </div>`).join("")}
+      <div class="picks-foot">
+        <span class="picks-count">${plural(n, "newsroom")}</span>
+        <button type="button" class="picks-link" data-picks-reset ${defaultPicks() ? "hidden" : ""}>Reset to the original ${corePubs().length}</button>
+        <button type="button" class="picks-link" data-picks-copy ${defaultPicks() ? "hidden" : ""}>Copy link to this setup</button>
+        <button class="picks-done">Done</button>
+      </div>
+    </form>`;
+  }
+  function openPicks() {
+    let dlg = $("#picks");
+    if (!dlg) {
+      dlg = document.createElement("dialog");
+      dlg.id = "picks";
+      dlg.className = "picks";
+      document.body.appendChild(dlg);
+      dlg.addEventListener("click", (e) => {
+        if (e.target === dlg) return dlg.close();   // tap outside the sheet
+        const b = e.target.closest("[data-pick]");
+        const ids = DATA.sources.filter((x) => picked(x.id)).map((x) => x.id);
+        if (b) {
+          const id = b.dataset.pick;
+          savePicks(ids.includes(id) ? ids.filter((x) => x !== id) : DATA.sources.map((x) => x.id).filter((x) => x === id || ids.includes(x)));
+        } else if (e.target.closest("[data-picks-reset]")) {
+          savePicks(corePubs());
+        } else if (e.target.closest("[data-picks-copy]")) {
+          const url = `https://wallflower.news/?pubs=${ids.join(",")}`;
+          navigator.clipboard?.writeText(url).then(() => (e.target.textContent = "✓ Link copied"), () => {});
+          return;
+        } else return;
+        dlg.dataset.changed = "1";
+        const y = dlg.querySelector(".picks-inner").scrollTop;
+        dlg.innerHTML = renderPicks();
+        dlg.querySelector(".picks-inner").scrollTop = y;
+      });
+      dlg.addEventListener("close", () => {
+        if (dlg.dataset.changed) { delete dlg.dataset.changed; const y = window.scrollY; render(DATA); window.scrollTo(0, y); }
+      });
+    }
+    dlg.innerHTML = renderPicks();
+    dlg.showModal();
+  }
+
   // the big headline is one outlet's own (the one closest to everyone's coverage): credit it, and leave it out of the list below
   const leadAngle = (s) => s.angles.find((x) => x.title === s.headline);
   const leadLink = (s) => (leadAngle(s) || s.angles[0] || {}).link;
@@ -371,7 +460,7 @@
       if (seen.has(link) || !test(title)) return false;
       seen.add(link);
       return true;
-    }).map(([di, pi, title, link, img]) => ({ di, pub: arc.pubs[pi], title, link, img }));
+    }).map(([di, pi, title, link, img]) => ({ di, pub: arc.pubs[pi], title, link, img })).filter((h) => picked(h.pub));
     if (!all.length) {
       el.innerHTML = `<div class="follow-note">No headlines about “${esc(FOLLOW.query)}” in the last 4 weeks.</div>`;
       return;
@@ -620,7 +709,7 @@
     return `<section id="about" class="sec about">
       ${sectionHead("", "About", "How Wallflower works")}
       <div class="about-grid">
-        <div><h4>An independent news page</h4><p>${esc(data.title)} doesn’t write or edit the news, and isn’t affiliated with any of the publications. It reads the public feeds of ${data.sources.length} newsrooms every half hour.</p></div>
+        <div><h4>An independent news page</h4><p>${esc(data.title)} doesn’t write or edit the news, and isn’t affiliated with any of the publications. It reads the public feeds of ${corePubs().length} newsrooms every half hour, plus ${data.sources.length - corePubs().length} more you can add under <a href="#" data-open-picks>Choose newsrooms</a>.</p></div>
         <div><h4>Ranked by coverage</h4><p>Stories are grouped automatically by matching headlines across outlets, and ranked by how many newsrooms are covering them. No one picks them by hand, so now and then a grouping can be off.</p></div>
         <div><h4>Their words, their links</h4><p>Every headline appears exactly as the outlet wrote it, credited, and links to the original article. Read the full story at the source.</p></div>
       </div>
@@ -639,10 +728,11 @@
     navSupport.hidden = !data.support_url;
     navSupport.lastChild.textContent = `Support ${data.title || ""}`.trim();
     SRC = Object.fromEntries(data.sources.map((s) => [s.id, s]));
+    const secs = data.sections.filter((sec) => data.sources.some((s) => s.section === sec && picked(s.id)));
     app.innerHTML = `
       <section id="today" class="sec">
         ${sectionHead("01", "Trending today", "What everyone is covering")}
-        ${renderTrending(data.trending)}
+        ${renderTrending(trendingFor(data))}
       </section>
       ${installed() ? "" : `
       <section id="howto" class="sec">
@@ -654,11 +744,12 @@
       <section id="fronts" class="sec">
         <img class="peek peek-1" src="stem-b.png" alt="" aria-hidden="true">
         ${sectionHead("02", "Front pages", `<span class="line">Every publication’s</span> top two`)}
-        ${frontTabs(data.sections)}
-        ${data.sections.map((sec) => `
+        ${frontTabs(secs)}
+        <button type="button" class="picks-open" data-open-picks><span aria-hidden="true">+</span> Choose newsrooms</button>
+        ${secs.map((sec) => `
           <div class="pub-section" data-sec="${esc(sec)}">
             ${subHead(esc(sec))}
-            <div class="pubs">${data.sources.filter((s) => s.section === sec).map((s) => renderPub(s, data.headlines[s.id])).join("")}</div>
+            <div class="pubs">${data.sources.filter((s) => s.section === sec && picked(s.id)).map((s) => renderPub(s, data.headlines[s.id])).join("")}</div>
           </div>`).join("")}
       </section>
 
@@ -722,6 +813,11 @@
   }, { rootMargin: "-30% 0px -65% 0px" });
 
   // expand / remove / add (delegated)
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest("[data-open-picks]") || !DATA) return;
+    e.preventDefault();
+    openPicks();
+  });
   app.addEventListener("click", async (e) => {
     const sm = e.target.closest("[data-show-more]");
     if (sm) {

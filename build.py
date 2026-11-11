@@ -38,7 +38,7 @@ def main():
     shutil.copytree(server.LOGOS, os.path.join(SITE, "logo"))
     os.makedirs(os.path.join(SITE, "data"))
     # crop photos to the faces in them (see tools/focal.py)
-    images = [s.get("image") for s in payload["trending"]] + [i.get("image") for h in payload["headlines"].values() for i in h]
+    images = [s.get("image") for s in payload["trending"] + payload.get("trending_all", [])] + [i.get("image") for h in payload["headlines"].values() for i in h]
     focal_cache = server.load_json(FOCAL_CACHE, {})
     if focal.update(images, focal_cache):
         for url in list(focal_cache)[:max(0, len(focal_cache) - 3000)]:

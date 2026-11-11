@@ -48,6 +48,7 @@ UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 "
       "(KHTML, like Gecko) Version/17.0 Safari/605.1.15")
 SSL_CTX = ssl.create_default_context()
 SRC = {s["id"]: s for s in SOURCES}
+CORE = {s["id"] for s in SOURCES if not s.get("optional")}   # the default page; extras are opt-in on the page
 DOMAIN_TO_ID = {s["domain"]: s["id"] for s in SOURCES}
 
 
@@ -456,7 +457,7 @@ def merge_related(docs, groups, threshold=0.4):
     return groups
 
 
-def trending_stories(docs):
+def trending_stories(docs, limit=7):
     n = len(docs)
     sims = {}
     for i in range(n):
@@ -518,7 +519,7 @@ def trending_stories(docs):
             "score": len(pubs) * 3 + len(g),
         })
     stories.sort(key=lambda s: -s["score"])
-    return stories[:7]
+    return stories[:limit]
 
 
 def tone_of(text):
@@ -678,7 +679,7 @@ def rising_topics(window=28, recent=7):
     days = [(today - timedelta(days=k)).strftime("%Y-%m-%d") for k in range(window - 1, -1, -1)]
     with hist_lock:
         # history can hold outlets that have since been dropped from SOURCES: skip those
-        loaded = {d: {k: a for k, a in load_json(history_path(d), {}).items() if a.get("pub") in SRC} for d in days}
+        loaded = {d: {k: a for k, a in load_json(history_path(d), {}).items() if a.get("pub") in CORE} for d in days}
     days_with_data = [d for d in days if len(loaded[d]) >= 20]
     all_articles = [a for d in days for a in loaded[d].values()]
     total = len(all_articles)
@@ -904,7 +905,7 @@ state_lock = threading.Lock()
 def source_info(s):
     """What the page needs to know about a publication, including where its icons live (relative URLs)."""
     has_icon = os.path.exists(os.path.join(STATIC, "icons", s["id"] + ".svg"))
-    return dict({k: s[k] for k in ("id", "name", "domain", "section", "mark", "color")},
+    return dict({k: s[k] for k in ("id", "name", "domain", "section", "mark", "color")}, optional=bool(s.get("optional")),
                 wordmark=os.path.exists(os.path.join(STATIC, "logos", s["id"] + ".svg")),
                 icon=("icons/%s.svg" if has_icon else "logo/%s.png") % s["id"])
 
@@ -945,12 +946,15 @@ def refresh():
         for pid, items in by_pub.items():
             fresh = [i for i in items if i["date"] and parse_date(i["date"]) >= recent_cut]
             corpus.extend(fresh[:25])
-        docs, _ = build_docs(corpus)
+        core = [i for i in corpus if i["pub"] in CORE]
+        docs, _ = build_docs(core)
         stories = trending_stories(docs)
-        moods = theme_moods(corpus)
-        fin = finance_news(by_pub, corpus)
+        # with the extra newsrooms too, for readers who chose their own outlets (the page recounts it for their picks)
+        stories_all = trending_stories(build_docs(corpus)[0], limit=16) if len(core) < len(corpus) else stories
+        moods = theme_moods(core)
+        fin = finance_news(by_pub, core)
         with state_lock:
-            state["finance_items"] = [i for items in by_pub.values() for i in items]
+            state["finance_items"] = [i for pid, items in by_pub.items() if pid in CORE for i in items]
         movers_cache["at"] = 0
         record_history([i for items in by_pub.values() for i in items])
         record_top_story(stories)
@@ -968,6 +972,7 @@ def refresh():
             "headlines": tops,
             "errors": errors,
             "trending": stories,
+            "trending_all": stories_all,
             "moods": moods,
             "finance": fin,
             "rising": rising,

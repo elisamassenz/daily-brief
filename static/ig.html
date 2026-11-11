@@ -300,7 +300,7 @@ body[data-mode="week"] .angle-title { display: block; overflow: visible; }
     { pub: "verge", title: "Japan is launching a Mars moon probe later today." },
   ] };
   const intro = () => {
-    const srcs = news.sources;
+    const srcs = news.sources.filter((s) => !s.optional);
     ALTS.push("One story. 24 newsrooms. Every angle. Meet Wallflower: the day's biggest stories, side by side.",
       `24 newsrooms: ${srcs.map((x) => x.name).join(", ")}.`,
       "Posted twice a day, at 11:30 AM and 5:30 PM Eastern, plus a Sunday recap of the week's cover stories.",
@@ -354,7 +354,7 @@ body[data-mode="week"] .angle-title { display: block; overflow: visible; }
         <div class="brand big">Wallflower</div>
         <h2 class="hero-title">One story.<br>24 newsrooms.<br>Every angle.</h2>
         <p class="lede">The day’s biggest stories, side by side,<br>so you can see how each outlet tells it.</p>
-        <div class="meta intro-meta"><span class="stack">${news.sources.slice(0, 10).map((x) => logo(x.id)).join("")}</span></div>
+        <div class="meta intro-meta"><span class="stack">${news.sources.filter((s) => !s.optional).slice(0, 10).map((x) => logo(x.id)).join("")}</span></div>
       </div>
       <div class="foot"><span><b>wallflower.news</b></span><span>About</span></div>
     </section>
