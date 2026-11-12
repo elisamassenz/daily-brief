@@ -140,7 +140,15 @@
     "talks,ukraine,russia,abu"
    ],
    "blocked": true
+  },
+  "2026-11-12-am": {
+   "id": null,
+   "keys": [
+    "shooting,killed,washington,dc",
+    "huang,jensen,nvidia,ceo"
+   ],
+   "blocked": true
   }
  },
- "paused_until": "2026-11-12T12:31:50.540932-05:00"
+ "paused_until": "2026-11-13T13:02:28.269237-05:00"
 }
