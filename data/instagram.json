@@ -148,7 +148,15 @@
     "huang,jensen,nvidia,ceo"
    ],
    "blocked": true
+  },
+  "2026-11-13-am": {
+   "id": null,
+   "keys": [
+    "commerce,lutnick,nvidia,megaspeed",
+    "outage,microsoft,global,outlook"
+   ],
+   "blocked": true
   }
  },
- "paused_until": "2026-11-13T13:02:28.269237-05:00"
+ "paused_until": "2026-11-14T13:30:55.726577-05:00"
 }
