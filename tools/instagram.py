@@ -53,6 +53,11 @@ def now_et():
     return datetime.now(ZoneInfo("America/New_York"))
 
 
+# One post a day (the morning slot; Sunday's is the week recap) while Instagram's request limit is tight.
+# Set to False to go back to two a day.
+ONCE_A_DAY = True
+
+
 def slot(force=None):
     """The slot due right now, or None."""
     if force:
@@ -61,7 +66,9 @@ def slot(force=None):
     mins = t.hour * 60 + t.minute
     # 3-hour windows: GitHub's scheduler often runs hours late, so a late run still catches its slot (once)
     if 11 * 60 + 30 <= mins < 14 * 60 + 30:
-        return "am"
+        return "week" if ONCE_A_DAY and t.weekday() == 6 else "am"
+    if ONCE_A_DAY:
+        return None
     if 17 * 60 + 30 <= mins < 20 * 60 + 30:
         return "week" if t.weekday() == 6 else "pm"
     return None
@@ -222,7 +229,10 @@ def post():
         if "media_publish" in str(e):   # Instagram sometimes posts it anyway despite the error: never post it twice
             info = load(PENDING, {})
             state.setdefault("posted", {})[info.get("stamp", "")] = {"id": None, "keys": info.get("keys", []), "blocked": True}
-        state["paused_until"] = (now_et() + timedelta(hours=PAUSE_HOURS)).isoformat()
+        until = now_et() + timedelta(hours=PAUSE_HOURS)
+        if ONCE_A_DAY:   # lift the pause before tomorrow's window opens, so the daily post doesn't drift later each day
+            until = min(until, (now_et() + timedelta(days=1)).replace(hour=11, minute=0, second=0, microsecond=0))
+        state["paused_until"] = until.isoformat()
         save(STATE, state)
         os.remove(PENDING)
         print("instagram: blocked by Instagram, paused until", state["paused_until"], "-", e)
