@@ -202,6 +202,17 @@ PAUSE_HOURS = 24
 def post():
     """Post the pending carousel. If Instagram flags the account, pause posting for a day instead of retrying
     every half hour (repeated attempts can make a block last longer) and end without a failed run."""
+    info = load(PENDING, {})
+    try:   # another run may have posted this slot while we were rendering: check the latest state on GitHub
+        subprocess.run(["git", "fetch", "-q", "origin", "main"], capture_output=True, timeout=60)
+        remote = json.loads(subprocess.run(["git", "show", "origin/main:data/instagram.json"],
+                                           capture_output=True, text=True, timeout=30).stdout or "{}")
+        if info.get("stamp") in remote.get("posted", {}) or remote.get("paused_until", "") > now_et().isoformat():
+            print("instagram: %s already posted or paused by another run, skipping" % info.get("stamp"))
+            os.remove(PENDING)
+            return
+    except Exception as e:
+        print("instagram: could not check remote state:", e)
     try:
         publish()
     except RuntimeError as e:
