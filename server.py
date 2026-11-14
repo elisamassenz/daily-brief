@@ -818,6 +818,43 @@ def markets():
     return market_cache["data"]
 
 
+# Longer timescales for the index cards (the pills under the Markets headline). Each range is one batched call,
+# cached for 30 minutes; the % change is measured from the first point in the range.
+RANGES = [("5d", "15m"), ("1mo", "60m"), ("6mo", "1d"), ("ytd", "1d"), ("1y", "1d"), ("5y", "1wk")]
+ranges_cache = {"at": 0, "data": {}}
+
+
+def thin(vals, n=120):
+    """Every k-th point so a chart stays light, always keeping the latest."""
+    if len(vals) <= n:
+        return vals
+    step = len(vals) / n
+    return [vals[int(i * step)] for i in range(n - 1)] + [vals[-1]]
+
+
+def market_ranges():
+    """{symbol: {range: {"spark": [...], "pct": ...}}} for the index cards."""
+    if time.time() - ranges_cache["at"] < 1800 and ranges_cache["data"]:
+        return ranges_cache["data"]
+    syms = ",".join(urllib.parse.quote(s, safe="") for s, _, g in MARKETS if g == "index")
+    out = {}
+    for rng, interval in RANGES:
+        try:
+            raw, _ = http_get("https://query1.finance.yahoo.com/v7/finance/spark?range=%s&interval=%s&symbols=%s"
+                              % (rng, interval, syms), timeout=10, ua="Mozilla/5.0")
+            for r in json.loads(raw)["spark"]["result"]:
+                resp = (r.get("response") or [{}])[0]
+                closes = [c for c in (resp.get("indicators", {}).get("quote", [{}])[0].get("close") or []) if c is not None]
+                if len(closes) > 1 and closes[0]:
+                    out.setdefault(r["symbol"], {})[rng] = {"spark": [round(c, 4) for c in thin(closes)],
+                                                            "pct": (closes[-1] - closes[0]) / closes[0] * 100}
+        except Exception as e:
+            log("market range %s failed" % rng, e)
+    if out:
+        ranges_cache.update(at=time.time(), data=out)
+    return ranges_cache["data"]
+
+
 movers_cache = {"at": 0, "data": None}
 NAME_SUFFIX = re.compile(r"[,.]?\s+(inc|corp|corporation|company|co|holdings?|group|plc|ltd|limited|n\.?v|s\.?a|ag|se|technologies|"
                          r"technology|systems|platforms|incorporated|class [a-c]|sponsored|adr|the)\b.*$", re.I)
@@ -1032,7 +1069,8 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_json(archive())
             return
         if path.path == "/api/markets":
-            self.send_json({"quotes": markets(), "movers": movers()})
+            rg = market_ranges()
+            self.send_json({"quotes": [dict(q, ranges=rg[q["symbol"]]) if q["symbol"] in rg else q for q in markets()], "movers": movers()})
             return
         m = re.match(r"^/logo/([a-z0-9]+)\.png$", path.path)
         if m:

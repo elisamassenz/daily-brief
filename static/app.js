@@ -263,6 +263,18 @@
     return { head, dek, level };
   }
 
+  // timescale pills under the Markets headline (1D is today's session; the rest come from data/markets.json "ranges")
+  const RANGES = [["1d", "1D", ""], ["5d", "5D", "Past 5 days"], ["1mo", "1M", "Past month"], ["6mo", "6M", "Past 6 months"],
+    ["ytd", "YTD", "Year to date"], ["1y", "1Y", "Past year"], ["5y", "5Y", "Past 5 years"]];
+  const RANGE_KEY = "wallflower.mrange";
+  let mRange = "1d";
+  try { mRange = localStorage.getItem(RANGE_KEY) || "1d"; } catch {}
+  // the card as it looks for the chosen timescale: { spark, pct, prev (dashed baseline) }
+  function inRange(m) {
+    const r = mRange !== "1d" && m.ranges?.[mRange];
+    return r ? { ...m, spark: r.spark, pct: r.pct, prev: r.spark[0] } : m;
+  }
+
   function lineChart(m) {
     const vals = m.spark || [];
     if (vals.length < 2) return "";
@@ -323,6 +335,9 @@
       $("#markets").dataset.level = v.level;
     }
     const cards = (MKT.quotes || []).filter((m) => m.group === "index");
+    const hasRanges = cards.some((m) => m.ranges);
+    if (!hasRanges) mRange = "1d";
+    const rangeLabel = RANGES.find((r) => r[0] === mRange)?.[2] || (marketStateLabel() === "Open" ? "Today" : "Last session");
     const other = (MKT.quotes || []).filter((m) => m.group === "other");
     const watch = (MKT.quotes || []).filter((m) => m.group === "watch");
     const chip = (m) => `<span class="chip">${esc(m.name)} <b class="${dir(m.pct)}">${pct(m.pct)}</b></span>`;
@@ -334,13 +349,16 @@
     };
     const mv = MKT.movers || {};
     el.innerHTML = `
-      <div class="index-cards">${cards.map((m) => `
+      ${hasRanges ? `<div class="mranges" role="tablist" aria-label="Chart timescale">${RANGES.map(([k, label, long]) => `
+        <button role="tab" data-mrange="${k}" aria-selected="${k === mRange}" title="${esc(long || "Today")}">${label}</button>`).join("")}
+      </div>` : ""}
+      <div class="index-cards">${cards.map(inRange).map((m) => `
         <div class="index-card">
           <div class="ic-name">${esc(m.name)}</div>
           <div class="ic-price">${fmt(m.price, m.symbol)}</div>
           <div class="ic-ch ${dir(m.pct)}">${pct(m.pct)}</div>
           ${lineChart(m)}
-          ${m.spark?.length > 1 ? `<div class="ic-range" title="Dashed line: the previous close">${marketStateLabel() === "Open" ? "Today" : "Last session"}</div>` : ""}
+          ${m.spark?.length > 1 ? `<div class="ic-range" title="Dashed line: ${mRange === "1d" ? "the previous close" : "where it started"}">${rangeLabel}</div>` : ""}
         </div>`).join("")}
       </div>
       <div class="watch">
@@ -815,6 +833,13 @@
   // expand / remove / add (delegated)
   // "New" tags on recent features take themselves down on their date
   document.querySelectorAll("[data-until]").forEach((el) => { if (new Date() >= new Date(el.dataset.until + "T00:00")) el.remove(); });
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-mrange]");
+    if (!b) return;
+    mRange = b.dataset.mrange;
+    try { localStorage.setItem(RANGE_KEY, mRange); } catch {}
+    renderMarkets();
+  });
   document.addEventListener("click", (e) => {
     if (!e.target.closest("[data-open-picks]") || !DATA) return;
     e.preventDefault();

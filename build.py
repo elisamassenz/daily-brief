@@ -29,6 +29,8 @@ def main():
         sys.exit("refresh failed: %s" % server.state["error"])
 
     quotes, movers = server.markets(), server.movers()
+    ranges = server.market_ranges()   # 5D … 5Y charts for the index cards
+    quotes = [dict(q, ranges=ranges[q["symbol"]]) if q["symbol"] in ranges else q for q in quotes]
     if quotes:
         server.save_json(LAST_MARKETS, {"quotes": quotes, "movers": movers})
     markets = server.load_json(LAST_MARKETS, {"quotes": quotes, "movers": movers})  # keep the last good data if Yahoo refuses

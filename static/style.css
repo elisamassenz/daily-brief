@@ -690,3 +690,13 @@ a:hover .img-wrap img { transform: scale(1.03); }
 }
 .secnav a span.nav-new { align-self: center; margin-left: -1px; padding: 2px 7px; border-radius: 999px; background: var(--poppy); color: #fff;
   font-family: var(--mono); font-size: 9.5px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; line-height: 1.4; }
+
+/* markets: timescale pills (1D … 5Y), the same segmented bar as the phone front-page tabs */
+.mranges { display: inline-flex; gap: 2px; margin: 0 0 18px; padding: 4px; border-radius: 999px; max-width: 100%; overflow-x: auto; scrollbar-width: none;
+  background: color-mix(in srgb, var(--rule) 55%, var(--bg)); }
+.mranges::-webkit-scrollbar { display: none; }
+.mranges button { flex: 1 0 auto; font-family: var(--mono); font-size: 12px; letter-spacing: .04em; padding: 6px 13px; border: none; border-radius: 999px;
+  background: none; color: var(--muted); cursor: pointer; }
+.mranges button:hover { color: var(--ink); }
+.mranges button[aria-selected="true"] { background: var(--card); color: var(--ink); }
+@media (max-width: 620px) { .mranges { display: flex; } .mranges button { padding: 6px 8px; } }
