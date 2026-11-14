@@ -156,7 +156,15 @@
     "outage,microsoft,global,outlook"
    ],
    "blocked": true
+  },
+  "2026-11-14-am": {
+   "id": null,
+   "keys": [
+    "nato,ukraine,donbas,membership",
+    "stop,ground,nationwide,faa"
+   ],
+   "blocked": true
   }
  },
- "paused_until": "2026-11-14T11:00:00-05:00"
+ "paused_until": "2026-11-15T11:00:00-05:00"
 }
