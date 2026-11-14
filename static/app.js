@@ -338,8 +338,8 @@
     const hasRanges = cards.some((m) => m.ranges);
     if (!hasRanges) mRange = "1d";
     const rangeLabel = RANGES.find((r) => r[0] === mRange)?.[2] || (marketStateLabel() === "Open" ? "Today" : "Last session");
-    const other = (MKT.quotes || []).filter((m) => m.group === "other");
-    const watch = (MKT.quotes || []).filter((m) => m.group === "watch");
+    const other = (MKT.quotes || []).filter((m) => m.group === "other").map(inRange);
+    const watch = (MKT.quotes || []).filter((m) => m.group === "watch").map(inRange);
     const chip = (m) => `<span class="chip">${esc(m.name)} <b class="${dir(m.pct)}">${pct(m.pct)}</b></span>`;
     // each label stays on a line with its first pill (the shortest one, so it fits beside it)
     const chips = (label, list, style = "", shortestFirst = false) => {
@@ -367,8 +367,8 @@
       </div>
       <div class="money-grid">
         <div>
-          ${subHead("Hot stocks", "The day’s biggest moves among companies worth $10B+, with a headline from your publications when one explains it")}
-          <div class="movers-grid">
+          ${subHead("Hot stocks today", "The day’s biggest moves among companies worth $10B+, with a headline from your publications when one explains it")}
+          <div class="money-card movers-grid">
             ${moverList("Biggest gainers", mv.day_gainers)}
             ${moverList("Biggest decliners", mv.day_losers)}
             ${moverList("Most traded", mv.most_actives)}
@@ -376,7 +376,7 @@
         </div>
         <div>
           ${subHead("Market headlines", "Markets and economy coverage from the financial press and beyond")}
-          <ul class="ex fin-news">${(DATA?.finance || []).slice(0, 10).map((e) => `
+          <ul class="money-card ex fin-news">${(DATA?.finance || []).slice(0, 10).map((e) => `
             <li>${logo(e.pub)}<a ${ext(e.link)}>${esc(e.title)}</a><span class="when">${esc(ago(e.date))}</span></li>`).join("")}
           </ul>
         </div>

@@ -818,7 +818,7 @@ def markets():
     return market_cache["data"]
 
 
-# Longer timescales for the index cards (the pills under the Markets headline). Each range is one batched call,
+# Longer timescales for the index cards and chips (the pills under the Markets headline). Each range is one batched call,
 # cached for 30 minutes; the % change is measured from the first point in the range.
 RANGES = [("5d", "15m"), ("1mo", "60m"), ("6mo", "1d"), ("ytd", "1d"), ("1y", "1d"), ("5y", "1wk")]
 ranges_cache = {"at": 0, "data": {}}
@@ -833,10 +833,10 @@ def thin(vals, n=120):
 
 
 def market_ranges():
-    """{symbol: {range: {"spark": [...], "pct": ...}}} for the index cards."""
+    """{symbol: {range: {"spark": [...], "pct": ...}}} for every quote in MARKETS."""
     if time.time() - ranges_cache["at"] < 1800 and ranges_cache["data"]:
         return ranges_cache["data"]
-    syms = ",".join(urllib.parse.quote(s, safe="") for s, _, g in MARKETS if g == "index")
+    syms = ",".join(urllib.parse.quote(s, safe="") for s, _, _ in MARKETS)
     out = {}
     for rng, interval in RANGES:
         try:
