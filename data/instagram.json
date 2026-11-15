@@ -164,7 +164,15 @@
     "stop,ground,nationwide,faa"
    ],
    "blocked": true
+  },
+  "2026-11-15-week": {
+   "id": null,
+   "keys": [
+    "spacex,starship,catches,rockets",
+    "stop,ground,faa,flights"
+   ],
+   "blocked": true
   }
  },
- "paused_until": "2026-11-15T11:00:00-05:00"
+ "paused_until": "2026-11-16T11:00:00-05:00"
 }
