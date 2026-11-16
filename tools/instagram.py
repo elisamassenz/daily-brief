@@ -251,6 +251,28 @@ def publish():
             break
         except Exception:
             time.sleep(15)
+    # The Reel goes first: it brings most of the views (mostly non-followers), so a block on the carousel can't skip it.
+    # Same slides, kept off the grid so it doesn't repeat the carousel there. Noted in state so a retry never re-posts it.
+    state = load(STATE, {})
+    if info.get("reel") and info["stamp"] not in state.get("reels", {}):
+        try:
+            reel = api("/%s/media" % user, media_type="REELS", video_url="%s/ig/%s/reel.mp4" % (PUBLIC, info["stamp"]),
+                       caption=info["caption"], share_to_feed="false")["id"]
+            wait_ready(reel, tries=90)   # video processing takes a few minutes
+            try:
+                reel_id = api("/%s/media_publish" % user, creation_id=reel)["id"]
+            except RuntimeError as e:
+                if not any(b in str(e) for b in BLOCKED):
+                    raise
+                reel_id = None   # "blocked" here usually still publishes it
+                print("instagram: reel publish flagged (usually posts anyway):", e)
+            reels = state.setdefault("reels", {})
+            reels[info["stamp"]] = reel_id
+            state["reels"] = {k: reels[k] for k in sorted(reels)[-60:]}
+            save(STATE, state)
+            print("instagram: reel posted", reel_id or "")
+        except Exception as e:
+            print("instagram: reel skipped:", e)
     alts = info.get("alts", [])
     children = [image_item(user, u, alts[i] if i < len(alts) else "", is_carousel_item="true") for i, u in enumerate(urls)]
     for c in children:
@@ -266,15 +288,6 @@ def publish():
         api("/%s/media_publish" % user, creation_id=story)
     except Exception as e:
         print("instagram: story skipped:", e)
-    if info.get("reel"):   # the same slides as a Reel, kept off the grid so it doesn't repeat the carousel there
-        try:
-            reel = api("/%s/media" % user, media_type="REELS", video_url="%s/ig/%s/reel.mp4" % (PUBLIC, info["stamp"]),
-                       caption=info["caption"], share_to_feed="false")["id"]
-            wait_ready(reel, tries=90)   # video processing takes a few minutes
-            api("/%s/media_publish" % user, creation_id=reel)
-            print("instagram: reel posted")
-        except Exception as e:
-            print("instagram: reel skipped:", e)
     state = load(STATE, {})
     posted = state.setdefault("posted", {})
     posted[info["stamp"]] = {"id": media, "keys": info.get("keys", []), "slides": len(urls)}
