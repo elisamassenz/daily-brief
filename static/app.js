@@ -902,8 +902,8 @@
       <section id="fronts" class="sec">
         <img class="peek peek-1" src="stem-b.png" alt="" aria-hidden="true">
         ${sectionHead("02", "Front pages", `<span class="line">Every publication’s</span> top two`)}
-        ${frontTabs(secs)}
         <button type="button" class="picks-open" data-open-picks><span aria-hidden="true">+</span> Choose newsrooms</button>
+        ${frontTabs(secs)}
         ${secs.map((sec) => sec === "Local" ? renderLocal(city) : `
           <div class="pub-section" data-sec="${esc(sec)}">
             ${subHead(esc(sec))}
