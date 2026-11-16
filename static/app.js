@@ -122,6 +122,35 @@
     if (defaultPicks()) PICKS = null;
   }
 
+  // Local news: one city, saved like the picks (no accounts). ?city=sf brings it to another device.
+  const CITY_KEY = "wallflower.city";
+  let CITY = null;
+  try {
+    const q = new URLSearchParams(location.search).get("city");
+    if (q) localStorage.setItem(CITY_KEY, q);
+    CITY = localStorage.getItem(CITY_KEY) || null;
+  } catch { /* private mode: no city */ }
+  let cityNote = "";
+  const cityOf = () => (DATA?.cities || []).find((c) => c.id === CITY) || null;
+  function saveCity(id) {
+    CITY = id || null;
+    try { CITY ? localStorage.setItem(CITY_KEY, CITY) : localStorage.removeItem(CITY_KEY); } catch { /* this visit only */ }
+  }
+  // the city whose zip-code prefixes ("940-951 953") include this zip
+  function cityForZip(zip) {
+    const z = Number(zip.slice(0, 3));
+    return (DATA.cities || []).find((c) => c.zips.split(" ").some((r) => {
+      const [a, b = a] = r.split("-").map(Number);
+      return z >= a && z <= b;
+    })) || null;
+  }
+  const setupLink = (ids) => {
+    const q = new URLSearchParams();
+    if (!defaultPicks()) q.set("pubs", ids.join(","));
+    if (CITY) q.set("city", CITY);
+    return `https://wallflower.news/?${q.toString().replace(/%2C/g, ",")}`;
+  };
+
   // Trending for the reader's own outlets: recount every story using only their picks (3+ outlets to count).
   function trendingFor(data) {
     if (defaultPicks() || !data.trending_all) return data.trending;
@@ -141,6 +170,18 @@
         <h2>Choose your newsrooms</h2>
         <p>${esc(DATA.title)} starts with ${corePubs().length} newsrooms. Add more for a wider range of views, or switch off any you don’t want. Your choice is saved on this device only. No account needed.</p>
       </div>
+      ${(DATA.cities || []).length ? `
+        <h3 class="picks-sec">Your city</h3>
+        <div class="city-pick">
+          <input class="city-zip" type="text" inputmode="numeric" maxlength="5" placeholder="Zip code" aria-label="Zip code" autocomplete="postal-code">
+          <select class="city-select" aria-label="City">
+            <option value="">No local news</option>
+            ${DATA.cities.map((c) => `<option value="${esc(c.id)}" ${c.id === CITY ? "selected" : ""}>${esc(c.name)}</option>`).join("")}
+          </select>
+        </div>
+        <p class="city-note">${cityNote || (cityOf()
+          ? `Front pages now start with ${esc(cityOf().name)}’s local newsrooms.`
+          : `Adds your city’s newsrooms to Front pages. ${DATA.cities.length} cities so far.`)}</p>` : ""}
       ${DATA.sections.map((sec) => `
         <h3 class="picks-sec">${esc(sec)}</h3>
         <div class="picks-list">${DATA.sources.filter((x) => x.section === sec).map((x) => `
@@ -152,7 +193,7 @@
       <div class="picks-foot">
         <span class="picks-count">${plural(n, "newsroom")}</span>
         <button type="button" class="picks-link" data-picks-reset ${defaultPicks() ? "hidden" : ""}>Reset to the original ${corePubs().length}</button>
-        <button type="button" class="picks-link" data-picks-copy ${defaultPicks() ? "hidden" : ""}>Copy link to this setup</button>
+        <button type="button" class="picks-link" data-picks-copy ${defaultPicks() && !CITY ? "hidden" : ""}>Copy link to this setup</button>
         <button class="picks-done">Done</button>
       </div>
     </form>`;
@@ -174,7 +215,7 @@
         } else if (e.target.closest("[data-picks-reset]")) {
           savePicks(corePubs());
         } else if (e.target.closest("[data-picks-copy]")) {
-          const url = `https://wallflower.news/?pubs=${ids.join(",")}`;
+          const url = setupLink(ids);
           navigator.clipboard?.writeText(url).then(() => (e.target.textContent = "✓ Link copied"), () => {});
           return;
         } else return;
@@ -182,6 +223,29 @@
         const y = dlg.querySelector(".picks-inner").scrollTop;
         dlg.innerHTML = renderPicks();
         dlg.querySelector(".picks-inner").scrollTop = y;
+      });
+      const rerender = () => {
+        dlg.dataset.changed = "1";
+        const y = dlg.querySelector(".picks-inner").scrollTop;
+        dlg.innerHTML = renderPicks();
+        dlg.querySelector(".picks-inner").scrollTop = y;
+      };
+      dlg.addEventListener("change", (e) => {
+        if (!e.target.matches(".city-select")) return;
+        cityNote = "";
+        saveCity(e.target.value);
+        rerender();
+      });
+      dlg.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.matches(".city-zip")) e.preventDefault(); });
+      dlg.addEventListener("input", (e) => {
+        if (!e.target.matches(".city-zip")) return;
+        const zip = e.target.value.replace(/\D/g, "");
+        if (zip.length < 5) return;
+        const c = cityForZip(zip);
+        if (c) { saveCity(c.id); cityNote = `${zip} is in our ${c.name} edition. Front pages now start with its local newsrooms.`; }
+        else cityNote = `We don’t cover ${zip} yet. Pick the nearest city below${DATA.report_url ? `, or <a href="${esc(DATA.report_url)}" target="_blank" rel="noopener">ask for yours</a>` : ""}.`;
+        rerender();
+        if (!c) dlg.querySelector(".city-zip").value = zip;
       });
       dlg.addEventListener("close", () => {
         if (dlg.dataset.changed) { delete dlg.dataset.changed; const y = window.scrollY; render(DATA); window.scrollTo(0, y); }
@@ -632,7 +696,7 @@
 
   // ------------------------------------------------------------ 05 front pages
   const FRONT_KEY = "wallflower.front";
-  const FRONT_TABS = { "Ideas & Analysis": "Ideas", "Business & Markets": "Business", "Technology": "Tech" };
+  const FRONT_TABS = { "Local": "Local", "Ideas & Analysis": "Ideas", "Business & Markets": "Business", "Technology": "Tech" };
   let FRONT = (() => { try { return localStorage.getItem(FRONT_KEY); } catch { return null; } })();
   function frontTabs(sections) {
     if (FRONT !== "all" && !sections.includes(FRONT)) FRONT = sections[0];
@@ -651,6 +715,29 @@
       ? `<img class="wm" src="logos/${esc(src.id)}.svg" alt="${esc(src.name)}">`
       : `${logo(src.id, "lg")}<span class="wordmark ${esc(src.mark)}">${esc(src.name)}</span>`;
     return `<div class="pub-head" data-pub="${esc(src.id)}" style="--brand:${esc(src.color)}">${mark}</div>`;
+  }
+
+  // the reader's city: the story 3+ of its newsrooms are covering (when there is one), then each newsroom's top two
+  function renderLocal(city) {
+    const s = (city.stories || [])[0];
+    const story = s ? `
+      <article class="story card local-story">
+        <div class="card-top ${s.image ? "" : "no-thumb"}">
+          <div>
+            <div class="eyebrow"><span class="acc">Top local story</span> · ${s.pub_count} newsrooms</div>
+            <h3><a class="hl" ${ext(leadLink(s))}>${esc(s.headline)}</a></h3>
+            ${credit(s)}
+          </div>
+          ${s.image ? `<a class="thumb" ${ext(leadLink(s))}>${image(s.image)}</a>` : ""}
+        </div>
+        ${coverage(others(s), 3)}
+      </article>` : "";
+    return `
+      <div class="pub-section" data-sec="Local">
+        <div class="sub-head local-head"><h3>${esc(city.name)}</h3><button type="button" class="picks-link" data-open-picks>Change city</button></div>
+        ${story}
+        <div class="pubs">${DATA.sources.filter((x) => x.city === city.id).map((x) => renderPub(x, DATA.headlines[x.id])).join("")}</div>
+      </div>`;
   }
 
   function renderPub(src, items) {
@@ -727,7 +814,7 @@
     return `<section id="about" class="sec about">
       ${sectionHead("", "About", "How Wallflower works")}
       <div class="about-grid">
-        <div><h4>An independent news page</h4><p>${esc(data.title)} doesn’t write or edit the news, and isn’t affiliated with any of the publications. It reads the public feeds of ${corePubs().length} newsrooms every half hour, plus ${data.sources.length - corePubs().length} more you can add under <a href="#" data-open-picks>Choose newsrooms</a>.</p></div>
+        <div><h4>An independent news page</h4><p>${esc(data.title)} doesn’t write or edit the news, and isn’t affiliated with any of the publications. It reads the public feeds of ${corePubs().length} newsrooms every half hour, plus ${data.sources.filter((x) => x.optional && !x.city).length} more you can add (and local news for ${(data.cities || []).length} cities) under <a href="#" data-open-picks>Choose newsrooms</a>.</p></div>
         <div><h4>Ranked by coverage</h4><p>Stories are grouped automatically by matching headlines across outlets, and ranked by how many newsrooms are covering them. No one picks them by hand, so now and then a grouping can be off.</p></div>
         <div><h4>Their words, their links</h4><p>Every headline appears exactly as the outlet wrote it, credited, and links to the original article. Read the full story at the source.</p></div>
       </div>
@@ -746,7 +833,8 @@
     navSupport.hidden = !data.support_url;
     navSupport.lastChild.textContent = `Support ${data.title || ""}`.trim();
     SRC = Object.fromEntries(data.sources.map((s) => [s.id, s]));
-    const secs = data.sections.filter((sec) => data.sources.some((s) => s.section === sec && picked(s.id)));
+    const city = cityOf();
+    const secs = (city ? ["Local"] : []).concat(data.sections.filter((sec) => data.sources.some((s) => s.section === sec && picked(s.id))));
     app.innerHTML = `
       <section id="today" class="sec">
         ${sectionHead("01", "Trending today", "What everyone is covering")}
@@ -764,7 +852,7 @@
         ${sectionHead("02", "Front pages", `<span class="line">Every publication’s</span> top two`)}
         ${frontTabs(secs)}
         <button type="button" class="picks-open" data-open-picks><span aria-hidden="true">+</span> Choose newsrooms</button>
-        ${secs.map((sec) => `
+        ${secs.map((sec) => sec === "Local" ? renderLocal(city) : `
           <div class="pub-section" data-sec="${esc(sec)}">
             ${subHead(esc(sec))}
             <div class="pubs">${data.sources.filter((s) => s.section === sec && picked(s.id)).map((s) => renderPub(s, data.headlines[s.id])).join("")}</div>

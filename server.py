@@ -23,7 +23,7 @@ from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
-from sources import FINANCE_PUBS, GA_ID, INSTAGRAM_URL, MARKETS, REPORT_URL, NEGATIVE, POSITIVE, REPO_URL, SECTIONS, SITE_TITLE, SOURCES, SUPPORT_URL, THEMES
+from sources import CITIES, FINANCE_PUBS, GA_ID, INSTAGRAM_URL, MARKETS, REPORT_URL, NEGATIVE, POSITIVE, REPO_URL, SECTIONS, SITE_TITLE, SOURCES, SUPPORT_URL, THEMES
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 STATIC = os.path.join(ROOT, "static")
@@ -295,6 +295,10 @@ def is_stale(items, days=7):
     return bool(dates) and max(dates) < datetime.now(timezone.utc) - timedelta(days=days)
 
 
+google_gate = threading.Semaphore(2)
+ROUNDUP = re.compile(r"\b(roundup|headlines|newscast|briefing|morning brief|digest)\b|^(listen|watch|live)\b", re.I)
+
+
 def fetch_source(src):
     """A publication's feed; falls back to Google News if the feed is missing, broken or stale."""
     google = src["feed"] is None
@@ -311,7 +315,14 @@ def fetch_source(src):
             google = True
     if google:
         try:
-            raw, _ = http_get(google_news_url("site:%s when:1d" % src["domain"]))
+            with google_gate:   # a couple at a time: a burst of Google News requests gets rate-limited (429)
+                try:
+                    raw, _ = http_get(google_news_url("site:%s when:1d" % src["domain"]))
+                except urllib.error.HTTPError as e:
+                    if e.code != 429:
+                        raise
+                    time.sleep(4)
+                    raw, _ = http_get(google_news_url("site:%s when:1d" % src["domain"]))
             items = parse_feed(raw, google=True)
         except Exception as e:
             log("feed failed", src["id"], e)
@@ -457,7 +468,8 @@ def merge_related(docs, groups, threshold=0.4):
     return groups
 
 
-def trending_stories(docs, limit=7):
+def trending_stories(docs, limit=7, pair=0.24, link=0.26, floor=0.28, merge=0.4):
+    """pair/link: how alike two headlines must be to count as one story (local news uses stricter values)."""
     n = len(docs)
     sims = {}
     for i in range(n):
@@ -470,9 +482,9 @@ def trending_stories(docs, limit=7):
             if len(vi.keys() & vj.keys()) < 2:
                 continue  # one shared word ("record", "ahead") isn't a shared story
             s = cosine(vi, vj)
-            if s >= 0.24:
+            if s >= pair:
                 sims[(i, j)] = s
-    groups = merge_related(docs, [prune(docs, g) for g in cluster(docs, list(range(n)), sims, 0.26)])
+    groups = merge_related(docs, [prune(docs, g, floor) for g in cluster(docs, list(range(n)), sims, link)], merge)
     stories = []
     for g in groups:
         pubs = {docs[i]["item"]["pub"] for i in g}
@@ -943,6 +955,7 @@ def source_info(s):
     """What the page needs to know about a publication, including where its icons live (relative URLs)."""
     has_icon = os.path.exists(os.path.join(STATIC, "icons", s["id"] + ".svg"))
     return dict({k: s[k] for k in ("id", "name", "domain", "section", "mark", "color")}, optional=bool(s.get("optional")),
+                **({"city": s["city"]} if s.get("city") else {}),
                 wordmark=os.path.exists(os.path.join(STATIC, "logos", s["id"] + ".svg")),
                 icon=("icons/%s.svg" if has_icon else "logo/%s.png") % s["id"])
 
@@ -954,7 +967,7 @@ def refresh():
         state["refreshing"] = True
     t0 = time.time()
     try:
-        with ThreadPoolExecutor(12) as ex:
+        with ThreadPoolExecutor(16) as ex:
             results = list(ex.map(fetch_source, SOURCES))
             list(ex.map(ensure_logo, SOURCES))
         by_pub = {pid: items for pid, items, _ in results}
@@ -980,9 +993,17 @@ def refresh():
         # toward a trending story (and so reach Instagram): no undated or stale items standing in for a quiet feed.
         recent_cut = datetime.now(timezone.utc) - timedelta(hours=36)
         corpus = []
+        local = defaultdict(list)   # city id -> its newsrooms' recent items
         for pid, items in by_pub.items():
             fresh = [i for i in items if i["date"] and parse_date(i["date"]) >= recent_cut]
-            corpus.extend(fresh[:25])
+            if SRC[pid].get("city"):   # roundups ("Morning Roundup: …") mention several stories and glue them together
+                local[SRC[pid]["city"]].extend([i for i in fresh if not ROUNDUP.search(i["title"])][:25])
+            else:
+                corpus.extend(fresh[:25])
+        # each city's shared story: the one 3+ of its newsrooms are covering (same clustering as the top of the page)
+        cities = [{"id": c["id"], "name": c["name"], "zips": c["zips"],
+                   "stories": trending_stories(build_docs(local[c["id"]])[0], limit=1, pair=0.3, link=0.32, floor=0.4, merge=0.6) if local[c["id"]] else []}
+                  for c in CITIES]
         core = [i for i in corpus if i["pub"] in CORE]
         docs, _ = build_docs(core)
         stories = trending_stories(docs)
@@ -993,7 +1014,7 @@ def refresh():
         with state_lock:
             state["finance_items"] = [i for pid, items in by_pub.items() if pid in CORE for i in items]
         movers_cache["at"] = 0
-        record_history([i for items in by_pub.values() for i in items])
+        record_history([i for pid, items in by_pub.items() if not SRC[pid].get("city") for i in items])   # national only
         record_top_story(stories)
         rising = rising_topics()
 
@@ -1013,6 +1034,7 @@ def refresh():
             "moods": moods,
             "finance": fin,
             "rising": rising,
+            "cities": cities,
         }
         with state_lock:
             state.update(generated=payload["generated"], payload=payload, error=None)

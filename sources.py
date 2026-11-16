@@ -71,6 +71,145 @@ SOURCES = [
     dict(id="mittr", name="MIT Technology Review", domain="technologyreview.com", section="Technology", feed="https://www.technologyreview.com/feed/", mark="sans", color="#111111"),
 ]
 
+# Local news: readers pick a city (or type a zip code) under "+ Newsrooms" and get a Local group in Front pages,
+# plus the story 3+ of its newsrooms are all covering. zips = the first three digits of the zip codes it covers.
+# Outlets: (id, name, domain, feed or None for Google News, mark). Prefer outlets with a working feed: every
+# Google News fallback is one more request to Google each run.
+def _city(cid, name, zips, outlets):
+    return dict(id=cid, name=name, zips=zips, outlets=[dict(id=o[0], name=o[1], domain=o[2], feed=o[3], mark=o[4]) for o in outlets])
+
+CITIES = [
+    _city("atl", "Atlanta", "300-303 311 399", [
+        ("ajc", "The Atlanta Journal-Constitution", "ajc.com", None, "serif"),
+        ("atlnewsfirst", "Atlanta News First", "atlantanewsfirst.com", "https://www.atlantanewsfirst.com/arc/outboundfeeds/rss/?outputType=xml", "sans"),
+        ("11alive", "11Alive", "11alive.com", "https://www.11alive.com/feeds/syndication/rss/news/local", "sans"),
+        ("capitalbatl", "Capital B Atlanta", "capitalbnews.org", "https://atlanta.capitalbnews.org/feed/", "sans")]),
+    _city("atx", "Austin", "786-787", [
+        ("statesman", "Austin American-Statesman", "statesman.com", None, "serif"),
+        ("texastrib", "The Texas Tribune", "texastribune.org", "https://www.texastribune.org/feeds/main/", "serif"),
+        ("kxan", "KXAN", "kxan.com", "https://www.kxan.com/feed/", "sans"),
+        ("kvue", "KVUE", "kvue.com", "https://www.kvue.com/feeds/syndication/rss/news/local", "sans")]),
+    _city("bal", "Baltimore", "210-212 214", [
+        ("balbanner", "The Baltimore Banner", "thebanner.com", "https://www.thebanner.com/arc/outboundfeeds/rss/?outputType=xml", "serif"),
+        ("balsun", "The Baltimore Sun", "baltimoresun.com", None, "serif"),
+        ("wbal", "WBAL-TV 11", "wbaltv.com", "https://www.wbaltv.com/topstories-rss", "sans"),
+        ("balfishbowl", "Baltimore Fishbowl", "baltimorefishbowl.com", "https://baltimorefishbowl.com/feed/", "sans")]),
+    _city("bos", "Boston", "017-027", [
+        ("bosglobe", "The Boston Globe", "bostonglobe.com", "https://www.bostonglobe.com/arc/outboundfeeds/rss/?outputType=xml", "black"),
+        ("wbur", "WBUR", "wbur.org", "https://www.wbur.org/rss", "sans"),
+        ("bostoncom", "Boston.com", "boston.com", "https://www.boston.com/feed/", "sans"),
+        ("uhub", "Universal Hub", "universalhub.com", "https://www.universalhub.com/rss.xml", "sans")]),
+    _city("chi", "Chicago", "600-608", [
+        ("chitrib", "Chicago Tribune", "chicagotribune.com", None, "black"),
+        ("suntimes", "Chicago Sun-Times", "suntimes.com", "https://chicago.suntimes.com/rss/index.xml", "serif"),
+        ("blockclub", "Block Club Chicago", "blockclubchicago.org", "https://blockclubchicago.org/feed/", "sans"),
+        ("chireader", "Chicago Reader", "chicagoreader.com", "https://chicagoreader.com/feed/", "serif")]),
+    _city("dfw", "Dallas–Fort Worth", "750-754 760-762", [
+        ("dmn", "The Dallas Morning News", "dallasnews.com", None, "black"),
+        ("wfaa", "WFAA", "wfaa.com", "https://www.wfaa.com/feeds/syndication/rss/news/local", "sans"),
+        ("fwreport", "Fort Worth Report", "fortworthreport.org", "https://fortworthreport.org/feed/", "serif"),
+        ("dallasobs", "Dallas Observer", "dallasobserver.com", "https://www.dallasobserver.com/dallas/Rss.xml", "sans")]),
+    _city("den", "Denver", "800-806", [
+        ("denpost", "The Denver Post", "denverpost.com", None, "black"),
+        ("cosun", "The Colorado Sun", "coloradosun.com", "https://coloradosun.com/feed/", "serif"),
+        ("denverite", "Denverite", "denverite.com", "https://denverite.com/feed/", "sans"),
+        ("cpr", "CPR News", "cpr.org", "https://www.cpr.org/feed/", "sans")]),
+    _city("det", "Detroit", "480-485", [
+        ("detnews", "The Detroit News", "detroitnews.com", None, "black"),
+        ("bridgedet", "BridgeDetroit", "bridgedetroit.com", "https://www.bridgedetroit.com/feed/", "sans"),
+        ("wdet", "WDET", "wdet.org", "https://wdet.org/feed/", "sans"),
+        ("wxyz", "WXYZ Detroit", "wxyz.com", "https://www.wxyz.com/news/local-news.rss", "sans")]),
+    _city("hou", "Houston", "770-775", [
+        ("houchron", "Houston Chronicle", "houstonchronicle.com", None, "black"),
+        ("hpm", "Houston Public Media", "houstonpublicmedia.org", "https://www.houstonpublicmedia.org/feed/", "sans"),
+        ("click2hou", "KPRC 2 Click2Houston", "click2houston.com", "https://www.click2houston.com/arc/outboundfeeds/rss/?outputType=xml", "sans"),
+        ("khou", "KHOU 11", "khou.com", "https://www.khou.com/feeds/syndication/rss/news/local", "sans")]),
+    _city("lv", "Las Vegas", "889-891", [
+        ("lvrj", "Las Vegas Review-Journal", "reviewjournal.com", "https://www.reviewjournal.com/feed/", "serif"),
+        ("nvindy", "The Nevada Independent", "thenevadaindependent.com", "https://thenevadaindependent.com/feed", "serif"),
+        ("lvsun", "Las Vegas Sun", "lasvegassun.com", "https://lasvegassun.com/feeds/headlines/all/", "serif")]),
+    _city("la", "Los Angeles", "900-918 923-928 935", [
+        ("latimes", "Los Angeles Times", "latimes.com", "https://www.latimes.com/california/rss2.0.xml", "black"),
+        ("laist", "LAist", "laist.com", "https://laist.com/index.atom", "sans"),
+        ("ktla", "KTLA 5", "ktla.com", "https://ktla.com/feed/", "sans")]),
+    _city("mia", "Miami", "330-334", [
+        ("miamiherald", "Miami Herald", "miamiherald.com", None, "black"),
+        ("wsvn", "WSVN 7News", "wsvn.com", "https://wsvn.com/feed/", "sans"),
+        ("cbsmiami", "CBS News Miami", "cbsnews.com", "https://www.cbsnews.com/miami/latest/rss/main", "sans")]),
+    _city("msp", "Minneapolis–St. Paul", "550-551 553-555", [
+        ("startrib", "Star Tribune", "startribune.com", "https://www.startribune.com/local/index.rss2", "black"),
+        ("sahan", "Sahan Journal", "sahanjournal.com", "https://sahanjournal.com/feed/", "sans"),
+        ("minnpost", "MinnPost", "minnpost.com", "https://www.minnpost.com/feed/", "serif"),
+        ("kare11", "KARE 11", "kare11.com", "https://www.kare11.com/feeds/syndication/rss/news/local", "sans")]),
+    _city("nash", "Nashville", "370-372", [
+        ("tennessean", "The Tennessean", "tennessean.com", None, "black"),
+        ("nashbanner", "Nashville Banner", "nashvillebanner.com", "https://www.nashvillebanner.com/feed/", "serif"),
+        ("wpln", "WPLN News", "wpln.org", "https://wpln.org/feed/", "sans"),
+        ("wkrn", "WKRN News 2", "wkrn.com", "https://www.wkrn.com/feed/", "sans")]),
+    _city("nola", "New Orleans", "700-701", [
+        ("nola", "The Times-Picayune", "nola.com", None, "black"),
+        ("thelens", "The Lens", "thelensnola.org", "https://thelensnola.org/feed/", "sans"),
+        ("verite", "Verite News", "veritenews.org", "https://veritenews.org/feed/", "serif"),
+        ("wwl", "WWL-TV", "wwltv.com", "https://www.wwltv.com/feeds/syndication/rss/news/local", "sans")]),
+    _city("nyc", "New York", "070-076 078-079 088-089 100-119", [
+        ("nydn", "New York Daily News", "nydailynews.com", None, "black"),
+        ("gothamist", "Gothamist", "gothamist.com", "https://gothamist.com/feed", "sans"),
+        ("thecity", "THE CITY", "thecity.nyc", "https://www.thecity.nyc/feed/", "sans"),
+        ("amny", "amNY", "amny.com", "https://www.amny.com/feed/", "sans")]),
+    _city("phl", "Philadelphia", "080-085 190-199", [
+        ("inquirer", "The Philadelphia Inquirer", "inquirer.com", "https://www.inquirer.com/arc/outboundfeeds/rss/?outputType=xml", "black"),
+        ("whyy", "WHYY", "whyy.org", "https://whyy.org/feed/", "sans"),
+        ("billypenn", "Billy Penn", "billypenn.com", "https://billypenn.com/feed/", "sans"),
+        ("phillyvoice", "PhillyVoice", "phillyvoice.com", "https://www.phillyvoice.com/feed/", "sans")]),
+    _city("phx", "Phoenix", "850-853", [
+        ("azcentral", "The Arizona Republic", "azcentral.com", None, "black"),
+        ("azmirror", "Arizona Mirror", "azmirror.com", "https://azmirror.com/feed/", "serif"),
+        ("azfamily", "Arizona's Family", "azfamily.com", "https://www.azfamily.com/arc/outboundfeeds/rss/?outputType=xml", "sans"),
+        ("12news", "12News", "12news.com", "https://www.12news.com/feeds/syndication/rss/news/local", "sans")]),
+    _city("pgh", "Pittsburgh", "150-152 156", [
+        ("postgazette", "Pittsburgh Post-Gazette", "post-gazette.com", "https://www.post-gazette.com/rss/local", "black"),
+        ("triblive", "TribLive", "triblive.com", "https://triblive.com/feed/", "sans"),
+        ("publicsource", "PublicSource", "publicsource.org", "https://www.publicsource.org/feed/", "sans"),
+        ("cbspgh", "CBS News Pittsburgh", "cbsnews.com", "https://www.cbsnews.com/pittsburgh/latest/rss/main", "sans")]),
+    _city("pdx", "Portland", "970-972 986", [
+        ("oregonian", "The Oregonian", "oregonlive.com", "https://www.oregonlive.com/arc/outboundfeeds/rss/?outputType=xml", "black"),
+        ("opb", "OPB", "opb.org", "https://www.opb.org/arc/outboundfeeds/rss/?outputType=xml", "sans"),
+        ("kgw", "KGW8", "kgw.com", "https://www.kgw.com/feeds/syndication/rss/news/local", "sans"),
+        ("koin", "KOIN 6", "koin.com", "https://www.koin.com/feed/", "sans")]),
+    _city("stl", "St. Louis", "620 622 630-631 633", [
+        ("stltoday", "St. Louis Post-Dispatch", "stltoday.com", "https://www.stltoday.com/search/?f=rss&t=article&c=news/local&l=50&s=start_time&sd=desc", "black"),
+        ("stlpr", "St. Louis Public Radio", "stlpr.org", None, "sans"),
+        ("ksdk", "KSDK", "ksdk.com", "https://www.ksdk.com/feeds/syndication/rss/news/local", "sans"),
+        ("fox2stl", "FOX 2 St. Louis", "fox2now.com", "https://fox2now.com/feed/", "sans")]),
+    _city("slc", "Salt Lake City", "840-841 843-847", [
+        ("sltrib", "The Salt Lake Tribune", "sltrib.com", "https://www.sltrib.com/arc/outboundfeeds/rss/?outputType=xml", "black"),
+        ("deseret", "Deseret News", "deseret.com", "https://www.deseret.com/arc/outboundfeeds/rss/?outputType=xml", "serif"),
+        ("ksl", "KSL", "ksl.com", "https://www.ksl.com/rss/news", "sans")]),
+    _city("sd", "San Diego", "919-921", [
+        ("vosd", "Voice of San Diego", "voiceofsandiego.org", "https://voiceofsandiego.org/feed/", "sans"),
+        ("kpbs", "KPBS", "kpbs.org", None, "sans"),
+        ("timesofsd", "Times of San Diego", "timesofsandiego.com", "https://timesofsandiego.com/feed/", "serif"),
+        ("fox5sd", "FOX 5 San Diego", "fox5sandiego.com", "https://fox5sandiego.com/feed/", "sans")]),
+    _city("sf", "San Francisco Bay Area", "940-951", [
+        ("sfchron", "San Francisco Chronicle", "sfchronicle.com", None, "black"),
+        ("sfstandard", "The San Francisco Standard", "sfstandard.com", "https://sfstandard.com/feed/", "serif"),
+        ("kqed", "KQED", "kqed.org", "https://ww2.kqed.org/news/feed/", "sans"),
+        ("missionlocal", "Mission Local", "missionlocal.org", "https://missionlocal.org/feed/", "sans")]),
+    _city("sea", "Seattle", "980-985", [
+        ("seatimes", "The Seattle Times", "seattletimes.com", "https://www.seattletimes.com/seattle-news/feed/", "black"),
+        ("king5", "KING 5", "king5.com", "https://www.king5.com/feeds/syndication/rss/news/local", "sans"),
+        ("stranger", "The Stranger", "thestranger.com", "https://www.thestranger.com/feed", "sans"),
+        ("publicola", "PubliCola", "publicola.com", "https://publicola.com/feed/", "sans")]),
+    _city("dc", "Washington, D.C.", "200-209 220-223", [
+        ("wapolocal", "The Washington Post · Local", "washingtonpost.com", "https://feeds.washingtonpost.com/rss/local", "black"),
+        ("wtop", "WTOP News", "wtop.com", "https://wtop.com/feed/", "sans"),
+        ("wamu", "WAMU", "wamu.org", "https://wamu.org/feed/", "sans"),
+        ("dccitypaper", "Washington City Paper", "washingtoncitypaper.com", "https://washingtoncitypaper.com/feed/", "sans")]),
+]
+
+# each city's newsrooms join SOURCES (section "Local", off by default; the page shows them only for the chosen city)
+SOURCES += [dict(o, section="Local", city=c["id"], optional=True, color="#2B2B2B") for c in CITIES for o in c["outlets"]]
+
 # Themes watched for "mood" — when 3+ publications touch a theme on the same day,
 # the dashboard reports how many and whether coverage leans negative or positive.
 THEMES = {
