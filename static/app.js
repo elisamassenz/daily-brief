@@ -822,6 +822,35 @@
     </section>`;
   }
 
+  // ------------------------------------------------------------ what's new
+  // One closable card above Trending, until NEWS_UNTIL. Closing it is remembered in this browser.
+  const NEWS_KEY = "wallflower.news-nov26", NEWS_UNTIL = "2026-11-24";
+  function renderNews(data) {
+    let seen = false;
+    try { seen = localStorage.getItem(NEWS_KEY) === "1"; } catch { /* private mode */ }
+    if (seen || new Date() >= new Date(NEWS_UNTIL + "T00:00")) return "";
+    const extra = data.sources.filter((x) => x.optional && !x.city).length;
+    return `
+      <aside id="whatsnew" class="whatsnew" aria-label="New on ${esc(data.title || "Wallflower")}">
+        <button type="button" class="whatsnew-x" data-news-done aria-label="Close">×</button>
+        <div class="kicker">New on ${esc(data.title || "Wallflower")}</div>
+        <h2>Make it yours</h2>
+        <div class="whatsnew-grid">
+          <div>
+            <h3>Choose your newsrooms</h3>
+            <p>Add ${extra} more outlets, including center-right and international voices, or switch off any you don’t read.</p>
+            <button type="button" class="whatsnew-btn" data-open-picks>Choose newsrooms</button>
+          </div>
+          <div>
+            <h3>Follow your city</h3>
+            <p>Type your zip code to add local newsrooms from ${(data.cities || []).length} cities, plus the story they’re all covering.</p>
+            <button type="button" class="whatsnew-btn" data-open-picks="city">Add your city</button>
+          </div>
+        </div>
+        <p class="whatsnew-note">No account needed. Your choices stay on this device.</p>
+      </aside>`;
+  }
+
   // ------------------------------------------------------------ page
   function render(data) {
     DATA = data;
@@ -836,6 +865,7 @@
     const city = cityOf();
     const secs = (city ? ["Local"] : []).concat(data.sections.filter((sec) => data.sources.some((s) => s.section === sec && picked(s.id))));
     app.innerHTML = `
+      ${renderNews(data)}
       <section id="today" class="sec">
         ${sectionHead("01", "Trending today", "What everyone is covering")}
         ${renderTrending(trendingFor(data))}
@@ -932,12 +962,18 @@
     if (!e.target.closest("[data-open-picks]") || !DATA) return;
     e.preventDefault();
     openPicks();
+    if (e.target.closest("[data-open-picks=city]")) $("#picks .city-zip")?.focus();
   });
   app.addEventListener("click", async (e) => {
     const sm = e.target.closest("[data-show-more]");
     if (sm) {
       sm.previousElementSibling.classList.add("expanded");
       sm.remove();
+      return;
+    }
+    if (e.target.closest("[data-news-done]")) {
+      try { localStorage.setItem(NEWS_KEY, "1"); } catch { /* private mode */ }
+      $("#whatsnew")?.remove();
       return;
     }
     if (e.target.closest("[data-howto-done]")) {
