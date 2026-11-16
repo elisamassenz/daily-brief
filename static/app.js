@@ -724,7 +724,7 @@
       <article class="story card local-story">
         <div class="card-top ${s.image ? "" : "no-thumb"}">
           <div>
-            <div class="eyebrow"><span class="acc">Top local story</span> · ${s.pub_count} newsrooms</div>
+            <div class="eyebrow"><span class="acc">Top local story</span><span class="eb-count"><span class="eb-dot">· </span>${s.pub_count} newsrooms</span></div>
             <h3><a class="hl" ${ext(leadLink(s))}>${esc(s.headline)}</a></h3>
             ${credit(s)}
           </div>

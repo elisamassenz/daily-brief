@@ -730,3 +730,8 @@ a:hover .img-wrap img { transform: scale(1.03); }
   .whatsnew-item { grid-column: 1 / -1; justify-content: space-between; padding-right: 10px; }
 }
 @media (max-width: 620px) { .whatsnew { margin-top: 40px; } .whatsnew-item p { font-size: 14px; } }
+.local-head .picks-link { white-space: nowrap; }
+@media (max-width: 620px) { .sub-head.local-head { flex-direction: column; align-items: flex-start; gap: 6px; } }
+.local-story .eyebrow { flex-wrap: wrap; }
+.local-story .eyebrow > span { white-space: nowrap; }
+@media (max-width: 620px) { .local-story .eyebrow { flex-direction: column; gap: 2px; } .local-story .eb-dot { display: none; } }
