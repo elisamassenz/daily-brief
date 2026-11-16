@@ -735,3 +735,6 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .local-story .eyebrow { flex-wrap: wrap; }
 .local-story .eyebrow > span { white-space: nowrap; }
 @media (max-width: 620px) { .local-story .eyebrow { flex-direction: column; gap: 2px; } .local-story .eb-dot { display: none; } }
+.city-list { margin-top: 10px; }
+.city-list .pick { cursor: default; }
+.city-go { display: inline; font-size: inherit; color: var(--accent); }

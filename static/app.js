@@ -131,6 +131,15 @@
     CITY = localStorage.getItem(CITY_KEY) || null;
   } catch { /* private mode: no city */ }
   let cityNote = "";
+  // local newsrooms the reader switched off (all on by default)
+  const LOCAL_OFF_KEY = "wallflower.local-off";
+  let LOCAL_OFF = [];
+  try { LOCAL_OFF = (localStorage.getItem(LOCAL_OFF_KEY) || "").split(",").filter(Boolean); } catch { /* private mode */ }
+  const localOn = (id) => !LOCAL_OFF.includes(id);
+  function toggleLocal(id) {
+    LOCAL_OFF = localOn(id) ? LOCAL_OFF.concat(id) : LOCAL_OFF.filter((x) => x !== id);
+    try { LOCAL_OFF.length ? localStorage.setItem(LOCAL_OFF_KEY, LOCAL_OFF.join(",")) : localStorage.removeItem(LOCAL_OFF_KEY); } catch { /* this visit only */ }
+  }
   const cityOf = () => (DATA?.cities || []).find((c) => c.id === CITY) || null;
   function saveCity(id) {
     CITY = id || null;
@@ -180,8 +189,17 @@
           </select>
         </div>
         <p class="city-note">${cityNote || (cityOf()
-          ? `Front pages now start with ${esc(cityOf().name)}’s local newsrooms.`
-          : `Adds your city’s newsrooms to Front pages. ${DATA.cities.length} cities so far.`)}</p>` : ""}
+          ? `Its newsrooms (below) now open your Front pages, under Local.`
+          : `Adds your city’s newsrooms to Front pages. ${DATA.cities.length} cities so far.`)}${cityOf()
+          ? ` <button type="button" class="picks-link city-go" data-city-go>See your local news</button>` : ""}</p>
+        ${cityOf() ? `
+        <h3 class="picks-sec">${esc(cityOf().name)} newsrooms</h3>
+        <div class="picks-list">${DATA.sources.filter((x) => x.city === CITY).map((x) => `
+          <button type="button" class="pick ${localOn(x.id) ? "on" : ""}" data-local-pick="${esc(x.id)}" aria-pressed="${localOn(x.id)}">
+            ${logo(x.id)}<span class="pn">${esc(x.name)}</span>
+            <svg class="pick-check" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
+          </button>`).join("")}
+        </div>` : ""}` : ""}
       ${DATA.sections.map((sec) => `
         <h3 class="picks-sec">${esc(sec)}</h3>
         <div class="picks-list">${DATA.sources.filter((x) => x.section === sec).map((x) => `
@@ -234,6 +252,7 @@
         if (!e.target.matches(".city-select")) return;
         cityNote = "";
         saveCity(e.target.value);
+        dlg.dataset.cityGo = CITY ? "1" : "";
         rerender();
       });
       dlg.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.matches(".city-zip")) e.preventDefault(); });
@@ -242,13 +261,26 @@
         const zip = e.target.value.replace(/\D/g, "");
         if (zip.length < 5) return;
         const c = cityForZip(zip);
-        if (c) { saveCity(c.id); cityNote = `${zip} is in our ${c.name} edition. Front pages now start with its local newsrooms.`; }
+        if (c) { saveCity(c.id); cityNote = `${zip} is in our ${c.name} edition. Its newsrooms (below) now open your Front pages, under Local.`; dlg.dataset.cityGo = "1"; }
         else cityNote = `We don’t cover ${zip} yet. Pick the nearest city below${DATA.report_url ? `, or <a href="${esc(DATA.report_url)}" target="_blank" rel="noopener">ask for yours</a>` : ""}.`;
         rerender();
         if (!c) dlg.querySelector(".city-zip").value = zip;
       });
+      dlg.addEventListener("click", (e) => {
+        if (e.target.closest("[data-city-go]")) { dlg.dataset.cityGo = "1"; dlg.close(); return; }
+        const lp = e.target.closest("[data-local-pick]");
+        if (lp) { toggleLocal(lp.dataset.localPick); rerender(); }
+      });
       dlg.addEventListener("close", () => {
-        if (dlg.dataset.changed) { delete dlg.dataset.changed; const y = window.scrollY; render(DATA); window.scrollTo(0, y); }
+        const go = dlg.dataset.cityGo && cityOf();
+        delete dlg.dataset.cityGo;
+        if (dlg.dataset.changed || go) { delete dlg.dataset.changed; const y = window.scrollY; render(DATA); window.scrollTo(0, y); }
+        if (go) {   // a city was just picked: open its Local group and take the reader there
+          FRONT = "Local";
+          try { localStorage.setItem(FRONT_KEY, FRONT); } catch { /* private mode */ }
+          applyFront();
+          setTimeout(() => $('[data-sec="Local"]')?.scrollIntoView({ block: "start" }), 80);   // after the dialog hands focus back
+        }
       });
     }
     dlg.innerHTML = renderPicks();
@@ -736,7 +768,7 @@
       <div class="pub-section" data-sec="Local">
         <div class="sub-head local-head"><h3>${esc(city.name)}</h3><button type="button" class="picks-link" data-open-picks>Change city</button></div>
         ${story}
-        <div class="pubs">${DATA.sources.filter((x) => x.city === city.id).map((x) => renderPub(x, DATA.headlines[x.id])).join("")}</div>
+        <div class="pubs">${DATA.sources.filter((x) => x.city === city.id && localOn(x.id)).map((x) => renderPub(x, DATA.headlines[x.id])).join("")}</div>
       </div>`;
   }
 
