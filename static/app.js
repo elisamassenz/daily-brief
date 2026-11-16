@@ -832,22 +832,12 @@
     const extra = data.sources.filter((x) => x.optional && !x.city).length;
     return `
       <aside id="whatsnew" class="whatsnew" aria-label="New on ${esc(data.title || "Wallflower")}">
-        <button type="button" class="whatsnew-x" data-news-done aria-label="Close">×</button>
         <div class="kicker">New on ${esc(data.title || "Wallflower")}</div>
-        <h2>Make it yours</h2>
-        <div class="whatsnew-grid">
-          <div>
-            <h3>Choose your newsrooms</h3>
-            <p>Add ${extra} more outlets, including center-right and international voices, or switch off any you don’t read.</p>
-            <button type="button" class="whatsnew-btn" data-open-picks>Choose newsrooms</button>
-          </div>
-          <div>
-            <h3>Follow your city</h3>
-            <p>Type your zip code to add local newsrooms from ${(data.cities || []).length} cities, plus the story they’re all covering.</p>
-            <button type="button" class="whatsnew-btn" data-open-picks="city">Add your city</button>
-          </div>
-        </div>
-        <p class="whatsnew-note">No account needed. Your choices stay on this device.</p>
+        <div class="whatsnew-item"><p>Add ${extra} more outlets or switch off any you don’t need.</p>
+          <button type="button" class="whatsnew-btn" data-open-picks>Choose newsrooms</button></div>
+        <div class="whatsnew-item"><p>Type your zip code to add local newsrooms from ${(data.cities || []).length} cities.</p>
+          <button type="button" class="whatsnew-btn" data-open-picks="city">Follow your city</button></div>
+        <button type="button" class="whatsnew-x" data-news-done aria-label="Close">×</button>
       </aside>`;
   }
 
@@ -865,11 +855,11 @@
     const city = cityOf();
     const secs = (city ? ["Local"] : []).concat(data.sections.filter((sec) => data.sources.some((s) => s.section === sec && picked(s.id))));
     app.innerHTML = `
-      ${renderNews(data)}
       <section id="today" class="sec">
         ${sectionHead("01", "Trending today", "What everyone is covering")}
         ${renderTrending(trendingFor(data))}
       </section>
+      ${renderNews(data)}
       ${installed() ? "" : `
       <section id="howto" class="sec">
         ${sectionHead("", "How to", `Add ${esc(data.title || "it")} to your Home Screen`)}
