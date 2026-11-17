@@ -180,7 +180,18 @@
     "bond,robert,james,pattinson"
    ],
    "blocked": true
+  },
+  "2026-11-17-am": {
+   "id": null,
+   "keys": [
+    "bridge,ukraine,strike,attacks",
+    "bond,james,robert,pattinson"
+   ],
+   "blocked": true
   }
  },
- "paused_until": "2026-11-17T11:00:00-05:00"
+ "paused_until": "2026-11-18T11:00:00-05:00",
+ "reels": {
+  "2026-11-17-am": "17961682119016245"
+ }
 }
