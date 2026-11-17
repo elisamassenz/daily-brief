@@ -68,6 +68,15 @@ jobs:
 
       - id: deploy
         uses: actions/deploy-pages@v4
+        continue-on-error: true   # GitHub sometimes can't find the just-uploaded artifact for a moment: retry once below
+
+      - name: Retry the deploy after a short wait
+        if: steps.deploy.outcome == 'failure'
+        run: sleep 30
+
+      - id: deploy2
+        if: steps.deploy.outcome == 'failure'
+        uses: actions/deploy-pages@v4
 
       - name: Post to Instagram
         if: hashFiles('.ig-pending.json') != ''
