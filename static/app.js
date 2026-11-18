@@ -822,7 +822,7 @@
       <div class="platform"><p class="platform-logo" role="img" aria-label="${name}" title="${name}">${LOGO[logo]}</p><ol class="steps">${steps}</ol>${note ? `<p class="platform-note">${note}</p>` : ""}</div>`;
     return `<div class="howto-card howto-install">
       ${platform("iPhone · Safari", "apple",
-        step("pagemenu", "Tap the <b>menu icon</b> left of the web address at the bottom of Safari, then <b>Share</b>")
+        step("share", "Tap <b>Share</b>. On newer iPhones, it’s inside the <b>menu icon</b> left of the web address")
         + step("plus", "Choose <b>Add to Home Screen</b> (under <b>View More</b> if it’s not there), then <b>Add</b>"),
         "Opened this from Instagram? Tap <b>•••</b> at the top right and choose <b>Open in external browser</b> first.")}
       ${platform("Android · Chrome", "chrome",
