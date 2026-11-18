@@ -796,6 +796,7 @@
   const ICON = {
     share: '<svg viewBox="0 0 24 24"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5"/><path d="M8 11H6a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-2"/></svg>',
     plus: '<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/></svg>',
+    pagemenu: '<svg viewBox="0 0 24 24"><rect x="5" y="4" width="6" height="5" rx="1.2"/><path d="M5 13.5h14M5 17.5h9"/></svg>',
     dotsh: '<svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg>',
     dots: '<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="19" r="1.4"/></svg>',
     phone: '<svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg>',
@@ -821,7 +822,7 @@
       <div class="platform"><p class="platform-logo" role="img" aria-label="${name}" title="${name}">${LOGO[logo]}</p><ol class="steps">${steps}</ol>${note ? `<p class="platform-note">${note}</p>` : ""}</div>`;
     return `<div class="howto-card howto-install">
       ${platform("iPhone · Safari", "apple",
-        step("dotsh", "Tap <b>•••</b> at the bottom right of Safari, then <b>Share</b>")
+        step("pagemenu", "Tap the <b>menu icon</b> left of the web address at the bottom of Safari, then <b>Share</b>")
         + step("plus", "Choose <b>Add to Home Screen</b> (under <b>View More</b> if it’s not there), then <b>Add</b>"),
         "Opened this from Instagram? Tap <b>•••</b> at the top right and choose <b>Open in external browser</b> first.")}
       ${platform("Android · Chrome", "chrome",
