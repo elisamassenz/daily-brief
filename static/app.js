@@ -796,6 +796,7 @@
   const ICON = {
     share: '<svg viewBox="0 0 24 24"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5"/><path d="M8 11H6a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-2"/></svg>',
     plus: '<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/></svg>',
+    dotsh: '<svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg>',
     dots: '<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="19" r="1.4"/></svg>',
     phone: '<svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg>',
     copy: '<svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>',
@@ -816,11 +817,13 @@
       apple: '<svg viewBox="0 0 24 24"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg>',
       chrome: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10.2"/><circle cx="12" cy="12" r="4"/><path d="M12 8h9.2M8.54 14 3.94 6.03M15.46 14l-4.6 7.97"/></svg>',
     };
-    const platform = (name, logo, steps) => `
-      <div class="platform"><p class="platform-logo" role="img" aria-label="${name}" title="${name}">${LOGO[logo]}</p><ol class="steps">${steps}</ol></div>`;
+    const platform = (name, logo, steps, note = "") => `
+      <div class="platform"><p class="platform-logo" role="img" aria-label="${name}" title="${name}">${LOGO[logo]}</p><ol class="steps">${steps}</ol>${note ? `<p class="platform-note">${note}</p>` : ""}</div>`;
     return `<div class="howto-card howto-install">
       ${platform("iPhone · Safari", "apple",
-        step("share", "Tap <b>Share</b> at the bottom of Safari") + step("plus", "Choose <b>Add to Home Screen</b>, then <b>Add</b>"))}
+        step("dotsh", "Tap <b>•••</b> at the bottom right of Safari, then <b>Share</b>")
+        + step("plus", "Choose <b>Add to Home Screen</b> (under <b>View More</b> if it’s not there), then <b>Add</b>"),
+        "Opened this from Instagram? Tap <b>•••</b> at the top right and choose <b>Open in external browser</b> first.")}
       ${platform("Android · Chrome", "chrome",
         step("dots", "Tap the <b>⋮</b> menu at the top right") + step("plus", "Choose <b>Add to Home screen</b>"))}
     </div>`;

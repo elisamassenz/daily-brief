@@ -739,3 +739,4 @@ a:hover .img-wrap img { transform: scale(1.03); }
 .city-list .pick { cursor: default; }
 .city-go { display: inline; font-size: inherit; color: var(--accent); }
 @media (max-width: 620px) { .picks-open { margin: 34px 0 0; position: relative; z-index: 1; } #fronts .front-tabs { margin-top: 30px; } }   /* the button sits in the gap beside the flowers, above the tabs */
+.howto-card .platform-note { margin: 16px 0 0; font-size: 13px; line-height: 1.45; color: rgba(248, 245, 239, .85); }
