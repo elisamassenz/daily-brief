@@ -204,12 +204,21 @@
     "myanmar,rohingya,genocide,court"
    ],
    "blocked": true
+  },
+  "2026-11-20-am": {
+   "id": null,
+   "keys": [
+    "anthropic,ipo,stock,slides",
+    "russian,missile,ukraine,poland"
+   ],
+   "blocked": true
   }
  },
- "paused_until": "2026-11-20T11:00:00-05:00",
+ "paused_until": "2026-11-21T11:00:00-05:00",
  "reels": {
   "2026-11-17-am": "17961682119016245",
   "2026-11-18-am": "17903492400435197",
-  "2026-11-19-am": "18639181903057566"
+  "2026-11-19-am": "18639181903057566",
+  "2026-11-20-am": "17919471831522503"
  }
 }
