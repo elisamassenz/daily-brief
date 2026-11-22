@@ -220,9 +220,17 @@
     "cop31,climate,fossil,fuels"
    ],
    "blocked": true
+  },
+  "2026-11-22-week": {
+   "id": null,
+   "keys": [
+    "climate,cop31,talks,fossil",
+    "mexico,captured,cartel,isidro"
+   ],
+   "blocked": true
   }
  },
- "paused_until": "2026-11-22T11:00:00-05:00",
+ "paused_until": "2026-11-23T11:00:00-05:00",
  "reels": {
   "2026-11-17-am": "17961682119016245",
   "2026-11-18-am": "17903492400435197",
